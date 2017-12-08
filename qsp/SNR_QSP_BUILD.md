@@ -1,0 +1,106 @@
+Building Yocto Linux Kernel And Filesystem For QSP Server
+Introduction
+This document describes the steps to build a Yocto based Linux kernel and filesystem for the QSP  model.
+This build will use the ‘morty’ Yocto release for a generic x86_64 target.  The build will use standard Yocto repositories with a custom patch for QSP specific files and configuration. The kernel and filesystem will be generated and stored in a compressed hard disk image which can be attached to the QSP model in the Intel ASE  simulation environment.
+At time of release, the Linux kernel version in the build is 4.8.25.  
+
+Pre-requisites
+To build the kernel and filesystem, the user requires the following:
+•  PC running Linux with access to internet 
+o  Author’s machine runs Ubuntu 16.04
+o  60GB of hard disk space is recommended for filesystem build
+
+•  An installation of the  Advanced Simulation Environment (ASE)   for SNR. 
+o  This contains a utility called ‘craff’ which is used to compress the hard disk image 
+
+•  The following files are required to patch the Yocto build
+o  files/bblayers.conf
+o  files/local.conf
+o  files/qsp_morty_1_6.patch
+
+
+Steps For First Build Of  QSP Linux
+This section gives detailed instructions for building Yocto kernel and filesystem for the QSP model. These steps will produce a disk image that can be connected to the simulated SATA drive of the QSP model  (by setting the pch.sata0.disk_image  simulation parameter in ASE)
+1) Clone the Yocto Project repo, then select the ‘morty’ branch with following commands:
+•  mkdir yocto
+•  export YOCTO=<path to yocto directory>
+•  cd $YOCTO
+•  git clone http://git.yoctoproject.org/git/poky
+•  cd poky
+•  git checkout –b morty  origin/morty
+2) Clone the OpenEmbedded repository into a directory beside the poky directory and select the ‘morty’ branch with following commands:
+•  cd  $YOCTO
+•  git clone git://git.openembedded.org/meta-openembedded
+•  cd meta-openembedded
+•  git checkout –b morty origin/morty
+
+3) Create symlinks to meta-filesystem and meta-oe layers in poky directory
+•  cd $YOCTO/poky
+•  ln –s  ../meta-openembedded/meta-filesystems/  .
+•  ln –s  ../meta-openembedded/meta-oe/   .
+•  ln –s ../meta-openembedded/meta-networking/  .
+•  ln -s ../meta-openembedded/meta-python/  .
+
+4) Add QSP  custom patch. This adds source files for the ‘simicsfs’ driver, which allows mounting the host machine’s  filesystem during simulation, and some additional configuration files
+•  cd $YOCTO/poky
+•  patch -Np1 < qsp_morty_1_6.patch
+
+5) Prepare the host machine environment for building Yocto Linux using following command:
+•  cd $YOCTO
+•  source poky/oe-init-build-env  qsp_build  
+This will create a directory $YOCTO/qsp_build  which will contain the build
+
+6)  Update the qsp_build/conf/local.conf   and qsp_build/conf/bblayers.conf files  with supplied versions
+•   cd $YOCTO/qsp_build
+•   cp  <supplied local.conf>  conf/local.conf
+•   cp  <supplied bblayers.conf>  conf/bblayers.conf
+
+7) Build the image
+•  cd $YOCTO/qsp_build
+•  bitbake  core-image-full-cmdline
+This command will take some time to complete. On the author’s system, the initial build takes up to  30 minutes. This initial build downloads many packages from Yocto and Openembedded repos, which accounts for a large percentage of the time. Subsequent builds can be much faster.
+
+8) Add  Linux driver for  DEC21140 PCI  Ethernet card (the ethernet card used in the QSP model to provide ethernet connectivity)
+•  cd $YOCTO/qsp_build
+•  bitbake –c cleansstate  linux-yocto
+•  bitbake –c menuconfig linux-yocto
+
+When menconfig opens, select  Device Drivers -> Network Device Support -> Ethernet Driver Support -> DEC – Tulip DECchip Tulip (dc2114x) PCI support
+Save the config and exit menuconfig
+
+9) Rebuild the image with:
+•  bitbake core-image-full-cmdline  
+
+10) Create a hard disk image
+To create the final hard disk image, some native tools must be installed using following command:
+•  bitbake   parted-native   dosfstools-native   mtools-native
+
+Need to add the path to ‘parted’ app to your PATH. Typically, this app is installed in  /sbin  or /usr/sbin.  
+
+•    export PATH=$PATH:/sbin:/usr/sbin
+
+Then build the hard disk image with wic tool:
+•    wic create directdisk_qsp -e core-image-full-cmdline -o wic/directdisk
+
+11) Compress the disk image with  the craff tool (supplied with ASE).
+•   cd $YOCTO/qsp_build/wic/directdisk/build
+•   <path to ASE installation>simics/simics-5.0.119/bin/craff  -o  yocto-linux-4.8-pcbios.craff   directdisk_qsp-<data-time>-sda.direct
+
+
+
+
+
+Subsequent Builds
+For subsequent builds, the following reduced set of commands can be used:
+•   cd $YOCTO
+•   source poky/oe-init-build-env  qsp_build  
+•   bitbake core-image-full-cmdline
+•   wic create directdisk_qsp -e core-image-full-cmdline -o wic/directdisk
+•   cd $YOCTO/qsp_build/wic/directdisk/build
+•   <path to ASE installation>simics/simics-5.0.119/bin/craff  -o  yocto-linux-4.8-pcbios.craff   directdisk_qsp-<data-time>-sda.direct
+
+Note, if you make changes to packages/files within to various Yocto repos, you may need to clean and rebuild the affected packages before executing  bitbake core-image-full-cmdline to ensure bitbake  acknowledges the changes. Typical commands to use would be :
+•     bitbake –c cleanall  <package name>
+•     bitbake –c compile <package name>
+•     bitbake core-image-full-cmdline
+
