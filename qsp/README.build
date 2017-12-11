@@ -1,10 +1,14 @@
 Building Yocto Linux Kernel And Filesystem For QSP Server
+==========================================================
+
 Introduction
+------------
 This document describes the steps to build a Yocto based Linux kernel and filesystem for the QSP  model.
 This build will use the ‘morty’ Yocto release for a generic x86_64 target.  The build will use standard Yocto repositories with a custom patch for QSP specific files and configuration. The kernel and filesystem will be generated and stored in a compressed hard disk image which can be attached to the QSP model in the Intel ASE  simulation environment.
 At time of release, the Linux kernel version in the build is 4.8.25.  
 
 Pre-requisites
+--------------
 To build the kernel and filesystem, the user requires the following:
 •  PC running Linux with access to internet 
 o  Author’s machine runs Ubuntu 16.04
@@ -20,6 +24,7 @@ o  files/qsp_morty_1_6.patch
 
 
 Steps For First Build Of  QSP Linux
+------------------------------------
 This section gives detailed instructions for building Yocto kernel and filesystem for the QSP model. These steps will produce a disk image that can be connected to the simulated SATA drive of the QSP model  (by setting the pch.sata0.disk_image  simulation parameter in ASE)
 1) Clone the Yocto Project repo, then select the ‘morty’ branch with following commands:
 •  mkdir yocto
@@ -28,6 +33,7 @@ This section gives detailed instructions for building Yocto kernel and filesyste
 •  git clone http://git.yoctoproject.org/git/poky
 •  cd poky
 •  git checkout –b morty  origin/morty
+
 2) Clone the OpenEmbedded repository into a directory beside the poky directory and select the ‘morty’ branch with following commands:
 •  cd  $YOCTO
 •  git clone git://git.openembedded.org/meta-openembedded
@@ -88,9 +94,8 @@ Then build the hard disk image with wic tool:
 
 
 
-
-
 Subsequent Builds
+-----------------
 For subsequent builds, the following reduced set of commands can be used:
 •   cd $YOCTO
 •   source poky/oe-init-build-env  qsp_build  
