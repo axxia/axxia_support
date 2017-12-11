@@ -7,6 +7,6 @@ This repository contains examples for specific Axxia features.
 
 # Features
 
-## SNR QSP Demo
+## SNR QSP Linux Build
 
-See qsp/README.build to build QSP Linux and update the SNR images.  See qsp/README.demo to setup the demo.
+See qsp/README.build to build a Yocto based Linux for QSP model.  
