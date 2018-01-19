@@ -1,0 +1,68 @@
+/*
+ * Axxia FIT complete image for U-Boot (Linux, Device Tree, and Ramdisk).
+ */
+
+/dts-v1/;
+
+/ {
+	description = DESCRIPTION;
+	#address-cells = <1>;
+
+	images {
+		kernel {
+			description = "Linux Kernel";
+			data = /incbin/("./vmlinux.bin.gz");
+			type = "kernel";
+			arch = "ARCH";
+			os = "linux";
+			compression = "gzip";
+			load = <LOAD>;
+			entry = <ENTRY>;
+			hash1 {
+				algo = "crc32";
+			};
+			hash2 {
+				algo = "sha1";
+			};
+		};
+
+		fdt {
+			description = "Flattened Device Tree blob";
+			data = /incbin/("./linux.dtb");
+			type = "flat_dt";
+			arch = "ARCH";
+			compression = "none";
+			hash1 {
+				algo = "crc32";
+			};
+			hash2 {
+				algo = "sha1";
+			};
+		};
+
+		ramdisk {
+			description = "Ramdisk Image";
+			data = /incbin/("./ramdisk.gz");
+			type = "ramdisk";
+			arch = "ARCH";
+			os = "linux";
+			compression = "gzip";
+			hash1 {
+				algo = "crc32";
+			};
+			hash2 {
+				algo = "sha1";
+			};
+		};
+	};
+
+	configurations {
+		default = "conf";
+		conf {
+			description = DESCRIPTION;
+			kernel = "kernel";
+			fdt = "fdt";
+			ramdisk = "ramdisk";
+		};
+	};
+};
