@@ -1,0 +1,73 @@
+=============================
+= CoreSight Tracing Example =
+=============================
+
+This example is for use on Waco with the Axxia Yocto root file system
+and tools.  Instructions to build Axxia Yocto are available.  See
+"Yocto Build Instructions" at the following.
+
+     https://github.com/axxia/axxia_yocto_linux_4.9/wiki
+
+This example also requires Linux 4.9 for Axxia, which can be found at
+the following.
+
+     https://github.com/axxia/axxia_yocto_linux_4.9.git
+
+Building Linux 4.9 for Axxia is describe in the wiki mentioned above.
+See "Overview", and "Non Yocto Build Instructions".  Get the
+axxia_1.12 or axxia_rt_1.12 tag as a minimum.
+
+============
+= Building =
+============
+
+First, set up the Yocto tool environment.
+
+Next, clone Linux 4.9 as described above and build.
+
+Then clone the Axxia errata repository
+(https://github.com/axxia/meta-axxia.git) and in linux/coresight, do
+the following.
+
+$ git clone https://github.com/Linaro/OpenCSD.git
+$ cd OpenCSD
+$ git checkout -b local/v0.5.4 v0.5.4
+$ git am ../0001-Use-SYSROOT-when-cross-compiling.patch
+$ cd decoder/build/linux
+$ make LINUX64=1
+$ make LINUX64=1 DEBUG=1
+
+As for Linux, a few things need to be added that are not part of the
+usual flow.  So, back to the Linux source tree, and do the following.
+
+-1-
+Install modules locally; these will need to be copied to the target
+root file system.  The only important part of the module install is
+the ELF image of the kernel with symbols.  For example,
+
+$ make INSTALL_MOD_PATH=$(pwd)/target_modules modules_install
+
+-2-
+After building the kernel, build tools/perf as follows.
+
+$ cd tools/perf
+$ export CSTRACE_PATH=<the OpenCSD above>/decoder
+$ export CFLAGS="--sysroot $SYSROOT -I$SYSROOT/usr/include/python2.7 -lpython2.7"
+$ make EXTRA_CFLAGS="$CFLAGS"
+
+==========================
+= Installing and Tracing =
+==========================
+
+After booting the target to the Linux prompt, do the following.
+
+$ cp <Linux source tree>/tools/perf/perf /usr/bin/perf
+$ cp -R <Linux source tree>/target_modules/lib/modules/`uname -r` /lib/modules
+$ cp -R <Axxia errata clone>/linux/coresight/example .
+$ export LD_LIBRARY_PATH=<the OpenCSD above>/decoder/lib/linux-arm64/rel
+$ cd example
+$ ./run_test.sh
+
+The above should produce 'perf.data'.  To display the trace,
+
+$ perf script --vmlinux=/lib/modules/`uname -r`/build/vmlinux -f --ns -F pid,comm,sym,symoff,ip,cpu
