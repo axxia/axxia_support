@@ -11,9 +11,16 @@ NOTE: These build instructions are relevant to ASE releases from 'delivery 14' o
 Pre-requisites
 --------------
 To build the kernel and filesystem, the user requires the following:
+
 •  PC running Linux with access to internet o  Author’s machine runs Ubuntu 16.04o  60GB of hard disk space is recommended for filesystem build
+
 •  An installation of the  Advanced Simulation Environment (ASE)   for SNR. o  This contains a utility called ‘craff’ which is used to compress the hard disk image 
-•  The following files are required to patch the Yocto build. They can be found in the 'files' folder that accompanies this Readmeo  files/bblayers.confo  files/local.confo  files/qsp_morty_1_6.patch
+
+•  The following files are required to patch the Yocto build. They can be found in the 'files' folder that accompanies this Readme
+  •  files/delivery14/bblayers.conf  
+  •  files/delivery14/local.conf  
+  •  files/delivery14/qsp_morty_1_7_v2.patch
+
 
 Steps For First Build Of  QSP Linux
 ------------------------------------
