@@ -2,6 +2,7 @@
  ==========================================================
  
  
+ 
 Introduction
 ------------
 This document describes the steps to build a Yocto based Linux kernel and filesystem for the QSP  model.This build will use the ‘morty’ Yocto release for a generic x86_64 target.  The build will use standard Yocto repositories with a custom patch for QSP specific files and configuration. The kernel and filesystem will be generated and stored in a compressed hard disk image which can be attached to the QSP model in the Intel ASE  simulation environment.At time of release, the Linux kernel version in the build is 4.8.25.  
