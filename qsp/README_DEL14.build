@@ -40,39 +40,60 @@ This section gives detailed instructions for building Yocto kernel and filesyste
 •  ln –s ../meta-openembedded/meta-networking/  .
 •  ln -s ../meta-openembedded/meta-python/  .
 
+4) Install Simics meta layer 
+Copy Simics meta layer from an ASE installation  and unpack it into the poky directory:
+•	cd $YOCTO/poky
+•	tar xvf <ASE install directory>/simics/simics-qsp-x86-5.0.46/targets/qsp-x86/images/meta-simics-qsp.tar.bz2
 
-   
+Note: the exact simics-qsp-x86 folder name may be different in your setup , it can change between different ASE versions
+ 
+5) Install Simics Agent
+Copy Simics Agent source code from and ASE installation to Simics meta layer using the following commands:
+•	cd $YOCTO/poky
+•	cp <ASE install directory>/simics/simics-5.0.140/src/misc/simics-agent/* meta-simics-qsp/recipes-user/simics-agent/simics-agent-1.1
+
+Note: the exact simics-5  folder name may be different in your setup , it can change between different ASE versions
+
+6) Install SimicsFS with FUSE
+SimicsFS will allow the simulated QSP to access the filesystem on the host machine, allowing easy access to files or programs built on the host machine
+Copy SimicsFS with FUSE and Simics Magic Pipe library source code from and ASE installation using the following commands:
+•	cd $YOCTO/poky
+•	cp <ASE install directory>/simics/simics-5.0.140/src/misc/simicsfs-client/*  meta-simics-qsp/recipes-user/simicsfs-client/files
+•	 cp <ASE install directory>/simics/simics-5.0.140/src/misc/libmagicpipe/*  meta-simics-qsp/recipes-user/libmagicpipe/files
+
+Note: the exact simics-5  folder name may be different in your setup , it can change between different ASE versions
 
 
-
-4) Add QSP  custom patch. This adds source files for the ‘simicsfs’ driver, which allows mounting the host machine’s  filesystem during simulation, and some additional configuration files
+7) Add QSP  custom patch. This adds source files for the ‘simicsfs’ driver, which allows mounting the host machine’s  filesystem during simulation, and some additional configuration files
 •  cd $YOCTO/poky
-•  patch -Np1 < qsp_morty_1_6.patch
+•  patch -Np1 < qsp_morty_1_7_v2.patch
 
-5) Prepare the host machine environment for building Yocto Linux using following command:
+8) Prepare the host machine environment for building Yocto Linux using following command:
 •  cd $YOCTO
-•  source poky/oe-init-build-env  qsp_build  This will create a directory $YOCTO/qsp_build  which will contain the build
+•  source poky/oe-init-build-env  qsp_build  
 
-6)  Update the qsp_build/conf/local.conf   and qsp_build/conf/bblayers.conf files  with supplied versions
+This will create a directory $YOCTO/qsp_build  which will contain the build
+
+9)  Update the qsp_build/conf/local.conf   and qsp_build/conf/bblayers.conf files  with supplied versions
 •   cd $YOCTO/qsp_build
 •   cp  <supplied local.conf>  conf/local.conf
 •   cp  <supplied bblayers.conf>  conf/bblayers.conf
 
-7) Build the image
+10) Build the image
 •  cd $YOCTO/qsp_build
 •  bitbake  core-image-full-cmdline
 This command will take some time to complete. On the author’s system, the initial build takes up to  30 minutes. This initial build downloads many packages from Yocto and Openembedded repos, which accounts for a large percentage of the time. Subsequent builds can be much faster.
 
-8) Add  Linux driver for  DEC21140 PCI  Ethernet card (the ethernet card used in the QSP model to provide ethernet connectivity)
+11) Add  Linux driver for  DEC21140 PCI  Ethernet card (the ethernet card used in the QSP model to provide ethernet connectivity)
 •  cd $YOCTO/qsp_build
 •  bitbake –c cleansstate  linux-yocto
 •  bitbake –c menuconfig linux-yocto
 When menconfig opens, select  Device Drivers -> Network Device Support -> Ethernet Driver Support -> DEC – Tulip DECchip Tulip (dc2114x) PCI supportSave the config and exit menuconfig
 
-9) Rebuild the image with:
+12) Rebuild the image with:
 •  bitbake core-image-full-cmdline  
 
-10) Create a hard disk imageTo create the final hard disk image, some native tools must be installed using following command:
+13) Create a hard disk imageTo create the final hard disk image, some native tools must be installed using following command:
 •  bitbake   parted-native   dosfstools-native   mtools-native
 
 Need to add the path to ‘parted’ app to your PATH. Typically, this app is installed in  /sbin  or /usr/sbin.  
@@ -80,7 +101,7 @@ Need to add the path to ‘parted’ app to your PATH. Typically, this app is in
 Then build the hard disk image with wic tool:
 •    wic create directdisk_qsp -e core-image-full-cmdline -o wic/directdisk
 
-11) Compress the disk image with  the craff tool (supplied with ASE).
+14) Compress the disk image with  the craff tool (supplied with ASE).
 •   cd $YOCTO/qsp_build/wic/directdisk/build
 •   <path to ASE installation>simics/simics-5.0.119/bin/craff  -o  yocto-linux-4.8-pcbios.craff   directdisk_qsp-<data-time>-sda.direct
 
