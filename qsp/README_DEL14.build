@@ -13,13 +13,11 @@ Pre-requisites
 To build the kernel and filesystem, the user requires the following:
 
 •  PC running Linux with access to internet o  Author’s machine runs Ubuntu 16.04o  60GB of hard disk space is recommended for filesystem build
-
 •  An installation of the  Advanced Simulation Environment (ASE)   for SNR. o  This contains a utility called ‘craff’ which is used to compress the hard disk image 
-
 •  The following files are required to patch the Yocto build. They can be found in the 'files' folder that accompanies this Readme
-  •  files/delivery14/bblayers.conf  
-  •  files/delivery14/local.conf  
-  •  files/delivery14/qsp_morty_1_7_v2.patch
+  •  files/del14/bblayers.conf  
+  •  files/del14/local.conf  
+  •  files/del14/qsp_morty_1_7_v2.patch
 
 
 Steps For First Build Of  QSP Linux
@@ -122,6 +120,6 @@ For subsequent builds, the following reduced set of commands can be used:
 •   bitbake core-image-full-cmdline
 •   wic create directdisk_qsp -e core-image-full-cmdline -o wic/directdisk
 •   cd $YOCTO/qsp_build/wic/directdisk/build
-•   <path to ASE installation>simics/simics-5.0.119/bin/craff  -o  yocto-linux-4.8-pcbios.craff   directdisk_qsp-<data-time>-sda.direct
+•   <path to ASE installation>simics/simics-5.0.140/bin/craff  -o  yocto-linux-4.8-pcbios.craff   directdisk_qsp-<data-time>-sda.direct
 
 Note, if you make changes to packages/files within to various Yocto repos, you may need to clean and rebuild the affected packages before executing  bitbake core-image-full-cmdline to ensure bitbake  acknowledges the changes. Typical commands to use would be :•     bitbake –c cleanall  <package name>•     bitbake –c compile <package name>•     bitbake core-image-full-cmdline
