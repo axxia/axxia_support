@@ -21,9 +21,9 @@ o  60GB of hard disk space is recommended for filesystem build
 o  This contains a utility called ‘craff’ which is used to compress the hard disk image 
 
 •  The following files are required to patch the Yocto build. They can be found in the 'files' folder that accompanies this Readme
-o  files/bblayers.conf
-o  files/local.conf
-o  files/qsp_morty_1_6.patch
+o  files/del13/bblayers.conf
+o  files/del13/local.conf
+o  files/del13/qsp_morty_1_6.patch
 
 
 Steps For First Build Of  QSP Linux
