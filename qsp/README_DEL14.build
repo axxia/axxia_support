@@ -12,8 +12,11 @@ Pre-requisites
 --------------
 To build the kernel and filesystem, the user requires the following:
 
-•  PC running Linux with access to internet o  Author’s machine runs Ubuntu 16.04o  60GB of hard disk space is recommended for filesystem build
-•  An installation of the  Advanced Simulation Environment (ASE)   for SNR. o  This contains a utility called ‘craff’ which is used to compress the hard disk image 
+•  PC running Linux with access to internet 
+  • Author’s machine runs Ubuntu 16.04
+  • 60GB of hard disk space is recommended for filesystem build
+•  An installation of the  Advanced Simulation Environment (ASE) for SNR. 
+  • This contains a utility called ‘craff’ which is used to compress the hard disk image 
 •  The following files are required to patch the Yocto build. They can be found in the 'files' folder that accompanies this Readme
   •  files/del14/bblayers.conf  
   •  files/del14/local.conf  
@@ -22,7 +25,6 @@ To build the kernel and filesystem, the user requires the following:
 
 Steps For First Build Of  QSP Linux
 ------------------------------------
-
 This section gives detailed instructions for building Yocto kernel and filesystem for the QSP model. These steps will produce a disk image that can be connected to the simulated SATA drive of the QSP model  (by setting the pch.sata0.disk_image  simulation parameter in ASE)
 1) Clone the Yocto Project repo, then select the ‘morty’ branch with following commands:
 •  mkdir yocto
@@ -55,7 +57,7 @@ Note: the exact simics-qsp-x86 folder name may be different in your setup , it c
 5) Install Simics Agent
 Copy Simics Agent source code from and ASE installation to Simics meta layer using the following commands:
 •	cd $YOCTO/poky
-•	cp <ASE install directory>/simics/simics-5.0.140/src/misc/simics-agent/* meta-simics-qsp/recipes-user/simics-agent/simics-agent-1.1
+•	cp <ASE install directory>/simics/simics-5.0.140/src/misc/simics-agent/*  meta-simics-qsp/recipes-user/simics-agent/simics-agent-1.1
 
 Note: the exact simics-5  folder name may be different in your setup , it can change between different ASE versions
 
@@ -64,12 +66,12 @@ SimicsFS will allow the simulated QSP to access the filesystem on the host machi
 Copy SimicsFS with FUSE and Simics Magic Pipe library source code from and ASE installation using the following commands:
 •	cd $YOCTO/poky
 •	cp <ASE install directory>/simics/simics-5.0.140/src/misc/simicsfs-client/*  meta-simics-qsp/recipes-user/simicsfs-client/files
-•	 cp <ASE install directory>/simics/simics-5.0.140/src/misc/libmagicpipe/*  meta-simics-qsp/recipes-user/libmagicpipe/files
+•	cp <ASE install directory>/simics/simics-5.0.140/src/misc/libmagicpipe/*  meta-simics-qsp/recipes-user/libmagicpipe/files
 
 Note: the exact simics-5  folder name may be different in your setup , it can change between different ASE versions
 
 
-7) Add QSP  custom patch. This adds source files for the ‘simicsfs’ driver, which allows mounting the host machine’s  filesystem during simulation, and some additional configuration files
+7) Add QSP custom patch. This adds source files for the ‘simicsfs’ driver which allows mounting the host machine’s  filesystem during simulation, and some additional configuration files
 •  cd $YOCTO/poky
 •  patch -Np1 < qsp_morty_1_7_v2.patch
 
@@ -122,4 +124,7 @@ For subsequent builds, the following reduced set of commands can be used:
 •   cd $YOCTO/qsp_build/wic/directdisk/build
 •   <path to ASE installation>simics/simics-5.0.140/bin/craff  -o  yocto-linux-4.8-pcbios.craff   directdisk_qsp-<data-time>-sda.direct
 
-Note, if you make changes to packages/files within to various Yocto repos, you may need to clean and rebuild the affected packages before executing  bitbake core-image-full-cmdline to ensure bitbake  acknowledges the changes. Typical commands to use would be :•     bitbake –c cleanall  <package name>•     bitbake –c compile <package name>•     bitbake core-image-full-cmdline
+Note, if you make changes to packages/files within to various Yocto repos, you may need to clean and rebuild the affected packages before executing  bitbake core-image-full-cmdline to ensure bitbake  acknowledges the changes. Typical commands to use would be :
+•     bitbake –c cleanall  <package name>
+•     bitbake –c compile <package name>
+•     bitbake core-image-full-cmdline
