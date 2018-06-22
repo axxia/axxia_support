@@ -93,7 +93,7 @@ This command will take some time to complete. On the author’s system, the init
 •  cd $YOCTO/qsp_build
 •  bitbake –c cleansstate  linux-yocto
 •  bitbake –c menuconfig linux-yocto
-When menconfig opens, select  Device Drivers -> Network Device Support -> Ethernet Driver Support -> DEC – Tulip DECchip Tulip (dc2114x) PCI supportSave the config and exit menuconfig
+When menconfig opens, select  Device Drivers -> Network Device Support -> Ethernet Driver Support -> Digitial Equipment devices ->DEC Tulip devices –>DECchip Tulip (dc2114x) PCI supportSave the config and exit menuconfig
 
 12) Rebuild the image with:
 •  bitbake core-image-full-cmdline  
