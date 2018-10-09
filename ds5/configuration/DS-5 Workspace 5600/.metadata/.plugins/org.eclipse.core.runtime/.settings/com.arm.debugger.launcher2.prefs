@@ -1,0 +1,9 @@
+config_db_path=C%3A\\Program Files\\DS-5 v5.23.1\\sw\\eclipse\\dropins\\plugins\\com.arm.debug.configdatabase.data.community_5.23.1.20151215_184710;C%3A\\Program Files\\DS-5 v5.23.1\\sw\\debugger\\configdb;C%3A\\Users\\metemadi\\Documents\\DS-5 Workspace 5600\\AXM5600;
+config_db_path0_defaultid=com.arm.ds\:1
+config_db_path0_enabled=true
+config_db_path1_defaultid=com.arm.ds\:0
+config_db_path1_enabled=true
+config_db_path2_enabled=true
+config_db_path2_name=AXM5600
+eclipse.preferences.version=1
+enabled_config_db_path=C%3A\\Program Files\\DS-5 v5.23.1\\sw\\eclipse\\dropins\\plugins\\com.arm.debug.configdatabase.data.community_5.23.1.20151215_184710;C%3A\\Program Files\\DS-5 v5.23.1\\sw\\debugger\\configdb;C%3A\\Users\\metemadi\\Documents\\DS-5 Workspace 5600\\AXM5600;

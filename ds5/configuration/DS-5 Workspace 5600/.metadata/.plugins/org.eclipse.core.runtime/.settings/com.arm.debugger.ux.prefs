@@ -1,0 +1,3 @@
+ConnectionManager.savedConnections=<?xml version\="1.0" encoding\="UTF-8"?>\n<connections>\n\t<connection current\="yes" mode\="debug" type\="com.arm.debugger.launcher2">A57-0</connection>\n</connections>\n
+UXContextManager.savedContexts=<?xml version\="1.0" encoding\="UTF-8"?>\n<contexts>\n\t<context color\="255">Connection|13tkaxxb60\:qhs1mgx8saue|1463606233265|workspace\:\:A57-0|A57-0</context>\n</contexts>\n
+eclipse.preferences.version=1

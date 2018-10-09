@@ -1,0 +1,90 @@
+################################################################################
+#
+# axm56xx_bringup.ds
+#
+# DS-5 script to bring up a system without external host.
+#
+# Expects u-boot-spl.bin, u-boot-spl, u-boot.bin, and a binary parameter file
+# to be in your workspace.
+#
+# If you want to write the images to flash, u-boot-spl.img and
+# u-boot.img are requred as well.
+#
+# The target should be looping in one of the bootROM exception handler (the
+# address should be 0x80ffff000*).
+#
+# Requires an updated dstream probe to work; otherwise, copying large files
+# (like U-Boot) will fail.  Get, at a minimum, ARM-RVI-4.15.0-2-base.dstream.
+#
+################################################################################
+
+# Stop the core
+interrupt
+
+# Disable the watchdog timer.
+memory set_typed el3:0x80802200a8 (unsigned long long) 0
+
+# Load the SPL and run.
+restore "u-boot-spl.bin" binary el3:0x8031000000
+set var $aarch64::$core::$pc = 0x8031000000
+continue
+pause 2000
+
+interrupt
+
+# Load the SPL and run to verify_parameters()
+restore "u-boot-spl.bin" binary el3:0x8031000000
+loadfile "u-boot-spl"
+delete
+hbreak -p "parameters.c"::verify_parameters
+set var $aarch64::$core::$pc = 0x8031000000
+wait
+continue
+wait
+
+# Disable the watchdog timer.
+memory set_typed el3:0x80802200a8 (unsigned long long) 0
+
+# Write the parameters to memory.
+restore "parameters.bin" binary el3:0x803103f000
+
+# Run to verify_image().
+delete
+hbreak -p "spl.c"::verify_image
+wait
+c
+wait
+
+# Write U-Boot to system memory and continue.
+restore "u-boot.bin" binary el3:0
+set var $aarch64::$core::$pc = jtag_jump_to_monitor
+wait
+continue
+
+# To update flash using these images, run the following.
+#
+# ** Disable the Watchdog **
+# interrupt
+# memory set_typed el3:0x80802200a8 (unsigned long long) 0
+# continue
+#
+# ** SPL **
+# interrupt
+# restore "u-boot-spl.img" binary el2:0x4000000
+# continue
+# At the U-Boot prompt:
+# 'sf probe ; sf erase 0 40000 ; sf write 4000000 0 40000'
+#
+# ** Parameters **
+# interrupt
+# restore "parameters.bin" binary el2:0x4000000
+# continue
+# At the U-Boot prompt:
+# 'sf probe ; sf erase 80000 10000 ; sf write 4000000 80000 10000'
+#
+# ** U-Boot **
+# interrupt
+# restore "u-boot.img" binary el2:0x4000000
+# continue
+# At the U-Boot prompt:
+# 'sf probe ; sf erase 100000 200000 ; sf write 4000000 100000 200000'

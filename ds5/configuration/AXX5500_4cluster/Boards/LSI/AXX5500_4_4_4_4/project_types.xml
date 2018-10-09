@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--Copyright (C) 2009-2013 ARM Limited. All rights reserved.--><platform_data xmlns="http://www.arm.com/project_type" xmlns:peripheral="http://com.arm.targetconfigurationeditor" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" type="HARDWARE" xsi:schemaLocation="http://www.arm.com/project_type ../../../Schemas/platform_data-1.xsd">
+    <toolkit>lsi</toolkit>
+    <project_type_list>
+        <xi:include href="../../../Gdbserver/tcp_project_types.xml"/>
+        <project_type type="BARE_METAL">
+            <name language="en">Bare Metal Debug</name>
+            <description language="en">This allows a bare-metal debug connection.</description>
+            <execution_environment id="BARE_METAL">
+                <name language="en">Bare Metal Debug</name>
+                <description language="en">Connect to a platform using a DSTREAM/RVI</description>
+                <xi:include href="../../../Include/hardware_address.xml"/>
+                <param default="CDB://axx5500.rvc" id="config_file" type="string" visible="false"/>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_0_0 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_0_0" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>1a037920347bdf6cdd057ada193ed7c5bf4a47050f393a7f0b0f63393f003cac184653f9d61074b46a4750f6fe1840ec1a822760b8efa2071fd0197f0a214a58dcb553bf8ddd121b76b9fa3aa3e4dd76b44627898603683a99647e1d1e3cad267d1cc5540fa18112a935ec92575b29f0f1335f51f3d65e5c6a72d9a52eb1390d8cb0c7d4f9f0042a</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_0_1 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_0_1" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>f8e2901cef57daa153020caaafc1fb0185dc5cf82d818d867f4c763a622b8c679da28f3fd99d7237c98ee3634dfb73817b3431c237df0fc8fae4ee58f5a6f805cd1bef43a30624aae044cde397971ca775b97259d0f9d1350a36af1d19c020a694e12cc15b00e5766961e640a34e09ed391e58f08ca9104e24b91011eea1a44c199fec1852ae7cba</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_0_2 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_0_2" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>4ae2077349af5225b70f9937e91ac5ae85dc5cf82d818d867f4c763a622b8c675496e08b921e14a7990dcc653207e708428ec8dc74dbb23ba9356d64d077930f990dcc653207e708e66082dc6488fd42c409ec7467c73b710c48b298bb80c2b21a61231639a76d31722b8c033bf571ab5f0282e110bb1a004e2ff1f6beee57e55db115820d590fa3</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_0_3 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_0_3" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>9d30af19cb9d2b87103667ecaa0ed10bdf6cbd7f48954568114eefec7a03a426184653f9d61074b46a4750f6fe1840eccaf82c509ac5c8d41fd0197f0a214a58dcb553bf8ddd121b1da1074a92610e8602a1c38a6a285487e29ed38f6bd7cb5a52b93188f57b51b7eef66261bc16b1cac360119d53aa44fb972a3ea72d035f8f11fd361ce7fbe7c0</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_1_0 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_1_0" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_1.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>923033612faffacc76f9d892b91c9ba891d0d401a821c9ccb352661f1cb3bad28cce9a4a5b5dbf226152f3f38a0f1b55a768bf5b9f2f699c184653f9d61074b46a4750f6fe1840ececd8f64721c45f0190779b456599950708845016276439a694ecc7feff3006500dff72024f93deb066f4d1d35bf778f5d79d57fe967e719e1c9528eb60bcef7d</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_1_1 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_1_1" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_1.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>ff783706bfe36ce00fe7604d0d08360208edf98f73603b25ec3e0a8d10456732e4d1b87b840837c5990dcc653207e708428ec8dc74dbb23b080c13abbb1e0eaf6152f3f38a0f1b55471c0e510439e2c602a1c38a6a285487e29ed38f6bd7cb5aa3addf410ec15b8feef66261bc16b1ca19e77f1fb69261bac29ff2492fca712cc0c04618755eed0c</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_1_2 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_1_2" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_1.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>b802caa34f2b7cafcfdf7e78771aaa7836fc93970b59c0e5d9858a1110e778d759da578c777ab0543ec12253559768cce988539beefb88a11618ce50004099ad990dcc653207e7084d6c7de898b13ce04feb46a4bb25b3920a36af1d19c020a6fb2f752fee67d31d6961e640a34e09ed391e58f08ca9104ead8f4db57bd65d1d3b621d4b7efc0ca4</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_1_3 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_1_3" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_1.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>fc5b0ee3cf413b1d706c85d80e52d15985dc5cf82d818d867f4c763a622b8c677abee16e5667d101c98ee3634dfb73817b3431c237df0fc89e7e240a90355d996152f3f38a0f1b55dbdb597848f6fef10344a2d2e42a0ce80a36af1d19c020a66e00541c9f601f9d6961e640a34e09ed391e58f08ca9104ece244635be918e5deb767561ea03d434</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_2_0 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_2_0" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_2.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>9d3235746b1e57d798eeb7ccff0fb46908edf98f73603b25ec3e0a8d1045673237052c6e079790886152f3f38a0f1b55ed3b12ffc29d8ef83d4db149f8be47a28d34e8a506da523e0b52eb8f3e303976b44627898603683a99647e1d1e3cad26a5431e1be84f242aa935ec92575b29f034211ac7c78bd325d79d57fe967e719e2dc1b28ff7a49f02</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_2_1 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_2_1" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_2.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>081d79375f58deab5cb97997d91650ec72b67f25b37a7938ddbc68ceb6b15051e996e5d0fb10cec13d4db149f8be47a28d34e8a506da523e2db7cc06c33f22671fd0197f0a214a58dcb553bf8ddd121baea6631928db3f3490779b456599950784f0f854bbb103d3b2bd275d2645a32e0dff72024f93deb0653fd6a2877e96a9d79d57fe967e719e6933a3f20b6e9d0c</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_2_2 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_2_2" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_2.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>e521ce72b63019abf773b9ee465a931685dc5cf82d818d867f4c763a622b8c67ba3f28259a32258ac98ee3634dfb73817b3431c237df0fc8e8e21065b444c1efcd1bef43a30624aae0ef649f2b7e9b9ac409ec7467c73b710c48b298bb80c2b20ad3c566e24341c5722b8c033bf571ab5f0282e110bb1a00014d204bfdc74e11fbdefd0a9bbab1ef</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_2_3 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_2_3" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_2.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>b94ab0674cf896ebdc8a86721bd1f7da36fc93970b59c0e5d9858a1110e778d7abfa0c6a7abfdad23ec12253559768cce988539beefb88a13281e7be412c21193ec12253559768cce988539beefb88a168569d6bf60e144d01b88ad0c56c5acaf2747fa17ad2b61f734e0d7cc5e8044ce20b6e7633a21f9d7759b44b8c671149d5be014160401c99277dbb46dd2ea7e0</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_3_0 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_3_0" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_3.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>02da049df8fbb7104e30f0cc95daf7af85dc5cf82d818d867f4c763a622b8c67a22936e8463e65b7cd1bef43a30624aa83b8e686323f47e437052c6e079790886152f3f38a0f1b552083c03d179ac7b4b44627898603683a99647e1d1e3cad26ad0ff3010b53b920a935ec92575b29f09c6aace67df4da91002908cace3efc92dafaf2c5ecf5ab87</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_3_1 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_3_1" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_3.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>e1a693903876bf435893809d691ea76885dc5cf82d818d867f4c763a622b8c67a69cc563baf391161fd0197f0a214a58dcb553bf8ddd121b78b4e14729053be4c98ee3634dfb73817b3431c237df0fc890872221c26bd80301b88ad0c56c5acacf1036ea71a71b573ff9a708cac890ede20b6e7633a21f9d29f5833e6a47c1b5d79d57fe967e719e2a90d09b39270479</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_3_2 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_3_2" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_3.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>1080e6ff76c613f6feed6d7b05b6526085dc5cf82d818d867f4c763a622b8c67ae2c003bb548d3ec3ec12253559768cce988539beefb88a14e0672efb3ad72e8cd1bef43a30624aab567e97528cca3ea61cbea8e041397cc0a36af1d19c020a61cea4081320fbff56961e640a34e09ed391e58f08ca9104ec6b08e588325167c6fd14b4d81cce9af</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_3_3 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_3_3" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_3.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>e8c9ac1f376a08132599bc282eb3955c08edf98f73603b25ec3e0a8d10456732dde77374e348e81c990dcc653207e7082a30473e1c31af02417e11e1db95621f6152f3f38a0f1b5565fe8a59376992424feb46a4bb25b3920a36af1d19c020a6480f112a57fcf5876961e640a34e09ed391e58f08ca9104e8d1830a4cfbb86f334ab06fb8e5d11cd</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 Cluster 0 SMP via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_0" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>e8d1e9cf7d82537eb81accab5062539136fc93970b59c0e5d9858a1110e778d7b608bc2a629971c5990dcc653207e708428ec8dc74dbb23b69bccf7e0af038b2cd1bef43a30624aa896e3f3c71634b1cdb086a1a4f454644474a3148c99f8f8c2f866c96aa1ce243798069dd42dfcebc8b0c3f5a2e1aecd20dff72024f93deb0fa43f894b6eb0ad5d5be014160401c99177f9487452b2d45</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 Cluster 1 SMP via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_1" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_1.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>d5d99cf5eda9dc0829a0e1594fdbfed108edf98f73603b25ec3e0a8d10456732b119707507f0af0dcd1bef43a30624aa49f2a1e555aa66483d48089d6ad532566152f3f38a0f1b552761a536a80ec95459f1ffd4d05100b2474a3148c99f8f8c2f866c96aa1ce243ab15446297d51c378b0c3f5a2e1aecd20dff72024f93deb01ebfcc4e3f2d56bfd79d57fe967e719ebcf7c03f70e30f9a</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 Cluster 2 SMP via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_2" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_2.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>6a13032c1bc0036a647cbcaae7ac4a7091d0d401a821c9cc8429c80d78caf5c60616adf08e5460d2990dcc653207e7083e21f1782229315f2396408b030247ef990dcc653207e708428ec8dc74dbb23b90cb4cef22460c9e01b88ad0c56c5aca118991f82ee2d643d9af9a5fbf7eb0b988feaafbc158821e343b86548a6391f29d66ac7e3becb9541c90dab937117825</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 Cluster 3 SMP via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_3" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_3.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>498d463ad8723d24fdfb5ed5787e315df506b3507deee38aae617e5739219eb61fd0197f0a214a58dcb553bf8ddd121b0f780934ce06f60a184653f9d61074b46a4750f6fe1840ece08e0de6dd085f1130f89306c7af350ae0cdaa3e4652a3b2990da2b857fd9a20c400769de27f60d4eef66261bc16b1cafee00f1712872299753eb3b4bcb3d1559af793288e49de05</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 All Clusters SMP via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_all" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>ada5503605dc4a64fdfb5ed5787e315df506b3507deee38a93809b4ed4b468351fd0197f0a214a58dcb553bf8ddd121b495c757d20dbbc4c990dcc653207e7084d6c7de898b13ce097466189719ed76f01b88ad0c56c5acaf09a5d90af93a4b543e3b9330a3baac2acf7d12a5a3bcede722b8c033bf571ab5f0282e110bb1a00f836a82f560ac067d6c6d22c15625a7c</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 All Clusters SMP with System STM via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_all" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="ETB_sys" id="dtsl_tracesource" type="string" visible="false"/>
+                    <param default="STM_sys" id="eventviewer_tracesource" type="string" visible="false"/>
+                    <features>1a54ef185d4a44cc0f83cd4a0b32bb7e08edf98f73603b25ec3e0a8d10456732efded9d498e8ba4d990dcc653207e7084d6c7de898b13ce0ccdeeaf1c67415adcd1bef43a30624aa114e33ac3cb97d0c02a1c38a6a285487e29ed38f6bd7cb5a95be8e478b9c1a34552a1f02f881670f303c5c30fee82bef496744789c01b17de1da1b2660a4c8980dff72024f93deb07891489d22c85e1de16df8c8a2047e4225de3ce7470e37e1</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 All Clusters SMP with CCN STM via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a bare metal application.</description>
+                    <core connection_id="Cortex-A15_all" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="ETB_ccn" id="dtsl_tracesource" type="string" visible="false"/>
+                    <param default="STM_ccn" id="eventviewer_tracesource" type="string" visible="false"/>
+                    <features>19e1d4ff0b29e575f586547612a49bea08edf98f73603b25ec3e0a8d104567329991ced41dc573e6990dcc653207e708882053d549cc6b10d25d0a6c41dafbaec98ee3634dfb73817b3431c237df0fc8ffe25833a4eb485d30f89306c7af350ae0cdaa3e4652a3b295b2cc61a64692fb2751991a0c9e3dc025ad408de5a53f0a0bf57166ef2b950aeef66261bc16b1ca82e762c7afbdc5a2d79d57fe967e719e1a970b14f729ab7f</features>
+                </activity>
+            </execution_environment>
+        </project_type>
+        <project_type os_abstraction="LINUX_KERNEL" type="BARE_METAL">
+            <name language="en">Linux Kernel and/or Device Driver Debug</name>
+            <description language="en">This allows a bare metal debug connection for Linux kernel or Linux device driver debug.</description>
+            <execution_environment id="bare_metal_linux_kernel_debug">
+                <name language="en">Linux Kernel Debug</name>
+                <description language="en">Connect to a platform using a DSTREAM/RVI</description>
+                <xi:include href="../../../Include/hardware_address.xml"/>
+                <param default="CDB://axx5500.rvc" id="config_file" type="string" visible="false"/>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_0_0 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_0_0" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>78add768cec93ed46e7e4d3179bc5cdcf506b3507deee38aa8fcac2172ce1311b82691abbe736a1b4f4a3ac8b29943ca19f6fcb624a16e35634303a43d64969e0c624dc6f32b81db76927b8670788a8ffb4916f15d41bb8e6ba47e8465ced7faeb9420313a57249230f89306c7af350a9213718bcc0d08fe7880ce19500cc8f2343b86548a6391f24e0c4f5844cf1724d5be014160401c9940d1db716191bab6</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_0_1 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_0_1" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>25161dd5e7e07940a6ff77b3c63e6aa391d0d401a821c9cc8429c80d78caf5c6f874f4c10fbb32a3d8b1e98457dc66bb96907189ca6a1ca3f4dcd197dac0909df7d52e9516cb2a437df7b25f9cf4984ea5f304df99c5ab53d8b1e98457dc66bb3c54b600f01bdbf673568631dd25293330f89306c7af350a9213718bcc0d08fec2bed410a716c101343b86548a6391f2fa5bd72b21677a570104d85c3dcaf49b325231b60cc9c620</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_0_2 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_0_2" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>ee7e2f98031912072076c53f47b0759b08edf98f73603b25ec3e0a8d1045673205c2cb32c7a1f6b2d57a80aab499c07b6538f282a6566a733fa704cbeda6a512328735792e6969978a50864e615a8bfcb82691abbe736a1b4f4a3ac8b29943cad84de6d71f0945a63c6e60d5545c1f5d474a3148c99f8f8c819ee695326c8463fe184ba9bad09d5cd5ee6c8cf5e873947f3cb0f34a7b2791dbebf9388096333d</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_0_3 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_0_3" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>f83da2a5547c970920f4da38c6e6add708edf98f73603b25ec3e0a8d10456732423330a6c313648dd57a80aab499c07b6538f282a6566a733fa704cbeda6a512328735792e69699790a06ad72c2890d8ccd526506f8745c828227e31eeeca5197b3431c237df0fc84b49072fc2683a4f01b88ad0c56c5acaab4a8f750040df1a734e0d7cc5e8044ce20b6e7633a21f9da8ec7dfdb8a6aae5d5be014160401c99b74d4815957a2c55</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_1_0 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_1_0" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_1.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>5e0fe0d83fadf0342c6ffdd4adecc0f9bf4a47050f393a7f86f47a5d521aebad0e6fdd08ff43cd8562a75b366f9247c5bc1566ba7df141c835fd7c2d025de9241906f962cb9c09110968943b23b2dd71d8b1e98457dc66bb3c54b600f01bdbf6b8ea1b157d8fcbfc90779b456599950708845016276439a694ecc7feff3006500dff72024f93deb00a4d0d7f5fbc32891c90dab937117825</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_1_1 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_1_1" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_1.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>1c3baf53ff0ad340254e481cebea2cf2b1032b667a82d42cbf4a47050f393a7f741ce4caa2e50e0bb82691abbe736a1b4f4a3ac8b29943ca19f6fcb624a16e35634303a43d64969e0c624dc6f32b81db4c369dd6428bd4da1a44f645508e03e2bd446590d687a29b8cce34d00c76194a02a1c38a6a285487e29ed38f6bd7cb5aa3addf410ec15b8feef66261bc16b1ca5fc0e6f2706bd031d79d57fe967e719e21beaba0a4d41baa</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_1_2 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_1_2" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_1.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>36abdf11e4024e6db2a047c8f087200a85dc5cf82d818d867f4c763a622b8c679a9f4ce853307d77d57a80aab499c07b6538f282a6566a733fa704cbeda6a512328735792e69699783b8e686323f47e4091b2a9886032fcd28227e31eeeca5197b3431c237df0fc80344a2d2e42a0ce80a36af1d19c020a6fb2f752fee67d31d6961e640a34e09ed391e58f08ca9104ece185f14dc4c0d37a5336edc732c4a27</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_1_3 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_1_3" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_1.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>480ae4c172594d07e7cd397316ee854385dc5cf82d818d867f4c763a622b8c67f8ece675beedc351d57a80aab499c07b6538f282a6566a733fa704cbeda6a512328735792e696997114e33ac3cb97d0ce51f585f7fefcf4b0eacdad797cc6c541e2e0f5dbc4dae592f1cfe9dc0a6eddc474a3148c99f8f8c329e8a2419b34664fe184ba9bad09d5cd5ee6c8cf5e8739410dd5ee141353e081c90dab937117825</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_2_0 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_2_0" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_2.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>d21afd37154f2c8492d76a9c0da0fefb85dc5cf82d818d867f4c763a622b8c675d3540ef3fff0816fb4916f15d41bb8e6b5da6d582583569e9e83bfdaf63f053a595701de4a07e307b3431c237df0fc86f729038c26ccc564f4a3ac8b29943cad3cd81b71052d80649fd7ee9b95fd8ae474a3148c99f8f8ceb3e736999d3749bfe184ba9bad09d5cd5ee6c8cf5e87394001f623b651b05d1ad709c974251e66b</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_2_1 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_2_1" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_2.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>cbdfabf044839aea72ad6426cc6f55ef08edf98f73603b25ec3e0a8d10456732ed34530209cf686ed57a80aab499c07b6538f282a6566a733fa704cbeda6a512328735792e69699753315d878079bc1dad12a5012e1b8e4128227e31eeeca5197b3431c237df0fc83290f19282be49c601b88ad0c56c5acaf2747fa17ad2b61f3ff9a708cac890ede20b6e7633a21f9d9dd8f05b44c647ced5be014160401c997ed9dd94dbebd70b</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_2_2 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_2_2" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_2.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>92cc0ad1dda9a0e5921e14e3dd1bd26985dc5cf82d818d867f4c763a622b8c67854e4c665847af3bd8b1e98457dc66bb96907189ca6a1ca3f4dcd197dac0909df7d52e9516cb2a43428ec8dc74dbb23b3242f047657fcbb0d57a80aab499c07be988539beefb88a19247e2263791860a01b88ad0c56c5acaf2747fa17ad2b61fbc32f638e97aba52e20b6e7633a21f9d43239004c948950b460d57ddeabf8982</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_2_3 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_2_3" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_2.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>fc5b0ee3cf413b1d059d917590a6732285dc5cf82d818d867f4c763a622b8c670983b58b753922b9fb4916f15d41bb8e6b5da6d582583569e9e83bfdaf63f053a595701de4a07e307b3431c237df0fc806367ce3338367e0d57a80aab499c07be988539beefb88a13e1bb0bfefb96c2501b88ad0c56c5acaf2747fa17ad2b61f734e0d7cc5e8044ce20b6e7633a21f9d5b0c553c1d0a81d71c90dab937117825</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_3_0 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_3_0" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_3.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>13e51472bd97a827c9d689dcaf42e463c16efd2fd33dc053bf4a47050f393a7f459b91674d71a6e0e51f585f7fefcf4bda91a0288ae032a2aa4f1d1fbf38d6405a832a63879020aafb66bbac36591787291e68f5086a348bfb4916f15d41bb8e6ba47e8465ced7fa63c25967a66b9e4bb44627898603683a99647e1d1e3cad26ad0ff3010b53b920a935ec92575b29f051eee72eb0d0ff06014d204bfdc74e114fdee0f2f0d2b743</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_3_1 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_3_1" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_3.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>b82e70bf2d50d12bce139173c50d571185dc5cf82d818d867f4c763a622b8c676e7b19b6fbdcb261fb4916f15d41bb8e6b5da6d582583569e9e83bfdaf63f053a595701de4a07e307b3431c237df0fc8caa0717b6bc8775628227e31eeeca5197b3431c237df0fc888c5d45fd1fe8ac830f89306c7af350a9213718bcc0d08fe4046ae3ddc43157d343b86548a6391f29dff0b6effc4f3fdd79d57fe967e719e76dda8e7b501eaa1</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_3_2 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_3_2" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_3.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>6ad7fbeaad631f79efa604c3adb819bbdf6cbd7f489545680c1ea67b2a3d7fd1b4ef81ad8fb1d556d57a80aab499c07b6538f282a6566a733fa704cbeda6a512328735792e696997dc261cd04b73776ce51f585f7fefcf4b0eacdad797cc6c5439dff30e5f718dea2eedf3ce4209addb474a3148c99f8f8c2cbc3988066dbdd3fe184ba9bad09d5cd5ee6c8cf5e8739447e01e039d4e3cb12bd7e4400062989a</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15_3_3 via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_3_3" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_3.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>000dc9e6b32c04cbfeed6d7b05b6526085dc5cf82d818d867f4c763a622b8c67a99699d79c59155ed57a80aab499c07b6538f282a6566a733fa704cbeda6a512328735792e6969979a120db763de21ba7c830ad053edeed028227e31eeeca5197b3431c237df0fc8671b8d219417ee0390779b456599950723ef3cc7c5b5b433ad7b782d229fe05d0dff72024f93deb04a0cc1e617030e0b1c90dab937117825</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 Cluster 0 SMP via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_0" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>a69e840d578f0dd0f4c11bf63cb959b708edf98f73603b25ec3e0a8d10456732d49df465df8f50ded8b1e98457dc66bb96907189ca6a1ca3f4dcd197dac0909df7d52e9516cb2a432a30473e1c31af026f729038c26ccc564f4a3ac8b29943ca4d6c7de898b13ce04088c2b66bff4ee701b88ad0c56c5aca118991f82ee2d643da62708c5117705b88feaafbc158821e343b86548a6391f268693cb605942679d5be014160401c99afa7282778964201</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 Cluster 1 SMP via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_1" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_1.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>70f7ae7653e8f6440c0a47bda9d06be8f506b3507deee38a6d890ca1762c08db56e02be5d058782b28227e31eeeca519c4695f923c932a83968392f503082ffd4f3076e3f9edf49b5d2fcb051ab3a6f773fa2bc6ed77e4004f4a3ac8b29943ca4d6c7de898b13ce0c409ec7467c73b710c48b298bb80c2b20bd8eed7d8abeb5b24b41213027cfa02fe184ba9bad09d5cd5ee6c8cf5e8739468ca63c5770dce54a681b8e84463f120</features>
+                </activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 Cluster 2 SMP via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_2" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_2.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>925b5a80ca26352bbc41e7ff7b4b5ec5f506b3507deee38adf9b27957d204e0ab82691abbe736a1b4f4a3ac8b29943ca19f6fcb624a16e35634303a43d64969e0c624dc6f32b81dbfebfa69ab97b7d88e51f585f7fefcf4b0eacdad797cc6c540f9da94d8596a74ad899bb9a55b7d997474a3148c99f8f8c2f866c96aa1ce243d45a6e1441e7ba758b0c3f5a2e1aecd20dff72024f93deb02b8eb300097d799fd5be014160401c9994458724fcab9a7b</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 Cluster 3 SMP via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_3" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_3.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                <features>0466624940c60230416e8740ca28e39d85dc5cf82d818d867f4c763a622b8c67420a56bec14052e5d8b1e98457dc66bb96907189ca6a1ca3f4dcd197dac0909df7d52e9516cb2a433e21f1782229315f0756eaffc24c3a7d4f4a3ac8b29943ca882053d549cc6b10be982de4635a3a0890779b4565999507e340673160ce7cd4bf25efc5da3342cdeb04c402228eb2e7a935ec92575b29f09e5c6c918a07d8f5d79d57fe967e719e7dc560983194db46</features></activity>
+                <activity id="ICE_DEBUG" type="Debug">
+                    <filter>lsi</filter>
+                    <name language="en">Debug Cortex-A15 All Clusters SMP via DSTREAM/RVI</name>
+                    <description language="en">DS-5 Debugger will connect to a DSTREAM or RVI to debug a Linux kernel.</description>
+                    <core connection_id="Cortex-A15_all" core_definition="Cortex-A15"/>
+                    <param default="CDB://dtsl_config_script.py" id="dtsl_config_script" type="string" visible="false"/>
+                    <param default="DtslScript" id="dtsl_config" type="string" visible="false"/>
+                    <param default="options.trace_0.traceCapture" id="dtsl_tracecapture_option" type="string" visible="false"/>
+                    <features>27986641781be5a3d5059228c96d62ce91d0d401a821c9cc8f8989bb4e4cd7720e6fdd08ff43cd8562a75b366f9247c5bc1566ba7df141c835fd7c2d025de9241906f962cb9c0911020f1b9f78cc6e67fb4916f15d41bb8e6ba47e8465ced7fa7cf63e1b955ae01590779b45659995070380db6f08d854cc276bc4f875a6dd8cc79288ac1efe40ca6961e640a34e09ed391e58f08ca9104ed4011d6e4e932fa48a9be079be9106c6</features>
+                 </activity>
+            </execution_environment>
+        </project_type>
+    </project_type_list>
+</platform_data>

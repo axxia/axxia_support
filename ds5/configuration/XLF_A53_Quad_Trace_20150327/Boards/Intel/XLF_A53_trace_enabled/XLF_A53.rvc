@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<debug_and_trace_config>
+    <format version="1.0"/>
+    <user_title info_url="" manufacturer="Intel" title="XLF_A53_trace_enabled"/>
+    <debug_vehicle type="DSTREAM" version="4.20.0.19">
+        <connection address=""/>
+        <scctimeout scctimeout="30000"/>
+        <jtag_clock_config adaptive="false" speed="1000000"/>
+    </debug_vehicle>
+    <system_config_items>
+        <config_item description="Reset Type" help="Defines the reset operation that the target will take when asked to reset the target. This setting is used if reset requested on connect, disconnect or as execution control." name="ResetOperation" type="UInt32" value="0"/>
+        <config_item description="Perform TAP reset on first connect" help="Defines if the target will perform a TAP reset on the first connection to a core." name="TResetOnInitConnect" type="UInt32" value="1"/>
+        <config_item description="Perform SYS reset on first connect" help="Defines if the platform will perform a SYS reset on the first connection to a core." name="SResetOnInitConnect" type="UInt32" value="0"/>
+        <config_item description="Allow ICE to latch System Reset" help="Allow ICE to latch System Reset" name="AllowICELatchSysRst" type="UInt32" value="1"/>
+        <config_item description="Allow ICE to perform TAP reset" help="Allow ICE to perform TAP reset" name="AllowICETAPReset" type="UInt32" value="1"/>
+        <config_item description="TAP Reset via State Transitions" help="Do a JTAG sequence via Test-Logic-Reset to force reset. This is done in addition to asserting the nTRST line." name="DoSoftTAPReset" type="UInt32" value="1"/>
+        <config_item description="nTRST Hold Time (ms)" help="Time in milliseconds the target is held in a hardware reset state." name="nTRSTHoldTime" type="UInt32" value="10"/>
+        <config_item description="nTRST Post Reset Delay (ms)" help="Time in ms that the target will wait after reset is released, before attempting any other debugging operations." name="nTRSTPostResetTime" type="UInt32" value="10"/>
+        <config_item description="nSRST Hold Time (ms)" help="Time in milliseconds the target is held in a hardware reset state." name="ResetHoldTime" type="UInt32" value="100"/>
+        <config_item description="nSRST Post Reset Delay (ms)" help="Time in ms that the target will wait after reset is released, before attempting any other debugging operations." name="PostResetDelay" type="UInt32" value="1000"/>
+        <config_item description="nTRST High mode" help="Reset Mode used for the nTRST signal in the high state." name="nTRSTHighMode" type="UInt32" value="0"/>
+        <config_item description="nTRST Low mode" help="Reset Mode used for the nTRST signal in the low state." name="nTRSTLowMode" type="UInt32" value="0"/>
+        <config_item description="nSRST High mode" help="Reset Mode used for the nSRST signal in the high state." name="nSRSTHighMode" type="UInt32" value="1"/>
+        <config_item description="nSRST Low mode" help="Reset Mode used for the nSRST signal in the low state." name="nSRSTLowMode" type="UInt32" value="0"/>
+        <config_item description="Target nSRST + nTRST linked" help="Set TRUE if the target hardware has these two signals physically linked." name="Linked_SRST_TRST" type="UInt32" value="0"/>
+        <config_item description="SWO UART Baud rate" help="SWO Baud rate (UART mode only)" name="SWOBaudRate" type="UInt32" value="0"/>
+        <config_item description="SWO Mode" help="Protocol used to carry SWO data" name="SWOMode" type="UInt32" value="0"/>
+        <config_item description="LVDS Debug Interface mode" help="Protocol used to connect to target DAP" name="LVDSProbeMode" type="UInt32" value="1"/>
+        <config_item description="Use SWJ Switching" help="Use SWJ to switch ther target between SWD and JTAG" name="SWJEnable" type="UInt32" value="0"/>
+        <config_item description="Use deprecated SWJ Sequence" help="Use deprecated SWJ Sequence" name="UseDeprecatedSWJ" type="UInt32" value="0"/>
+        <config_item description="User Output1" help="User defined hardware output pin 1 on header." name="UserOut_P1" type="UInt32" value="0"/>
+        <config_item description="User Output2" help="User defined hardware output pin 2 on header." name="UserOut_P2" type="UInt32" value="0"/>
+        <config_item description="User Output3" help="User defined hardware output pin 3 on header." name="UserOut_P3" type="UInt32" value="0"/>
+        <config_item description="User Output4" help="User defined hardware output pin 4 on header." name="UserOut_P4" type="UInt32" value="0"/>
+        <config_item description="User Output5" help="User defined hardware output pin 5 on header." name="UserOut_P5" type="UInt32" value="0"/>
+        <config_item description="User Output6 and Coax" help="User defined hardware output pin 6 on header, and output co-ax connector." name="UserOut_P6_COAX" type="UInt32" value="0"/>
+        <config_item description="User Output and DBGRQ" help="User defined hardware output to DBGRQ on JTAG connector" name="UserOut_DBGRQ" type="UInt32" value="0"/>
+        <config_item description="Python Script" help="Python script to hook debug events and provide custom behavior" name="PythonScript" type="String"/>
+        <config_item description="Power status filter interval (ms)" help="Limits the sending of power status notification messages" name="PowerFilterTime" type="Uint32" value="100"/>
+        <config_item description="DSTREAM CS20 Pin Configuration" help="DSTREAM CoreSight 20 Pin Configuration" name="DSTREAMCS20" type="UInt32" value="0"/>
+    </system_config_items>
+    <scanchain>
+        <dap canonical_name="ARMCS-DP" class="DebugPort" family="CoreSight" index="0" ir_length="4" name="ARMCS-DP" version="1.0.0">
+            <ap_configuration>
+                <access_port canonical_name="CSMEMAP" class="AccessPort" family="CoreSight" index="1" ir_length="0" name="CSMEMAP" version="1.0.0">
+                    <data_item_list>
+                        <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000000"/>
+                        <data_item description="" name="AP_TYPE" type="" value="AXI-AP"/>
+                        <data_item description="" name="AXI_BUS_WIDTH" type="" value="64"/>
+                    </data_item_list>
+                </access_port>
+                <access_port canonical_name="CSMEMAP" class="AccessPort" family="CoreSight" index="2" ir_length="0" name="CSMEMAP" version="1.0.0">
+                    <data_item_list>
+                        <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                        <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80000000"/>
+                        <data_item description="" name="AP_TYPE" type="" value="APB-AP"/>
+                    </data_item_list>
+                    <rom_tables>
+                        <rom_table BASE_ADDRESS="0x80000000" CUSTOMER_MODIFIED="0x0" JEDEC_CODE_USED="True" JEP_CONTINUATION_CODE="0x0" JEP_ID="0x9" PART_NUMBER="0x61" REVISION_NUMBER="0x0" REV_AND="0x0"/>
+                        <rom_table BASE_ADDRESS="0x80008000" CUSTOMER_MODIFIED="0x0" JEDEC_CODE_USED="True" JEP_CONTINUATION_CODE="0x0" JEP_ID="0x9" PART_NUMBER="0x62" REVISION_NUMBER="0x0" REV_AND="0x0"/>
+                        <rom_table BASE_ADDRESS="0x8003C000" CUSTOMER_MODIFIED="0x0" JEDEC_CODE_USED="True" JEP_CONTINUATION_CODE="0x0" JEP_ID="0x9" PART_NUMBER="0x66" REVISION_NUMBER="0x0" REV_AND="0x0"/>
+                        <rom_table BASE_ADDRESS="0x80040000" CUSTOMER_MODIFIED="0x0" JEDEC_CODE_USED="True" JEP_CONTINUATION_CODE="0x0" JEP_ID="0x9" PART_NUMBER="0x65" REVISION_NUMBER="0x0" REV_AND="0x0"/>
+                        <rom_table BASE_ADDRESS="0x80044000" CUSTOMER_MODIFIED="0x0" JEDEC_CODE_USED="True" JEP_CONTINUATION_CODE="0x0" JEP_ID="0x9" PART_NUMBER="0x67" REVISION_NUMBER="0x0" REV_AND="0x0"/>
+                        <rom_table BASE_ADDRESS="0x80800000" CUSTOMER_MODIFIED="0x0" JEDEC_CODE_USED="True" JEP_CONTINUATION_CODE="0x0" JEP_ID="0x9" PART_NUMBER="0x68" REVISION_NUMBER="0x0" REV_AND="0x0"/>
+                        <rom_table BASE_ADDRESS="0x80C00000" CUSTOMER_MODIFIED="0x0" JEDEC_CODE_USED="True" JEP_CONTINUATION_CODE="0x4" JEP_ID="0x3B" PART_NUMBER="0x4A1" REVISION_NUMBER="0x4" REV_AND="0x0"/>
+                    </rom_tables>
+                    <device_list>
+                        <device canonical_name="CSTFunnel" class="Link" family="CoreSight" index="3" ir_length="0" name="CSTFunnel" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80002000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000908"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTFunnel" class="Link" family="CoreSight" index="4" ir_length="0" name="CSTFunnel" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80003000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000908"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTFunnel" class="Link" family="CoreSight" index="5" ir_length="0" name="CSTFunnel" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80004000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000908"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTFunnel" class="Link" family="CoreSight" index="6" ir_length="0" name="CSTFunnel" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80005000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000908"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTFunnel" class="Link" family="CoreSight" index="7" ir_length="0" name="CSTFunnel" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80006000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000908"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTFunnel" class="Link" family="CoreSight" index="8" ir_length="0" name="CSTFunnel" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80007000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000908"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTMC" class="TraceSink" family="CoreSight" index="9" ir_length="0" name="CSTMC" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80009000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000961"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                                <data_item description="" name="CONFIG_TYPE" type="" value="ETF"/>
+                                <data_item description="" name="MEM_WIDTH" type="" value="128"/>
+                                <data_item description="" name="RAM_SIZE_BYTES" type="" value="32768"/>
+                                <data_item description="" name="DEVICE_TYPE" type="" value="TRACE_LINK"/>
+                                <data_item description="" name="DRAIN_SOURCE" type="" value="ATB"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSCTI" class="Link" family="CoreSight" index="10" ir_length="0" name="CSCTI" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x8000A000"/>
+                                <data_item description="Enable synchronized execution start with CTI" name="SYNCH_START_ENABLE" type="bool" value="false"/>
+                                <data_item description="Channel to pulse on synchronized execution start" name="SYNCH_START_CHANNEL" type="uint32" value="0"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000906"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTMC" class="TraceSink" family="CoreSight" index="11" ir_length="0" name="CSTMC" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x8003D000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000961"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                                <data_item description="" name="CONFIG_TYPE" type="" value="ETF"/>
+                                <data_item description="" name="MEM_WIDTH" type="" value="128"/>
+                                <data_item description="" name="RAM_SIZE_BYTES" type="" value="8192"/>
+                                <data_item description="" name="DEVICE_TYPE" type="" value="TRACE_LINK"/>
+                                <data_item description="" name="DRAIN_SOURCE" type="" value="ATB"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSSTM" class="TraceSource" family="CoreSight" index="12" ir_length="0" name="CSSTM" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x8003E000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000963"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSCTI" class="Link" family="CoreSight" index="13" ir_length="0" name="CSCTI" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x8003F000"/>
+                                <data_item description="Enable synchronized execution start with CTI" name="SYNCH_START_ENABLE" type="bool" value="false"/>
+                                <data_item description="Channel to pulse on synchronized execution start" name="SYNCH_START_CHANNEL" type="uint32" value="0"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000906"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTMC" class="TraceSink" family="CoreSight" index="14" ir_length="0" name="CSTMC" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80041000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000961"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                                <data_item description="" name="CONFIG_TYPE" type="" value="ETF"/>
+                                <data_item description="" name="MEM_WIDTH" type="" value="128"/>
+                                <data_item description="" name="RAM_SIZE_BYTES" type="" value="8192"/>
+                                <data_item description="" name="DEVICE_TYPE" type="" value="TRACE_LINK"/>
+                                <data_item description="" name="DRAIN_SOURCE" type="" value="ATB"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSSTM" class="TraceSource" family="CoreSight" index="15" ir_length="0" name="CSSTM" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80042000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000963"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSCTI" class="Link" family="CoreSight" index="16" ir_length="0" name="CSCTI" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80043000"/>
+                                <data_item description="Enable synchronized execution start with CTI" name="SYNCH_START_ENABLE" type="bool" value="false"/>
+                                <data_item description="Channel to pulse on synchronized execution start" name="SYNCH_START_CHANNEL" type="uint32" value="0"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000906"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTMC" class="TraceSink" family="CoreSight" index="17" ir_length="0" name="CSTMC" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80045000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000961"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                                <data_item description="" name="CONFIG_TYPE" type="" value="ETF"/>
+                                <data_item description="" name="MEM_WIDTH" type="" value="256"/>
+                                <data_item description="" name="RAM_SIZE_BYTES" type="" value="4096"/>
+                                <data_item description="" name="DEVICE_TYPE" type="" value="TRACE_LINK"/>
+                                <data_item description="" name="DRAIN_SOURCE" type="" value="ATB"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTMC" class="TraceSink" family="CoreSight" index="18" ir_length="0" name="CSTMC" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80046000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000961"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                                <data_item description="" name="CONFIG_TYPE" type="" value="ETR"/>
+                                <data_item description="" name="MEM_WIDTH" type="" value="128"/>
+                                <data_item description="" name="ETR_BUFFER_DEPTH" type="" value="32"/>
+                                <data_item description="" name="DEVICE_TYPE" type="" value="TRACE_SINK"/>
+                                <data_item description="" name="DRAIN_SOURCE" type="" value="APB"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSCTI" class="Link" family="CoreSight" index="19" ir_length="0" name="CSCTI" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80047000"/>
+                                <data_item description="Enable synchronized execution start with CTI" name="SYNCH_START_ENABLE" type="bool" value="false"/>
+                                <data_item description="Channel to pulse on synchronized execution start" name="SYNCH_START_CHANNEL" type="uint32" value="0"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000906"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSTFunnel" class="Link" family="CoreSight" index="20" ir_length="0" name="CSTFunnel" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80810000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000908"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="Cortex-A53" class="CoreExecutable" family="Cortex" index="21" ir_length="0" name="Cortex-A53" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80C10000"/>
+                                <data_item description="CTI CoreSight base address" name="CTI_CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80C20000"/>
+                                <data_item description="JTAG timeouts enabled" name="JTAG_TIMEOUTS_ENABLED" type="bool" value="True"/>
+                                <data_item description="Post Reset State" name="POST_RESET_STATE" type="enum" value="1"/>
+                                <data_item description="Debug acceleration level" name="DEBUG_ACCEL" type="enum" value="0"/>
+                                <data_item description="Enable continuous target state checking and DCC transfer" name="ALLOW_BACKGROUND_PROC" type="bool" value="True"/>
+                                <data_item description="Use CTI for synchronized execution" name="CTI_SYNCH_START" type="bool" value="False"/>
+                                <data_item description="Synchronize I-cache on leaving debug state" name="SYNC_I_CACHE" type="bool" value="True"/>
+                                <data_item description="Synchronize D-cache on leaving debug state" name="SYNC_D_CACHE" type="bool" value="True"/>
+                                <data_item description="I-cache maintenance behaviour" name="ICACHE_MAINTENANCE_MODE" type="enum" value="1"/>
+                                <data_item description="Request power up if the core domain is found powered down" name="REQUEST_POWER_UP" type="bool" value="True"/>
+                                <data_item description="Request no core power down" name="REQUEST_NO_POWER_DOWN" type="bool" value="True"/>
+                                <data_item description="Clear the OS lock if it is found locked" name="CLEAR_OS_LOCK" type="bool" value="True"/>
+                                <data_item description="Enable memory access mode" name="ENABLE_FAST_MEMORY_ACCESS" type="bool" value="True"/>
+                                <data_item description="Number of tries for ITR register to clear after writing an instruction (0 = try forever)" name="NUM_ITE_TRIES" type="uint32" value="20"/>
+                                <data_item description="Allow access to EL1 memory when in EL3" name="ALLOW_EL1_MEMACC_FROM_EL3" type="bool" value="False"/>
+                                <data_item description="Comma separated list of internal RAMs to read on stop" name="RAMS_READ_ON_STOP" type="string" value="L1-TLB"/>
+                                <data_item description="Enable cache debug mode" name="CACHE_DEBUG_MODE" type="bool" value="False"/>
+                                <data_item description="Enable cache preservation mode to preserve cache contents whilst debugging" name="CACHE_PRESERVATION_MODE" type="bool" value="False"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000D03"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSCTI" class="Link" family="CoreSight" index="22" ir_length="0" name="CSCTI" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80C20000"/>
+                                <data_item description="Enable synchronized execution start with CTI" name="SYNCH_START_ENABLE" type="bool" value="false"/>
+                                <data_item description="Channel to pulse on synchronized execution start" name="SYNCH_START_CHANNEL" type="uint32" value="0"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x000009A8"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSPMU" class="TraceSource" family="CoreSight" index="23" ir_length="0" name="CSPMU" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80C30000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x000009D3"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSETM" class="TraceSource" family="CoreSight" index="24" ir_length="0" name="CSETM" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80C40000"/>
+                                <data_item description="Force ETM power up on connect" name="POWERUP_ON_CONNECT" type="bool" value="true"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x0000095D"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                                <data_item description="" name="ETM_VERSION" type="" value="4.0"/>
+                                <data_item description="" name="SUPPORTS_TIMESTAMPS" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_CONTEXT_IDS" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_CYCLE_ACCURATE" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_DATA_ADDR_TRACE" type="" value="False"/>
+                                <data_item description="" name="SUPPORTS_DATA_VAL_TRACE" type="" value="False"/>
+                                <data_item description="" name="SUPPORTS_TRACE_RANGE" type="" value="False"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="Cortex-A53" class="CoreExecutable" family="Cortex" index="25" ir_length="0" name="Cortex-A53" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80D10000"/>
+                                <data_item description="CTI CoreSight base address" name="CTI_CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80D20000"/>
+                                <data_item description="JTAG timeouts enabled" name="JTAG_TIMEOUTS_ENABLED" type="bool" value="True"/>
+                                <data_item description="Post Reset State" name="POST_RESET_STATE" type="enum" value="1"/>
+                                <data_item description="Debug acceleration level" name="DEBUG_ACCEL" type="enum" value="0"/>
+                                <data_item description="Enable continuous target state checking and DCC transfer" name="ALLOW_BACKGROUND_PROC" type="bool" value="True"/>
+                                <data_item description="Use CTI for synchronized execution" name="CTI_SYNCH_START" type="bool" value="False"/>
+                                <data_item description="Synchronize I-cache on leaving debug state" name="SYNC_I_CACHE" type="bool" value="True"/>
+                                <data_item description="Synchronize D-cache on leaving debug state" name="SYNC_D_CACHE" type="bool" value="True"/>
+                                <data_item description="I-cache maintenance behaviour" name="ICACHE_MAINTENANCE_MODE" type="enum" value="1"/>
+                                <data_item description="Request power up if the core domain is found powered down" name="REQUEST_POWER_UP" type="bool" value="True"/>
+                                <data_item description="Request no core power down" name="REQUEST_NO_POWER_DOWN" type="bool" value="True"/>
+                                <data_item description="Clear the OS lock if it is found locked" name="CLEAR_OS_LOCK" type="bool" value="True"/>
+                                <data_item description="Enable memory access mode" name="ENABLE_FAST_MEMORY_ACCESS" type="bool" value="True"/>
+                                <data_item description="Number of tries for ITR register to clear after writing an instruction (0 = try forever)" name="NUM_ITE_TRIES" type="uint32" value="20"/>
+                                <data_item description="Allow access to EL1 memory when in EL3" name="ALLOW_EL1_MEMACC_FROM_EL3" type="bool" value="False"/>
+                                <data_item description="Comma separated list of internal RAMs to read on stop" name="RAMS_READ_ON_STOP" type="string" value="L1-TLB"/>
+                                <data_item description="Enable cache debug mode" name="CACHE_DEBUG_MODE" type="bool" value="False"/>
+                                <data_item description="Enable cache preservation mode to preserve cache contents whilst debugging" name="CACHE_PRESERVATION_MODE" type="bool" value="False"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000D03"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSCTI" class="Link" family="CoreSight" index="26" ir_length="0" name="CSCTI" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80D20000"/>
+                                <data_item description="Enable synchronized execution start with CTI" name="SYNCH_START_ENABLE" type="bool" value="false"/>
+                                <data_item description="Channel to pulse on synchronized execution start" name="SYNCH_START_CHANNEL" type="uint32" value="0"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x000009A8"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSPMU" class="TraceSource" family="CoreSight" index="27" ir_length="0" name="CSPMU" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80D30000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x000009D3"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSETM" class="TraceSource" family="CoreSight" index="28" ir_length="0" name="CSETM" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80D40000"/>
+                                <data_item description="Force ETM power up on connect" name="POWERUP_ON_CONNECT" type="bool" value="true"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x0000095D"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                                <data_item description="" name="ETM_VERSION" type="" value="4.0"/>
+                                <data_item description="" name="SUPPORTS_TIMESTAMPS" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_CONTEXT_IDS" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_CYCLE_ACCURATE" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_DATA_ADDR_TRACE" type="" value="False"/>
+                                <data_item description="" name="SUPPORTS_DATA_VAL_TRACE" type="" value="False"/>
+                                <data_item description="" name="SUPPORTS_TRACE_RANGE" type="" value="False"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="Cortex-A53" class="CoreExecutable" family="Cortex" index="29" ir_length="0" name="Cortex-A53" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80E10000"/>
+                                <data_item description="CTI CoreSight base address" name="CTI_CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80E20000"/>
+                                <data_item description="JTAG timeouts enabled" name="JTAG_TIMEOUTS_ENABLED" type="bool" value="True"/>
+                                <data_item description="Post Reset State" name="POST_RESET_STATE" type="enum" value="1"/>
+                                <data_item description="Debug acceleration level" name="DEBUG_ACCEL" type="enum" value="0"/>
+                                <data_item description="Enable continuous target state checking and DCC transfer" name="ALLOW_BACKGROUND_PROC" type="bool" value="True"/>
+                                <data_item description="Use CTI for synchronized execution" name="CTI_SYNCH_START" type="bool" value="False"/>
+                                <data_item description="Synchronize I-cache on leaving debug state" name="SYNC_I_CACHE" type="bool" value="True"/>
+                                <data_item description="Synchronize D-cache on leaving debug state" name="SYNC_D_CACHE" type="bool" value="True"/>
+                                <data_item description="I-cache maintenance behaviour" name="ICACHE_MAINTENANCE_MODE" type="enum" value="1"/>
+                                <data_item description="Request power up if the core domain is found powered down" name="REQUEST_POWER_UP" type="bool" value="True"/>
+                                <data_item description="Request no core power down" name="REQUEST_NO_POWER_DOWN" type="bool" value="True"/>
+                                <data_item description="Clear the OS lock if it is found locked" name="CLEAR_OS_LOCK" type="bool" value="True"/>
+                                <data_item description="Enable memory access mode" name="ENABLE_FAST_MEMORY_ACCESS" type="bool" value="True"/>
+                                <data_item description="Number of tries for ITR register to clear after writing an instruction (0 = try forever)" name="NUM_ITE_TRIES" type="uint32" value="20"/>
+                                <data_item description="Allow access to EL1 memory when in EL3" name="ALLOW_EL1_MEMACC_FROM_EL3" type="bool" value="False"/>
+                                <data_item description="Comma separated list of internal RAMs to read on stop" name="RAMS_READ_ON_STOP" type="string" value="L1-TLB"/>
+                                <data_item description="Enable cache debug mode" name="CACHE_DEBUG_MODE" type="bool" value="False"/>
+                                <data_item description="Enable cache preservation mode to preserve cache contents whilst debugging" name="CACHE_PRESERVATION_MODE" type="bool" value="False"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000D03"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSCTI" class="Link" family="CoreSight" index="30" ir_length="0" name="CSCTI" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80E20000"/>
+                                <data_item description="Enable synchronized execution start with CTI" name="SYNCH_START_ENABLE" type="bool" value="false"/>
+                                <data_item description="Channel to pulse on synchronized execution start" name="SYNCH_START_CHANNEL" type="uint32" value="0"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x000009A8"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSPMU" class="TraceSource" family="CoreSight" index="31" ir_length="0" name="CSPMU" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80E30000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x000009D3"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSETM" class="TraceSource" family="CoreSight" index="32" ir_length="0" name="CSETM" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80E40000"/>
+                                <data_item description="Force ETM power up on connect" name="POWERUP_ON_CONNECT" type="bool" value="true"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x0000095D"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                                <data_item description="" name="ETM_VERSION" type="" value="4.0"/>
+                                <data_item description="" name="SUPPORTS_TIMESTAMPS" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_CONTEXT_IDS" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_CYCLE_ACCURATE" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_DATA_ADDR_TRACE" type="" value="False"/>
+                                <data_item description="" name="SUPPORTS_DATA_VAL_TRACE" type="" value="False"/>
+                                <data_item description="" name="SUPPORTS_TRACE_RANGE" type="" value="False"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="Cortex-A53" class="CoreExecutable" family="Cortex" index="33" ir_length="0" name="Cortex-A53" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80F10000"/>
+                                <data_item description="CTI CoreSight base address" name="CTI_CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80F20000"/>
+                                <data_item description="JTAG timeouts enabled" name="JTAG_TIMEOUTS_ENABLED" type="bool" value="True"/>
+                                <data_item description="Post Reset State" name="POST_RESET_STATE" type="enum" value="1"/>
+                                <data_item description="Debug acceleration level" name="DEBUG_ACCEL" type="enum" value="0"/>
+                                <data_item description="Enable continuous target state checking and DCC transfer" name="ALLOW_BACKGROUND_PROC" type="bool" value="True"/>
+                                <data_item description="Use CTI for synchronized execution" name="CTI_SYNCH_START" type="bool" value="False"/>
+                                <data_item description="Synchronize I-cache on leaving debug state" name="SYNC_I_CACHE" type="bool" value="True"/>
+                                <data_item description="Synchronize D-cache on leaving debug state" name="SYNC_D_CACHE" type="bool" value="True"/>
+                                <data_item description="I-cache maintenance behaviour" name="ICACHE_MAINTENANCE_MODE" type="enum" value="1"/>
+                                <data_item description="Request power up if the core domain is found powered down" name="REQUEST_POWER_UP" type="bool" value="True"/>
+                                <data_item description="Request no core power down" name="REQUEST_NO_POWER_DOWN" type="bool" value="True"/>
+                                <data_item description="Clear the OS lock if it is found locked" name="CLEAR_OS_LOCK" type="bool" value="True"/>
+                                <data_item description="Enable memory access mode" name="ENABLE_FAST_MEMORY_ACCESS" type="bool" value="True"/>
+                                <data_item description="Number of tries for ITR register to clear after writing an instruction (0 = try forever)" name="NUM_ITE_TRIES" type="uint32" value="20"/>
+                                <data_item description="Allow access to EL1 memory when in EL3" name="ALLOW_EL1_MEMACC_FROM_EL3" type="bool" value="False"/>
+                                <data_item description="Comma separated list of internal RAMs to read on stop" name="RAMS_READ_ON_STOP" type="string" value="L1-TLB"/>
+                                <data_item description="Enable cache debug mode" name="CACHE_DEBUG_MODE" type="bool" value="False"/>
+                                <data_item description="Enable cache preservation mode to preserve cache contents whilst debugging" name="CACHE_PRESERVATION_MODE" type="bool" value="False"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x00000D03"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSCTI" class="Link" family="CoreSight" index="34" ir_length="0" name="CSCTI" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80F20000"/>
+                                <data_item description="Enable synchronized execution start with CTI" name="SYNCH_START_ENABLE" type="bool" value="false"/>
+                                <data_item description="Channel to pulse on synchronized execution start" name="SYNCH_START_CHANNEL" type="uint32" value="0"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x000009A8"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSPMU" class="TraceSource" family="CoreSight" index="35" ir_length="0" name="CSPMU" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80F30000"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x000009D3"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                            </data_item_list>
+                        </device>
+                        <device canonical_name="CSETM" class="TraceSource" family="CoreSight" index="36" ir_length="0" name="CSETM" version="1.0.0">
+                            <data_item_list>
+                                <data_item description="CoreSight AP index" name="CORESIGHT_AP_INDEX" type="uint32" value="0x00000001"/>
+                                <data_item description="CoreSight base address" name="CORESIGHT_BASE_ADDRESS" type="uint32" value="0x80F40000"/>
+                                <data_item description="Force ETM power up on connect" name="POWERUP_ON_CONNECT" type="bool" value="true"/>
+                                <data_item description="" name="PERIPHERAL_ID" type="" value="0x0000095D"/>
+                                <data_item description="" name="JEP_ID" type="" value="0x0000043B"/>
+                                <data_item description="" name="ETM_VERSION" type="" value="4.0"/>
+                                <data_item description="" name="SUPPORTS_TIMESTAMPS" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_CONTEXT_IDS" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_CYCLE_ACCURATE" type="" value="True"/>
+                                <data_item description="" name="SUPPORTS_DATA_ADDR_TRACE" type="" value="False"/>
+                                <data_item description="" name="SUPPORTS_DATA_VAL_TRACE" type="" value="False"/>
+                                <data_item description="" name="SUPPORTS_TRACE_RANGE" type="" value="False"/>
+                            </data_item_list>
+                        </device>
+                    </device_list>
+                </access_port>
+            </ap_configuration>
+        </dap>
+    </scanchain>
+    <topology>
+		<!-- core to ETM -->
+        <topology_link master="21" slave="24" type="CoreTrace"/>
+        <topology_link master="25" slave="28" type="CoreTrace"/>
+        <topology_link master="29" slave="32" type="CoreTrace"/>
+        <topology_link master="33" slave="36" type="CoreTrace"/>
+		<!-- core CTIs -->
+        <topology_link master="24" slave="22" start_input_trigger="06" start_output_trigger="-1" stop_input_trigger="06" stop_output_trigger="-1" type="CTITrigger"/>
+        <topology_link master="28" slave="26" start_input_trigger="06" start_output_trigger="-1" stop_input_trigger="06" stop_output_trigger="-1" type="CTITrigger"/>
+        <topology_link master="32" slave="30" start_input_trigger="06" start_output_trigger="-1" stop_input_trigger="06" stop_output_trigger="-1" type="CTITrigger"/>
+        <topology_link master="36" slave="34" start_input_trigger="06" start_output_trigger="-1" stop_input_trigger="06" stop_output_trigger="-1" type="CTITrigger"/>
+		<!-- A53_CS[0] ETMs to A53_CS[0] Cluster Funnel -->
+        <topology_link master="24" master_interface="0" slave="20" slave_interface="0" type="ATB"/>
+        <topology_link master="28" master_interface="0" slave="20" slave_interface="1" type="ATB"/>
+        <topology_link master="32" master_interface="0" slave="20" slave_interface="2" type="ATB"/>
+        <topology_link master="36" master_interface="0" slave="20" slave_interface="3" type="ATB"/>
+		<!-- Cluster funnel to A53_CS ETF -->
+        <topology_link master="20" master_interface="0" slave="09" slave_interface="0" type="ATB"/>
+		<!-- A53_CS ETF to first funnel -->
+		<topology_link master="09" master_interface="0" slave="03" slave_interface="0" type="ATB"/>
+		<!-- A53_CS{0,1,2,3} funnel to ETR funnel -->
+		<topology_link master="03" master_interface="0" slave="08" slave_interface="0" type="ATB"/>
+		<!-- funnel to ETF -->
+		<topology_link master="08" master_interface="0" slave="17" slave_interface="0" type="ATB"/>
+		<!-- funnel to ETR -->
+		<topology_link master="17" master_interface="0" slave="18" slave_interface="0" type="ATB"/>
+    </topology>
+</debug_and_trace_config>
