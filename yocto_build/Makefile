@@ -31,7 +31,8 @@ SIMICS_FILE		?= $(TOP)/simics*
 BB_NUMBER_THREADS 	?= "12"
 PARALLEL_MAKE 		:= "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK		?= true
-META_AXXIA_REL          ?= snr_combined_ase_rdk4
+INCLUDE_SIMICSFS	?= true
+META_AXXIA_REL          ?= snr_combined_ase_rdk4.1
 
 LINUX_VERSION		?= 4.12
 ifeq ($(LINUX_VERSION),4.12)
@@ -44,7 +45,7 @@ else
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
-META_AXXIA_DEPENDENCY 	?= $(TOP)/meta-intel-axxia/README
+META_AXXIA_DEPENDENCY 	?= $(TOP)/meta-intel-axxia/DEPENDENCIES
 DISTRO 			:= "intel-axxia"
 RUNTARGET 		:= "snr"
 DISTRO_FEATURES_append_intree 		:= " rdk-userspace"
@@ -182,14 +183,17 @@ help:
 	echo ; \
 	echo "META_AXXIA_REL=<tag-name>: Optional:" ; \
         echo "    Tag-name in META-AXXIA repo" ; \
-	echo "    Defaults to snr_combined_ase_rdk4"; \
+	echo "    Defaults to snr_combined_ase_rdk4.1"; \
 	echo "META_AXXIA_URL=<URL-for-meta-intel-axxia>: Optional:"; \
 	echo "    Defaults to https://github.com/axxia/meta-intel-axxia.git"; \
 	echo "META_AXXIA_DEPENDENCY=<File which contains commit ids of meta layers>: Optional:"; \
-	echo "    Defaults to <current-dir>/meta-intel-axxia/README"; \
+	echo "    Defaults to <current-dir>/meta-intel-axxia/DEPENDENCIES"; \
 	echo "INCLUDE_RDK: Optional: Default = true:" ; \
 	echo "    When set to 'true', builds RDK in-tree,"; \
 	echo "    Set to 'false' to only build Linux"; \
+	echo "INCLUDE_SIMICSFS: Optional: Default = true:" ; \
+	echo "    When set to 'true', builds with simicsfs,"; \
+	echo "    Set to 'false' builds Linux without simicsfs"; \
 	echo "META_AXXIA_RDK_URL=<URL for meta-intel-axxia-rdk>: Optional:"; \
 	echo "    Only used if INCLUDE_RDK is set to 'true'"; \
 	echo "    Default: https://github.com/axxia/meta-intel-axxia-rdk.git"; \
@@ -266,7 +270,8 @@ build: get-rdk get-simics $(LAYERS)
 		sed -i s/^PREFERRED_VERSION_linux.*/$(PREFERRED_VERSION_linux)\ =\ \"$(LINUX_VERSION)%\"/g conf/local.conf ; \
 		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ;\
-                echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; fi ;
+                echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; fi ; \
+		if [[ "$(INCLUDE_SIMICSFS)" != "true" ]]; then sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; fi;
 
 .PHONY: get-rdk
 get-rdk: $(LAYERS)
@@ -280,9 +285,11 @@ endif
 
 .PHONY: get-simics
 get-simics: $(LAYERS)
+ifeq ($(INCLUDE_SIMICSFS),true)
 	$(call check-file-exists, $(SIMICS_FILE))
 	mkdir -p $(TOP)/$(AXXIA_REPO_NAME)/downloads/
 	cp --verbose $(SIMICS_FILE) $(TOP)/$(AXXIA_REPO_NAME)/downloads/.
+endif
 
 layer-list:
 	echo $(LAYERS)
@@ -315,11 +322,13 @@ endif
 
 .PHONY: craff_gen
 craff_gen:
+ifeq ($(INCLUDE_SIMICSFS),true)
 	set -e ; \
 	cd $(BLDDIR) ; \
 	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | head -n 1) ; \
 	cd $(BLDDIR)/tmp/deploy/images/axxiax86-64 ; \
 	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-axxiax86-64.craff $(BB_IMAGE_TYPE)-axxiax86-64.hddimg
+endif
 
 clobber:
 	$(RM) -r $(BLDDIR)
