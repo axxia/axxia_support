@@ -28,17 +28,22 @@ BLDDIR          	?= $(TOP)/axxia
 BB_IMAGE_TYPE          	?= axxia-image-vcn
 RDK_SRC_PATH		?= $(TOP)
 SIMICS_FILE		?= $(TOP)/simics*
-BB_NUMBER_THREADS 	?= "12"
+BB_NUMBER_THREADS 	?= "24"
 PARALLEL_MAKE 		:= "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK		?= true
 INCLUDE_SIMICSFS	?= true
-META_AXXIA_REL          ?= snr_combined_ase_rdk4.1
+META_AXXIA_REL          ?= snr_ase_rdk5
+DL_DIR                  ?=
+BB_NO_NETWORK           ?= 0
 
 LINUX_VERSION		?= 4.12
 ifeq ($(LINUX_VERSION),4.12)
   PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-yocto"
   PREFERRED_PROVIDER_virtual/kernel := "linux-yocto"
 else ifeq ($(LINUX_VERSION),4.14)
+  PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
+  PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
+else ifeq ($(LINUX_VERSION),4.19)
   PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
   PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
 else
@@ -133,7 +138,8 @@ define checkout_rev
 	git -C $(1) checkout $(2)
 endef
 
-define checkout_layer_from_readme
+define checkout_layer_from_file
+	$(call check-file-exists, $(META_AXXIA_DEPENDENCY))
 	set -e ; \
 	BASE_LAYER=`basename $(1)`;\
 	REV=`awk -v layer=$$BASE_LAYER '{\
@@ -142,8 +148,9 @@ define checkout_layer_from_readme
 	if(start_parse == 1 && $$0 ~ "URI" && $$0 ~ layer) parse_layer=1;\
 	if(parse_layer == 1 && $$0 ~ "^revision") { print $$2; parse_layer=0; }\
 	}' $(META_AXXIA_DEPENDENCY)`;\
-	echo "REPO: $$BASE_LAYER, REV: $$REV" ; \
-	git -C $(1) checkout $$REV
+	if [ -z "$$REV" ]; then echo "ERROR: Checkout REV of $$BASE_LAYER could not be read"; exit 1; fi; \
+        echo "REPO: $$BASE_LAYER, REV: $$REV" ; \
+        git -C $(1) checkout $$REV
 endef
 
 define check-file-exists
@@ -167,23 +174,13 @@ help:
 	echo "$$ make sdk install-sdk META_AXXIA_REL=<tag-name> SDK_INSTALL_DIR=<sdk-install-dir>"; \
 	echo "    Build and Install SDK with RDK in-tree" ; \
 	echo "$$ make craff_gen META_AXXIA_REL=<tag-name>" ; \
-	echo "    Create craff image from hddimg " ; \
-        echo "$$ make cleansstate META_AXXIA_REL=<tag name>" ; \
-        echo "    Calls bitbake cleansstate for virtual/kernel, simicsfs-client and rdk-tools" ; \
-        echo "$$ make clean META_AXXIA_REL=<tag name> " ; \
-        echo "    Deletes build directoy " ; \
-        echo "$$ make clobber META_AXXIA_REL=<tag name> " ; \
-        echo "    Deletes build directory and all layers " ; \
-        echo "$$ make help META_AXXIA_REL=<tag name> " ; \
-        echo "    To print these usage instructions " ; \
-	echo ; \
+	echo "    Create yocto.craff image from hddimg after building sdk\n"; \
 	echo ; \
         echo "Parameters" ; \
         echo "----------" ; \
-	echo ; \
 	echo "META_AXXIA_REL=<tag-name>: Optional:" ; \
         echo "    Tag-name in META-AXXIA repo" ; \
-	echo "    Defaults to snr_combined_ase_rdk4.1"; \
+	echo "    Defaults to current release"; \
 	echo "META_AXXIA_URL=<URL-for-meta-intel-axxia>: Optional:"; \
 	echo "    Defaults to https://github.com/axxia/meta-intel-axxia.git"; \
 	echo "META_AXXIA_DEPENDENCY=<File which contains commit ids of meta layers>: Optional:"; \
@@ -236,23 +233,23 @@ endif
 
 $(TOP)/meta-openembedded: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(OE_URL))
-	$(call  checkout_layer_from_readme,$@)
+	$(call  checkout_layer_from_file,$@)
 
 $(TOP)/meta-virtualization: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(VIRT_URL))
-	$(call  checkout_layer_from_readme,$@)
+	$(call  checkout_layer_from_file,$@)
 
 $(TOP)/meta-intel: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(INTEL_URL))
-	$(call  checkout_layer_from_readme,$@)
+	$(call  checkout_layer_from_file,$@)
 
 $(TOP)/poky: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(POKY_URL))
-	$(call  checkout_layer_from_readme,$@)
+	$(call  checkout_layer_from_file,$@)
 
 $(TOP)/meta-security: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(SECURITY_URL))
-	$(call  checkout_layer_from_readme,$@)
+	$(call  checkout_layer_from_file,$@)
 
 # create bitbake build
 .PHONY: build
@@ -269,7 +266,11 @@ build: get-rdk get-simics $(LAYERS)
 		sed -i sX^PREFERRED_PROVIDER_virtual/kernel.*XPREFERRED_PROVIDER_virtual/kernel\ =\ \"$(PREFERRED_PROVIDER_virtual/kernel)\"Xg conf/local.conf ; \
 		sed -i s/^PREFERRED_VERSION_linux.*/$(PREFERRED_VERSION_linux)\ =\ \"$(LINUX_VERSION)%\"/g conf/local.conf ; \
 		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
+		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ;\
+		if [[ "$(DL_DIR)" != "" ]]; then \
+			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
+		fi ; \
                 echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" != "true" ]]; then sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; fi;
 
@@ -310,12 +311,12 @@ ifdef SDK_INSTALL_DIR
 	set -e ; \
 	cd $(BLDDIR)/tmp/deploy/sdk ; \
 	mkdir -p $(SDK_INSTALL_DIR) ; \
-	$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE)-core2-64-toolchain-$(META_AXXIA_REL).sh -y -d $(SDK_INSTALL_DIR) ; \
+	$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE)*toolchain-$(META_AXXIA_REL).sh -y -d $(SDK_INSTALL_DIR) ; \
 	cd $(SDK_INSTALL_DIR) ; \
 	unset LD_LIBRARY_PATH ; \
-        source environment-setup-core2-64-intelaxxia-linux; \
-	cd $(SDK_INSTALL_DIR)/sysroots/core2-64-intelaxxia-linux/usr/src/kernel ; \
-	make clean silentoldconfig scripts tools/objtool ;
+	source environment-setup*; \
+	cd $(SDK_INSTALL_DIR)/sysroots/*-intelaxxia-linux/usr/src/kernel ; \
+	make clean oldconfig scripts tools/objtool ;
 else
 	$(error SDK_INSTALL_DIR is undefined, run 'make help' for usage)
 endif

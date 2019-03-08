@@ -23,7 +23,7 @@ $ make sdk install-sdk META_AXXIA_REL=<tag name> SDK_INSTALL_DIR=<loc to install
     Pull and Build Yocto Linux with RDK In-Tree and then build and install sdk
 
 $ make craff_gen META_AXXIA_REL=<tag name>
-    Create craff image from hddimg
+    Create yocto.craff image from hddimg
 
 $ make cleansstate META_AXXIA_REL=<tag name>
     Calls bitbake cleansstate for virtual/kernel, simicsfs-client and rdk-tools
@@ -41,7 +41,7 @@ Parameters:
 
 META_AXXIA_REL=<tag-name>: Optional:
     Tag-name in META-AXXIA repo
-    Defaults to snr_combined_ase_rdk4.1
+    Defaults to current release
 
 META_AXXIA_URL=<URL-for-meta-intel-axxia>: Optional:
     Defaults to https://github.com/axxia/meta-intel-axxia.git
