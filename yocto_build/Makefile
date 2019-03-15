@@ -32,7 +32,7 @@ BB_NUMBER_THREADS 	?= "24"
 PARALLEL_MAKE 		:= "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK		?= true
 INCLUDE_SIMICSFS	?= true
-META_AXXIA_REL          ?= snr_ase_rdk5
+META_AXXIA_REL          ?= snr_ase_rdk5.1
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 
