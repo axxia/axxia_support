@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+INTEL CONFIDENTIAL
+Copyright 2018 Intel Corporation.
+This software and the related documents are Intel copyrighted materials, and
+your use of them is governed by the express license under which they were
+provided to you (License).Unless the License provides otherwise, you may not
+use, modify, copy, publish, distribute, disclose or transmit this software or
+the related documents without Intel's prior written permission.
+
+This software and the related documents are provided as is, with no express or
+implied warranties, other than those that are expressly stated in the License.
+-->
+<ibst_overrides>
+    <cosign>
+        <rsa_key name="cosign_key" value="" />
+        <number name="me_cosign_enabled" value="1" />
+        <number name="salt" value="32" />
+        <number name="algorithm" value="4" />
+        <rsa_key name="rbe_key" value="" />
+        <rsa_key name="ftpr_key" value="" />
+        <rsa_key name="opr_key" value="" />
+        <string name="rbe_save_hash_path" value="" />
+        <string name="ftpr_save_hash_path" value="" />
+        <string name="opr_save_hash_path" value="" />
+        <string name="input_file" value="" />
+        <string name="output_name" value="" />
+    </cosign>
+</ibst_overrides>
