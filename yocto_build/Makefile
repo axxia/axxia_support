@@ -32,11 +32,12 @@ BB_NUMBER_THREADS 	?= "24"
 PARALLEL_MAKE 		:= "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK		?= true
 INCLUDE_SIMICSFS	?= true
-META_AXXIA_REL          ?= snr_ase_rdk5.2
+META_AXXIA_REL          ?= snr_ase_rdk_1904
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
+AXXIA_REPO_NAME          = meta-intel-axxia
 
-LINUX_VERSION		?= 4.12
+LINUX_VERSION		?= 4.19
 ifeq ($(LINUX_VERSION),4.12)
   PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-yocto"
   PREFERRED_PROVIDER_virtual/kernel := "linux-yocto"
@@ -46,6 +47,7 @@ else ifeq ($(LINUX_VERSION),4.14)
 else ifeq ($(LINUX_VERSION),4.19)
   PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
   PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
+  AXXIA_REPO_NAME                    = meta-intel-axxia/meta-intel-axxia
 else
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
@@ -65,7 +67,6 @@ RM = $(Q)rm -f
 
 META_AXXIA_URL   ?= https://github.com/axxia/meta-intel-axxia.git
 LAYERS           += $(TOP)/meta-intel-axxia
-AXXIA_REPO_NAME   = meta-intel-axxia
 
 ifeq ($(INCLUDE_RDK),true)
   META_AXXIA_RDK_URL ?= https://github.com/axxia/meta-intel-axxia-rdk.git
