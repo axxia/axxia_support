@@ -32,9 +32,10 @@ BB_NUMBER_THREADS 	?= "24"
 PARALLEL_MAKE 		:= "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK		?= true
 INCLUDE_SIMICSFS	?= true
-META_AXXIA_REL          ?= snr_ase_rdk_1904
+META_AXXIA_REL          ?= snr_ase_rdk_1905
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
+RDK_MODULES_STATIC      ?= false
 AXXIA_REPO_NAME          = meta-intel-axxia
 
 LINUX_VERSION		?= 4.19
@@ -197,9 +198,13 @@ help:
 	echo "    Default: https://github.com/axxia/meta-intel-axxia-rdk.git"; \
 	echo "RDK_SRC_PATH=<Location-of-RDK-Archives>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
-	echo "    Default:  <current-dir>,"; \
+	echo "    Default:  <current-dir>"; \
 	echo "    NOTE: Archives need to be in the format"; \
 	echo "          rdk_klm_src.txz and rdk_user_src.txz" ; \
+	echo "RDK_MODULES_STATIC: Indicates if the RDK modules should"; \
+	echo "                    be statically linked in the linux kernel"; \
+	echo "    Optional: Applies only when INCLUDE_RDK='true'" ; \
+	echo "    Default:  false"; \
 	echo "SIMICS_FILE=<Location-of-Simics-archive>: Required"; \
 	echo "    Default: <current-dir>/simics-*" ; \
 	echo "BLDDIR=<build dir>: Optional" ; \
@@ -212,8 +217,8 @@ help:
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
-	echo "    Default: 4.12" ; \
-	echo "    Other choices are: 4.14 "; \
+	echo "    Default: 4.19" ; \
+	echo "    Other choices are: 4.14, 4.12 "; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '12'" ; \
@@ -230,6 +235,10 @@ $(TOP)/meta-intel-axxia-rdk:
 ifeq ($(INCLUDE_RDK),true)
 	$(call  populate,$@,$(META_AXXIA_RDK_URL))
 	$(call  checkout_rev,$@,$(META_AXXIA_REL))
+ifeq ($(RDK_MODULES_STATIC),true)
+	RDK_CFG=$(TOP)/meta-intel-axxia-rdk/recipes-kernel/linux/frags/rdk-modules.cfg ; \
+	sed -i 's/=m$$/=y/' $$RDK_CFG
+endif
 endif
 
 $(TOP)/meta-openembedded: $(TOP)/meta-intel-axxia
