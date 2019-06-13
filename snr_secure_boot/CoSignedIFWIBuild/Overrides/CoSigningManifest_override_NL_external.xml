@@ -13,14 +13,12 @@ implied warranties, other than those that are expressly stated in the License.
 -->
 <ibst_overrides>
     <cosign>
-        <string name="signing_utility" size="1" value="../../SigningExamples/SignScripts/sign_FITPM.py"/>
-        <rsa_key name="key" value="../../SigningExamples/Keys/FITP_3K_PUBLIC.pem" />
-        <string name="package_name" value="FPM" />
-        <number name="vendor_id" value="0x8086" />
-        <byte_array name="binary_hash" value="0x0011223344556677889900112233445566778899001122334455667788990011" size="32"/>
+        <string name="signing_utility" size="1" value="../../../../SignScripts/sign_NL.py"/>
+        <rsa_key name="key" value="" />		
+		<string name="package_name" value="NWLM" />
+        <file name="module_bin" value="" required="true" /> 
         <number name="svn" value="0" />
-        <string name="manifest_type" value="FP" />
-        <string name="save_hash_path" value="../../SigningExamples/Output/FPM_hash_ext.bin" />
-        <string name="output_name" value="../../SigningExamples/Output/FPM_manifest_ext.bin" />
+        <number name="hash_type" value="3" />
+        <string name="output_name" value="" />
     </cosign>
 </ibst_overrides>

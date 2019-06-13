@@ -13,13 +13,12 @@ implied warranties, other than those that are expressly stated in the License.
 -->
 <ibst_overrides>
     <cosign>
-        <rsa_key name="key" value="../../SigningExamples/Keys/ACM_3K_PRIVATE.pem" />
-        <string name="package_name" value="ACMM" />
-        <number name="vendor_id" value="0x8086" />
-        <byte_array name="binary_hash" value="0011223344556677889900112233445566778899001122334455667788990011" size="32"/>
-        <number name="svn" value="2" />
-        <string name="manifest_type" value="ACM" />
-        <string name="save_hash_path" value="../../SigningExamples/Output/ACM_hash_int.bin" />
-        <string name="output_name" value="../../SigningExamples/Output/ACM_manifest_int.bin" />
+        <string name="signing_utility" size="1" value="../../../../SignScripts/sign_OS.py"/>
+        <rsa_key name="key" value="" />		
+		<string name="package_name" value="OSLM" />
+        <file name="module_bin" value="" required="true" /> 
+        <number name="svn" value="0" />
+        <number name="hash_type" value="4" />
+        <string name="output_name" value="" />
     </cosign>
 </ibst_overrides>
