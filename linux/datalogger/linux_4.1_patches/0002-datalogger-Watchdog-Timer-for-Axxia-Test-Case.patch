@@ -1,4 +1,4 @@
-From cb1a0986a77112528e41d2ecd9685053a92caaac Mon Sep 17 00:00:00 2001
+From 1ff5affa5ff0f3bd1faa03f1afbdf9099399099e Mon Sep 17 00:00:00 2001
 From: John Jacques <john.jacques@intel.com>
 Date: Wed, 7 Dec 2016 14:56:11 -0600
 Subject: [PATCH 2/4] datalogger: Watchdog Timer for Axxia Test Case
@@ -388,5 +388,5 @@ index 0000000..8a8fab2
 +MODULE_DESCRIPTION("ARM SP804 Watchdog Driver For Axxia");
 +MODULE_LICENSE("GPL");
 -- 
-2.5.2
+2.7.4
 

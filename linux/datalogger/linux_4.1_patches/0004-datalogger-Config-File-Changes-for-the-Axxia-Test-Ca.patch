@@ -1,19 +1,21 @@
-From de9297dacad389e0929baea126c1dafcc4e5b85d Mon Sep 17 00:00:00 2001
+From 20f7eba435b75a8d643975614ca321cafa071095 Mon Sep 17 00:00:00 2001
 From: John Jacques <john.jacques@intel.com>
 Date: Fri, 9 Dec 2016 20:08:12 -0600
 Subject: [PATCH 4/4] datalogger: Config File Changes for the Axxia Test Case
 
 ---
- arch/arm64/configs/axxia_x9_defconfig | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm64/configs/axxia_x9_defconfig | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm64/configs/axxia_x9_defconfig b/arch/arm64/configs/axxia_x9_defconfig
-index ef64766..2a3ee9e 100644
+index 7af39ea..dcf8390 100644
 --- a/arch/arm64/configs/axxia_x9_defconfig
 +++ b/arch/arm64/configs/axxia_x9_defconfig
-@@ -160,6 +160,9 @@ CONFIG_GPIO_PL061=y
+@@ -164,7 +164,11 @@ CONFIG_GPIO_SYSFS=y
+ CONFIG_GPIO_AXXIA=y
  CONFIG_GPIO_XGENE=y
  CONFIG_POWER_RESET_AXXIA=y
++CONFIG_POWER_RESET_AXXIA_DDR_RETENTION=y
  # CONFIG_HWMON is not set
 +CONFIG_WATCHDOG=y
 +CONFIG_SOFT_WATCHDOG=y
@@ -21,6 +23,20 @@ index ef64766..2a3ee9e 100644
  CONFIG_REGULATOR=y
  CONFIG_REGULATOR_FIXED_VOLTAGE=y
  CONFIG_FB=y
+@@ -187,11 +191,11 @@ CONFIG_MMC_SPI=y
+ CONFIG_EDAC=y
+ CONFIG_EDAC_MM_EDAC=y
+ CONFIG_EDAC_AXXIA_SYSMEM_5600=y
++CONFIG_EDAC_AXXIA_SYSMEM_SKIP_CORRECTABLE=y
+ CONFIG_EDAC_AXXIA_CMEM_5600=y
++CONFIG_EDAC_AXXIA_CMEM_SKIP_CORRECTABLE=y
+ CONFIG_EDAC_AXXIA_L3_5600=y
+ CONFIG_EDAC_AXXIA_L2_CPU_5600=y
+-CONFIG_EDAC_AXXIA_SYSMEM_SKIP_CORRECTABLE=y
+-CONFIG_EDAC_AXXIA_CMEM_SKIP_CORRECTABLE=y
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_EFI=y
+ CONFIG_RTC_DRV_XGENE=y
 -- 
-2.5.2
+2.7.4
 
