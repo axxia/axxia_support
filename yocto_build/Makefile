@@ -32,7 +32,7 @@ BB_NUMBER_THREADS 	?= "24"
 PARALLEL_MAKE 		:= "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK		?= true
 INCLUDE_SIMICSFS	?= true
-META_AXXIA_REL          ?= snr_ase_rdk_1905
+META_AXXIA_REL          ?= snr_ase_rdk_1907
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
@@ -92,6 +92,9 @@ LAYERS       += $(TOP)/meta-intel
 
 SECURITY_URL  = https://git.yoctoproject.org/git/meta-security
 LAYERS       += $(TOP)/meta-security
+
+META_ROS      = https://github.com/bmwcarit/meta-ros.git
+LAYERS       += $(TOP)/meta-ros
 
 define bitbake
 	set -e ; \
@@ -236,8 +239,10 @@ ifeq ($(INCLUDE_RDK),true)
 	$(call  populate,$@,$(META_AXXIA_RDK_URL))
 	$(call  checkout_rev,$@,$(META_AXXIA_REL))
 ifeq ($(RDK_MODULES_STATIC),true)
-	RDK_CFG=$(TOP)/meta-intel-axxia-rdk/recipes-kernel/linux/frags/rdk-modules.cfg ; \
-	sed -i 's/=m$$/=y/' $$RDK_CFG
+	(RDK_CFG=$@/recipes-kernel/linux/frags/rdk-modules.cfg ; \
+         sed -i 's/=m$$/=y/' $$RDK_CFG ; \
+	 cd `dirname $$RDK_CFG` ; \
+	 git commit -a -m"Set modules to static for $(META_AXXIA_REL)")
 endif
 endif
 
@@ -261,6 +266,10 @@ $(TOP)/meta-security: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(SECURITY_URL))
 	$(call  checkout_layer_from_file,$@)
 
+$(TOP)/meta-ros: $(TOP)/meta-intel-axxia
+	$(call  populate,$@,$(META_ROS))
+	$(call  checkout_layer_from_file,$@)
+
 # create bitbake build
 .PHONY: build
 build: get-rdk get-simics $(LAYERS)
@@ -277,12 +286,17 @@ build: get-rdk get-simics $(LAYERS)
 		sed -i s/^PREFERRED_VERSION_linux.*/$(PREFERRED_VERSION_linux)\ =\ \"$(LINUX_VERSION)%\"/g conf/local.conf ; \
 		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
 		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
-		if [[ "$(INCLUDE_RDK)" == "true" ]]; then echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ;\
-		if [[ "$(DL_DIR)" != "" ]]; then \
-			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
+		grep "meta-ros" conf/bblayers.conf || echo "BBLAYERS += \"$(TOP)/meta-ros\"" >> conf/bblayers.conf; \
+		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
+			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ;\
+			if [[ "$(DL_DIR)" != "" ]]; then \
+				echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
+			fi ; \
+			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
-                echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; fi ; \
-		if [[ "$(INCLUDE_SIMICSFS)" != "true" ]]; then sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; fi;
+		if [[ "$(INCLUDE_SIMICSFS)" != "true" ]]; then \
+			sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; \
+		fi;
 
 .PHONY: get-rdk
 get-rdk: $(LAYERS)
