@@ -22,23 +22,25 @@
 #
 # Makefile for AXXIA Yocto Build
 
-TOP 			?= $(shell pwd)
-SHELL		 	 = /bin/bash
-BLDDIR          	?= $(TOP)/axxia
-BB_IMAGE_TYPE          	?= axxia-image-vcn
-RDK_SRC_PATH		?= $(TOP)
-SIMICS_FILE		?= $(TOP)/simics*
-BB_NUMBER_THREADS 	?= "24"
-PARALLEL_MAKE 		:= "-j $(BB_NUMBER_THREADS)"
-INCLUDE_RDK		?= true
-INCLUDE_SIMICSFS	?= true
-META_AXXIA_REL          ?= snr_ase_rdk_1908
+TOP                     ?= $(shell pwd)
+SHELL                    = /bin/bash
+BLDDIR                  ?= $(TOP)/axxia
+BB_IMAGE_TYPE           ?= axxia-image-vcn
+RDK_SRC_PATH            ?= $(TOP)
+RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
+RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
+SIMICS_FILE             ?= $(TOP)/simics*
+BB_NUMBER_THREADS       ?= "24"
+PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
+INCLUDE_RDK             ?= true
+INCLUDE_SIMICSFS        ?= true
+META_AXXIA_REL          ?= snr_ase_rdk_1910
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
 AXXIA_REPO_NAME          = meta-intel-axxia
 
-LINUX_VERSION		?= 4.19
+LINUX_VERSION           ?= 4.19
 ifeq ($(LINUX_VERSION),4.12)
   PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-yocto"
   PREFERRED_PROVIDER_virtual/kernel := "linux-yocto"
@@ -53,15 +55,15 @@ else
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
-META_AXXIA_DEPENDENCY 	?= $(TOP)/meta-intel-axxia/DEPENDENCIES
-DISTRO 			:= "intel-axxia"
-RUNTARGET 		:= "snr"
-DISTRO_FEATURES_append_intree 		:= " rdk-userspace"
+META_AXXIA_DEPENDENCY               ?= $(TOP)/meta-intel-axxia/DEPENDENCIES
+DISTRO                              := "intel-axxia"
+RUNTARGET                           := "snr"
+DISTRO_FEATURES_append_intree       := " rdk-userspace"
 
 # Define V=1 to echo everything
 V ?= 1
 ifneq ($(V),1)
-	Q=@
+        Q=@
 endif
 
 RM = $(Q)rm -f
@@ -118,9 +120,10 @@ define bitbake-cleansstate
         cd $(TOP)/poky ; \
         source oe-init-build-env $(BLDDIR) ; \
 	cd $(BLDDIR) ; \
-        bitbake virtual/kernel $(1) -c cleansstate ; \
-	bitbake -c cleansstate simicsfs-client ; \
-	bitbake -c cleansstate rdk-tools
+	CLEAN_TARGETS="virtual/kernel $(1)" ; \
+	if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then CLEAN_TARGETS="$$CLEAN_TARGETS simicsfs-client" ; fi ; \
+	if [[ "$(INCLUDE_RDK)" = "true" ]]; then CLEAN_TARGETS="$$CLEAN_TARGETS rdk-tools linux-firmware" ; fi ; \
+	bitbake -c cleansstate $$CLEAN_TARGETS
 endef
 
 define populate
@@ -143,6 +146,14 @@ define checkout_rev
 	git -C $(1) checkout $(2)
 endef
 
+define check-file-exists
+        echo "Checking for file: $(1)"; \
+	if [ ! -f $(1) ]; then \
+		echo "Error: $(1) is not present"; \
+		exit 1; \
+	fi
+endef
+
 define checkout_layer_from_file
 	$(call check-file-exists, $(META_AXXIA_DEPENDENCY))
 	set -e ; \
@@ -156,14 +167,6 @@ define checkout_layer_from_file
 	if [ -z "$$REV" ]; then echo "ERROR: Checkout REV of $$BASE_LAYER could not be read"; exit 1; fi; \
         echo "REPO: $$BASE_LAYER, REV: $$REV" ; \
         git -C $(1) checkout $$REV
-endef
-
-define check-file-exists
-        echo "file=$(1)"; \
-	if [ ! -f $(1) ]; then \
-		echo "error $(1) is not present"; \
-		exit 1; \
-	fi
 endef
 
 help:
@@ -202,8 +205,12 @@ help:
 	echo "RDK_SRC_PATH=<Location-of-RDK-Archives>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>"; \
-	echo "    NOTE: Archives need to be in the format"; \
-	echo "          rdk_klm_src.txz and rdk_user_src.txz" ; \
+	echo "RDK_KLM_ARCHIVE=<Name-of-RDK-KLM-Archive>"; \
+	echo "    Required: when INCLUDE_RDK='true'"; \
+	echo "    Default:  <current-dir>/rdk_klm_src.txz"; \
+	echo "RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>"; \
+	echo "    Required: when INCLUDE_RDK='true'"; \
+	echo "    Default:  <current-dir>/rdk_user_src.txz"; \
 	echo "RDK_MODULES_STATIC: Indicates if the RDK modules should"; \
 	echo "                    be statically linked in the linux kernel"; \
 	echo "    Optional: Applies only when INCLUDE_RDK='true'" ; \
@@ -292,6 +299,18 @@ build: get-rdk get-simics $(LAYERS)
 			if [[ "$(DL_DIR)" != "" ]]; then \
 				echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
 			fi ; \
+			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
+			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
+			echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
+			echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
+			$(eval RDK_TOOLS_VERSION := $(shell echo $(RDK_TOOLS_ARCHIVE) | cut -d'.' -f1 | sed 's/rdk_user_src//g')) \
+			if [[ "$(RDK_TOOLS_VERSION)" != "" ]]; then \
+				echo "RDK_TOOLS_VERSION = \"$(shell echo $(RDK_TOOLS_VERSION) | cut -c 2-)\"" >> conf/local.conf ; \
+			fi ; \
+			$(eval RDK_KLM_VERSION := $(shell echo $(META_AXXIA_REL) | sed 's/snr_ase_rdk_//g')) \
+			if [[ "$(RDK_KLM_VERSION)" != "" ]]; then \
+				echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
+			fi ; \
 			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" != "true" ]]; then \
@@ -301,11 +320,8 @@ build: get-rdk get-simics $(LAYERS)
 .PHONY: get-rdk
 get-rdk: $(LAYERS)
 ifeq ($(INCLUDE_RDK),true)
-	$(call check-file-exists, $(RDK_SRC_PATH)/rdk_klm_src.txz)
-	$(call check-file-exists, $(RDK_SRC_PATH)/rdk_user_src.txz)
-	set -e ; mkdir -p $(TOP)/$(RDK_REPO_NAME)/downloads/
-	set -e ; cp --verbose $(RDK_SRC_PATH)/rdk_klm_src.txz $(TOP)/$(RDK_REPO_NAME)/downloads/rdk_klm_src.tar.xz
-	set -e ; cp --verbose $(RDK_SRC_PATH)/rdk_user_src.txz $(TOP)/$(RDK_REPO_NAME)/downloads/rdk_user_src.tar.xz
+	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE))
+	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE))
 endif
 
 .PHONY: get-simics
