@@ -34,11 +34,12 @@ BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
-META_AXXIA_REL          ?= snr_ase_rdk_1911.1
+META_AXXIA_REL          ?= snr_ase_rdk_1912
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
 AXXIA_REPO_NAME          = meta-intel-axxia
+IES_ENABLE_SHM          ?= true
 
 LINUX_VERSION           ?= 4.19
 ifeq ($(LINUX_VERSION),4.12)
@@ -215,6 +216,10 @@ help:
 	echo "                    be statically linked in the linux kernel"; \
 	echo "    Optional: Applies only when INCLUDE_RDK='true'" ; \
 	echo "    Default:  false"; \
+	echo "IES_ENABLE_SHM=[true|false]:"; \
+	echo "    Enable building for RDK with IES in shared-memory mode" ; \
+	echo "    Defaults to 'true'" ; \
+	echo "    When set to false, will build IES in RPC mode" ; \
 	echo "SIMICS_FILE=<Location-of-Simics-archive>: Required"; \
 	echo "    Default: <current-dir>/simics-*" ; \
 	echo "BLDDIR=<build dir>: Optional" ; \
@@ -301,6 +306,14 @@ build: get-rdk get-simics $(LAYERS)
 			fi ; \
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
 			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
+			RC=$(grep IES_ENABLE_SHM conf/local.conf) ; \
+			if [[ $$RC == 0 ]]; then \
+				echo "s/IES_ENABLE_SHM.*$$/IES_ENABLE_SHM = \"$(IES_ENABLE_SHM)\"/g" > sed.tmp ; \
+				sed -i -f sed.tmp conf/local.conf ; \
+				rm -f sed.tmp ; \
+			else \
+				echo "IES_ENABLE_SHM = \"$(IES_ENABLE_SHM)\"" >> conf/local.conf ; \
+			fi ; \
 			echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
 			echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
 			$(eval RDK_TOOLS_VERSION := $(shell echo $(RDK_TOOLS_ARCHIVE) | cut -d'.' -f1 | sed 's/rdk_user_src//g')) \
@@ -356,6 +369,7 @@ ifdef SDK_INSTALL_DIR
 	unset LD_LIBRARY_PATH ; \
 	source environment-setup*; \
 	cd $(SDK_INSTALL_DIR)/sysroots/*-intelaxxia-linux/usr/src/kernel ; \
+	unset HOST_EXTRACFLAGS; \
 	make clean oldconfig scripts tools/objtool ;
 else
 	$(error SDK_INSTALL_DIR is undefined, run 'make help' for usage)
