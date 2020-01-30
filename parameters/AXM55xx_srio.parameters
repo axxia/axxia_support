@@ -1,0 +1,579 @@
+################################################################################
+# Parameters: Global
+# ------------------------------------------------------------------------------
+# Version
+0x00000001
+# ------------------------------------------------------------------------------
+# Flags
+#
+# Used to control 2nd stage initialization.  The bits are defined as
+# follows (all bits that are not defined below are ignored)
+#
+#    Bit     0: If set, the SPL will adjust the voltage.
+#    Bit     1: If set, the SPL will set the clocks.
+#    Bit     2: If set, the SPL will set PEI control register.
+#    Bit     3: If set, the SPL will initialize system memory.
+#    Bit     4: If set, the SPL will initialize classifier memory.
+#    Bit     5: If set, enable the DDR retention capability
+#    Bit    23: Use Memory Test when Testing Ranges
+#    Bit    24: Use Address Line Test when Testing Ranges
+#    Bit    25: Use Data Line Test when Testing Ranges
+#    Bit 27:26: Verbosity Level,0...3
+#    Bit    28: Disable reset (loop on failures to allow debug).
+#    Bit    29: If set, run the built in system test on classifier memory.
+#    Bit    30: If set, enable system memory range testing (ignored if Bit 31 is
+#               set).
+#    Bit    31: If set, run the built in system test on system memory.  Note
+#               that enabling the system memory test will add several minutes
+#               to the system initialization time.
+0x4000002e
+# ------------------------------------------------------------------------------
+# Baud Rate
+#
+# Use 0x80000000 to leave the baud rate unchanged.
+# Represents the baudRate in hex. 
+# The valid values for baudRate are: 0x12c0(4800),  0x2580(9600),  0x4b00(19200),
+#                                    0x9600(38400), 0xe100(57600), 0x1c200(115200)
+0x80000000
+# ------------------------------------------------------------------------------
+# Memory Ranges to Test
+# Note that these are in Mb.
+# For example, the default first range starts at 0 and covers 4MB. If the
+# size is 0 the range is ignored.
+# Range 0 Offset
+0x00000000
+# Range 0 Size
+0x00000004
+# Range 1 Offset
+0x00000000
+# Range 1 Size
+0x00000000
+# Range 2 Offset
+0x00000000
+# Range 2 Size
+0x00000000
+# Range 3 Offset
+0x00000000
+# Range 3 Size
+0x00000000
+# Range 4 Offset
+0x00000000
+# Range 4 Size
+0x00000000
+# Range 5 Offset
+0x00000000
+# Range 5 Size
+0x00000000
+# Range 6 Offset
+0x00000000
+# Range 6 Size
+0x00000000
+# Range 7 Offset
+0x00000000
+# Range 7 Size
+0x00000000
+# ------------------------------------------------------------------------------
+# Sequence
+0x00000000
+# ------------------------------------------------------------------------------
+# Description
+0x67617641
+0x2d55206f
+0x746f6f42
+0x63615020
+0x6567616b
+0x72615020
+0x74656d61
+0x20737265
+0x20726f66
+0x30303535
+0x31703120
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+################################################################################
+# Parameters: PCIe/SRIO
+# ------------------------------------------------------------------------------
+# Version
+0x00000001
+# ------------------------------------------------------------------------------
+# General Phy Control Register 0 Configuration Parameter
+#
+# Use 0x80000000 to base configuration on the hardware jumpers.  Any
+# other value will get written to "General Phy Control Register 0" and 
+# "General PHY control Register 1".
+# Bits 30,29: Indicates PCIe1 controller configuration
+#            0 - indicates PCIe1x4 on SerDes ch 0,1,2,3
+#            1 - indicates PCIe1x2 on SerDes ch 0,1
+#            2 - indicates PCIe1x1 on SerDes ch 0
+# Bits 28:26: Indicates PCIe0/SRIO controller configuration
+#            0 - indicates PCIe0x4 on SerDes ch 0,1,2,3
+#            1 - indicates PCIe0x2 on SerDes ch 2,3
+#            2 - indicates SRIO0x2 on SerDes ch 0,1 and PCIe0x2 on SerDes ch 2,3
+#            4 - indicates SRIO0x2 on SerDes ch 0,1 and SRIO1x2 on ch2,3
+#            5 - indicates SRIO0x1 on SerDes ch 0, SRIO1x1 on ch 2, 
+#                PCIe0x1 on ch3
+# Bits 25, 24: If SRIO1 is configured,
+#            0 - indicates Host with ID 0,
+#            1 - indicates Host with ID 1,
+#            2 - indicates not a host (agent)
+#            3 - RESERVED
+# Bit 23: If PCIe1 is configured,
+#            0 - indicates END_POINT
+#            1 - indicates ROOT_COMPLEX
+# Bit 22: If PCIe0 is configured,
+#            0 - indicates END_POINT
+#            1 - indicates ROOT_COMPLEX
+# Bits 20, 21: If SRIO0 is configured,
+#            0 - indicates Host with ID 0,
+#            1 - indicates Host with ID 1,
+#            2 - indicates not a host (agent)
+#            3 - RESERVED
+# Bit 19 : Powerdown HSS6 ch3
+# Bit 18 : Powerdown HSS6 ch2
+# Bit 17 : Powerdown HSS6 ch1
+# Bit 16 : Powerdown HSS6 ch0
+# Bit 15 : Powerdown HSS5 ch3
+# Bit 14 : Powerdown HSS5 ch2
+# Bit 13 : Powerdown HSS5 ch1
+# Bit 12 : Powerdown HSS5 ch0
+# Bit 10  : Enable SRIO1 controller
+# Bits 7:9 : SRIO1 speed selection
+#            0 -  indicates 1.25 Gbps
+#            1 -  indicates 2.5 Gbps
+#            2 -  indicates 3.125 Gbps
+#            3 -  indicates 5 Gbps
+#            4 -  indicates 6.25 Gbps
+# Bits 4:6 : SRIO0 speed selection
+#            0 -  indicates 1.25 Gbps
+#            1 -  indicates 2.5 Gbps
+#            2 -  indicates 3.125 Gbps
+#            3 -  indicates 5 Gbps
+#            4 -  indicates 6.25 Gbps
+# Bit  3  : Enable SRIO0 controller
+# Bit  2  : Enable PCIe1 controller
+# Bit  0  : Enable PCIe0 controller
+0x12000648
+################################################################################
+# Parameters: Voltage
+# ------------------------------------------------------------------------------
+# Version
+0x00000001
+# ------------------------------------------------------------------------------
+# Settings
+# checksum
+0x00000000
+# version (16 bits) and unused (16 bits)
+0x00000000
+# vofs
+0x00000000
+# tvid
+0x00000005
+# twait
+0x00000000
+0x00000005
+# VIDChecks
+0xffff0000
+# vidLT indexed by psro
+0x61626364
+0x65666767
+0x68686868
+0x68686868
+0x60606060
+0x60606060
+0x60606060
+0x60606060
+0x60606060
+0x60606060
+0x60606060
+0x60606060
+0x60606060
+0x60606060
+0x60606060
+0x60606060
+################################################################################
+# Parameters: Clocks
+# ------------------------------------------------------------------------------
+# Version
+0x00000001
+# ------------------------------------------------------------------------------
+# Flags
+# # Bit  0: If set, override FAB and SYS PLL parameters and set the FAB PLL to
+#           1000Mhz and the SYS PLL to 387Mhz.  Only applies to 1.0 devices.
+0x00000000
+# SYSPLL0 Params (PRMS)
+0x020000d4
+# SYSPLL0 Control (CTRL)
+0x0020c100
+# SYSPLL0 Clock Switch (CSW)
+0x00000004
+# SYSPLL0 Divider (DIV)
+0x00000000
+# SYSPLL0 PostSwitchDelay (in usecs)
+0x00000014
+# CPUPLL0 Params (PRMS)
+0x022406d1
+# CPUPLL0 Control (CTRL)
+0x00219100
+# CPUPLL0 Clock Switch (CSW)
+0x00000055
+# CPUPLL0 Divider (DIV)
+0x00000000
+# CPUPLL0 PostSwitchDelay (in usecs)
+0x00000014
+# SMPLL0 Params (PRMS)
+0x022407d1
+# SMPLL0 Control (CTRL)
+0x0021a100
+# SMPLL0 Clock Switch (CSW)
+0x00000000
+# SMPLL0 Divider (DIV)
+0x00000000
+# SMPLL0 PostSwitchDelay (in usecs)
+0x00000014
+# SMPLL1 Params (PRMS)
+0x022407d1
+# SMPLL1 Control (CTRL)
+0x0021a100
+# SMPLL1 Clock Switch (CSW)
+0x00000000
+# SMPLL1 Divider (DIV)
+0x00000000
+# SMPLL1 PostSwitchDelay (in usecs)
+0x00000014
+# TMPLL0 Params (PRMS)
+0x022203d1
+# TMPLL0 Control (CTRL)
+0x00218100
+# TMPLL0 Clock Switch (CSW)
+0x00000000
+# TMPLL0 Divider (DIV)
+0x00000000
+# TMPLL0 PostSwitchDelay (in usecs)
+0x00000014
+# FABPLL0 Params (PRMS)
+0x022405d1
+# FABPLL0 Control (CTRL)
+0x00211100
+# FABPLL0 Clock Switch (CSW)
+0x00000010
+# FABPLL0 Divider (DIV)
+0x00000000
+# FABPLL0 PostSwitchDelay (in usecs)
+0x00000014
+# NRCP Input Clock Switch (CSW)
+0x00000001
+# NRCP Input Divider (DIV)
+0x00000000
+# Peripheral Clock Switch (PER CSW)
+0x00000040
+# Peripheral Divider (PER DIV)
+0x00107000
+# EMMC Clock Switch (CSW)
+0x00000200
+# EMMC Divider (DIV)
+0x00170000
+# DEBUG Clock Switch (CSW)
+0x00000100
+# STOP Clock Switch (CSW)
+0x00000000
+################################################################################
+# Parameters: System Memory
+# ------------------------------------------------------------------------------
+# Version
+0x00000001
+# ------------------------------------------------------------------------------
+# Settings
+# clockSpeedMHz
+0x00000320
+# autoDetect
+0x00000000
+# numInterfaces
+0x00000002
+# numRanksPerInterface
+0x00000002
+# primaryBusWidth
+0x00000003
+# topology
+0x00000003
+# minCtrlRoundtripDelay (NOT Applicable to Sysmem)
+0x00000000
+# phyReadLatency
+0x0000001c
+# additionalRankSwitchDelay
+0x00000001
+# ZQCS_interval in microseconds
+# set to 0 to disable ZQCS
+0x000f4240
+# enableECC
+0x00000001
+# enableRuntimeUpdates
+0x00000001
+# DRAM precharge policy (reserved, set to zero)
+# 0 : closed page policy
+# 1 : open page policy
+0x00000000
+# openPageSize 
+# Applies to ARM based architectures only (i.e. AXM55xx) 
+# powers of 2 between 64 and 4MB
+# set to zero to disable ELM munging
+# for closed page mode (default) should always be 64
+0x00000040
+# Syscache control
+# applies to PPC based architectures only (i.e. AXM35xx)
+# These settings are for debug purposes only. This field
+# should be set to zero for normal operation.
+#  [ 7: 0] : Syscache Mode
+#            this field is used to program the syscache munge register
+#            'field_order' field. A value of 0 provides normal munging
+#            for best performance. A setting of 1 provides unmunged access
+#            for debug purposes.
+#  [15: 8] : Syscache Disable
+#            set to 1 to force uncached operation (debug only)
+#  [23:16] : Syscache HalfMem
+#            Reserved - not applicable to AXM35xx
+#
+0x00000000
+# SYSMEM SDRAM config attributes
+# sdramDeviceDensity
+# 0=256M, 1=512Mb, 2=1Gb, 3=2Gb, 4=4Gb, 5=8Gb, and 6=16Gb
+0x00000004
+# sdramDeviceWidth
+# 0=x4, 1=x8, 2=x16, and 3=x32 
+0x00000001
+# CASlatency
+0x0000000b
+# CASwriteLatency
+0x00000008
+# addressMirroring
+0x00000001
+# registeredDIMM (reserved, set to zero)
+0x00000000
+# RDIMM_CTL_0_0 (bits [31:0] of RDIMM_CTL_0
+# 8 Control-word info [(3:0)->ctl-word-0, (7:4)->ctl-word-1, ...)
+0x00111001
+# RDIMM_CTL_0_1 (bits [63:32] of RDIMM_CTL_0
+# 8 Control-word info [(3:0)->ctl-word-8, (7:4)->ctl-word-9, ...)
+0x00000000
+# RDIMM_MISC (placeholder for miscellaneous RDIMM configuration)
+# b(31:16): 16 bits- each bit corresponding to a ctl-word specifying update during init
+# b(0): DIMM enable
+# remaining bits- reserved for future use
+0xffff0000
+# Write ODT control
+#     15:12  ODT_WR_MAP_CS3 (Rank3-Rank0)
+#     11:8   ODT_WR_MAP_CS2 (Rank3-Rank0)
+#      7:4   ODT_WR_MAP_CS1 (Rank3-Rank0)
+#      3:0   ODT_WR_MAP_CS0 (Rank3-Rank0)
+0x00000033
+# Read ODT control
+#     15:12  ODT_RD_MAP_CS3 (Rank3-Rank0)
+#     11:8   ODT_RD_MAP_CS2 (Rank3-Rank0)
+#      7:4   ODT_RD_MAP_CS1 (Rank3-Rank0)
+#      3:0   ODT_RD_MAP_CS0 (Rank3-Rank0)
+0x00000012
+# singleBitMpr
+0x00000000
+# highTemperature
+0x00000000
+# SYSMEM interface 0 config attributes     
+# The next 3 SYSMEM SDRAM values are packed in the following format
+#         +----+----+----+----+----+----+----+----+
+#  rank:  |    3    |    2    |    1    |    0    |
+#         +----+----+----+----+----+----+----+----+
+#         31      24 23     16 15      8 7        0
+#
+#    Each byte represents the impedance setting for a different rank
+# SMEM(0) SDRAM RTTnom
+0x00000101
+# SMEM(0) SDRAM RTTwr
+0x00000000
+# SMEM(0) SDRAM outputDriverImpedance
+0x00000101
+# SYSMEM interface 0 PHY config attributes
+# SMEM(0) PHY minPhyCalibrationDelay
+0x00000006
+# SMEM(0) PHY ADR_phaseSelect
+0x00000000
+# SMEM(0) PHY DP_IO_VREF_SETTING
+0x0003f02a
+# SMEM(0) PHY ADR_IO_VREF_SETTING
+0x00000fff
+# SMEM(0) PHY readLevelCompareDataEven
+0x00000000
+# SMEM(0) PHY readLevelCompareDataOdd
+0x00000004
+# SMEM(0) PHY write alignment fine tune (reserved for future use)
+0x00000000
+# SYSMEM interface 1 config attributes     
+# The next 3 SYSMEM SDRAM values are packed in the following format
+#         +----+----+----+----+----+----+----+----+
+#  rank:  |    3    |    2    |    1    |    0    |
+#         +----+----+----+----+----+----+----+----+
+#         31      24 23     16 15      8 7        0
+#
+#    Each byte represents the impedance setting for a different rank
+# SMEM(1) SDRAM RTTnom
+0x00000101
+# SMEM(1) SDRAM RTTwr
+0x00000000
+# SMEM(1) SDRAM outputDriverImpedance
+0x00000101
+# SYSMEM interface 1 PHY config attributes
+# SMEM(1) PHY minPhyCalibrationDelay
+0x00000006
+# SMEM(1) PHY ADR_phaseSelect
+0x00000000
+# SMEM(1) PHY DP_IO_VREF_SETTING
+0x0003f02a
+# SMEM(1) PHY ADR_IO_VREF_SETTING
+0x00000fff
+# SMEM(1) PHY readLevelCompareDataEven
+0x00000000
+# SMEM(1) PHY readLevelCompareDataOdd
+0x00000004
+# SMEM(1) PHY write alignment fine tune (reserved for future use)
+0x00000000
+################################################################################
+# Parameters: Classifier Memory
+# ------------------------------------------------------------------------------
+# Version
+0x00000001
+# ------------------------------------------------------------------------------
+# Settings
+# clockSpeedMHz
+0x00000534
+# autoDetect
+0x00000000
+# numInterfaces
+0x00000002
+# numRanksPerInterface
+0x00000001
+# primaryBusWidth
+0x00000000
+# topology
+0x00000001
+# minCtrlRoundtripDelay 
+0x00000001
+# phyReadLatency
+0x00000000
+# additionalRankSwitchDelay
+0x00000000
+# ZQCS_interval in microseconds
+# set to 0 to disable ZQCS
+0x0007a120
+# enableECC
+0x00000001
+# enableRuntimeUpdates
+0x00000001
+# openPageSize 
+# Applies to ARM based architectures only (i.e. AXM55xx) 
+# Not Applicable to CMEM.
+0x00000000
+# Syscache control ( PPC based architectures only )
+0x00000000
+# CMEM SDRAM config attributes
+# sdramDeviceDensity
+# 0=256M, 1=512Mb, 2=1Gb, 3=2Gb, 4=4Gb, 5=8Gb, and 6=16Gb
+0x00000004
+# sdramDeviceWidth
+# 0=x4, 1=x8, 2=x16, and 3=x32 
+0x00000001
+# CASlatency
+0x00000009
+# CASwriteLatency
+0x00000007
+# addressMirroring ( Not Applicable to CMEM )
+0x00000000
+# registeredDIMM ( Not Applicable to CMEM )
+0x00000000
+# RDIMM_CTL_0_0 (bits [31:0] of RDIMM_CTL_0 ( Not Applicable to CMEM )
+0x00000000
+# RDIMM_CTL_0_1 (bits [63:32] of RDIMM_CTL_0( Not Applicable to CMEM )
+0x00000000
+# RDIMM_MISC ( Not Applicable to CMEM )
+0x00000000
+# Write ODT control ( Not Applicable to CMEM )
+0x00000000
+# Read ODT control  ( Not Applicable to CMEM )
+0x00000000
+# singleBitMpr
+0x00000000
+# highTemperature
+0x00000000
+# CMEM interface 0 config attributes     
+# The next 3 CMEM SDRAM values are packed in the following format
+#         +----+----+----+----+----+----+----+----+
+#  rank:  |    3    |    2    |    1    |    0    |
+#         +----+----+----+----+----+----+----+----+
+#         31      24 23     16 15      8 7        0
+#
+#    Each byte represents the impedance setting for a different rank
+# CMEM(0) SDRAM RTTnom
+0x00000002
+# CMEM(0) SDRAM RTTwr
+0x00000000
+# CMEM(0) SDRAM outputDriverImpedance
+0x00000001
+# CMEM interface 0 PHY config attributes
+# CMEM(0) PHY minPhyCalibrationDelay
+0x0000000c
+# CMEM(0) PHY ADR_phaseSelect
+0x00000000
+# CMEM(0) PHY DP_IO_VREF_SETTING
+0x0003f02a
+# CMEM(0) PHY ADR_IO_VREF_SETTING
+0x00000fff
+# CMEM(0) PHY readLevelCompareDataEven
+0x00000000
+# CMEM(0) PHY readLevelCompareDataOdd
+0x00000004
+# CMEM(0) PHY write alignment fine tune (reserved for future use)
+0x00000000
+# CMEM interface 1 config attributes     
+# The next 3 CMEM SDRAM values are packed in the following format
+#         +----+----+----+----+----+----+----+----+
+#  rank:  |    3    |    2    |    1    |    0    |
+#         +----+----+----+----+----+----+----+----+
+#         31      24 23     16 15      8 7        0
+#
+#    Each byte represents the impedance setting for a different rank
+# CMEM(1) SDRAM RTTnom
+0x00000002
+# CMEM(1) SDRAM RTTwr
+0x00000000
+# CMEM(1) SDRAM outputDriverImpedance
+0x00000001
+# CMEM interface 1 PHY config attributes
+# CMEM(1) PHY minPhyCalibrationDelay
+0x0000000c
+# CMEM(1) PHY ADR_phaseSelect
+0x00000000
+# CMEM(1) PHY DP_IO_VREF_SETTING
+0x0003f02a
+# CMEM(1) PHY ADR_IO_VREF_SETTING
+0x00000fff
+# CMEM(1) PHY readLevelCompareDataEven
+0x00000000
+# CMEM(1) PHY readLevelCompareDataOdd
+0x00000004
+# CMEM(1) PHY write alignment fine tune (reserved for future use)
+0x00000000
