@@ -34,26 +34,18 @@ BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
-META_AXXIA_REL          ?= snr_rdk_2002.1
+META_AXXIA_REL          ?= snr_rdk_2003
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
-AXXIA_REPO_NAME          = meta-intel-axxia
 IES_ENABLE_SHM          ?= true
 
 LINUX_VERSION           ?= 4.19
-ifeq ($(LINUX_VERSION),4.12)
-  PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-yocto"
-  PREFERRED_PROVIDER_virtual/kernel := "linux-yocto"
-else ifeq ($(LINUX_VERSION),4.14)
-  PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
-  PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
-else ifeq ($(LINUX_VERSION),4.19)
-  PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
-  PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
-  AXXIA_REPO_NAME                    = meta-intel-axxia/meta-intel-axxia
-else
-  $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
+PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
+PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
+
+ifeq ($(filter $(LINUX_VERSION),4.19 5.4),)
+    $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
 META_AXXIA_DEPENDENCY               ?= $(TOP)/meta-intel-axxia/DEPENDENCIES
@@ -70,6 +62,7 @@ endif
 RM = $(Q)rm -f
 
 META_AXXIA_URL   ?= https://github.com/axxia/meta-intel-axxia.git
+AXXIA_REPO_NAME   = meta-intel-axxia/meta-intel-axxia
 LAYERS           += $(TOP)/meta-intel-axxia
 
 ifeq ($(INCLUDE_RDK),true)
@@ -137,8 +130,7 @@ define populate
 	    echo "Pull on Repo $(2)" ; \
 	    cd $(1); \
             git clean -dfx; \
-            git checkout master; \
-	    git pull; \
+	    git fetch --all -f ; \
 	fi;
 endef
 
@@ -183,7 +175,7 @@ help:
 	echo "$$ make sdk install-sdk META_AXXIA_REL=<tag-name> SDK_INSTALL_DIR=<sdk-install-dir>"; \
 	echo "    Build and Install SDK with RDK in-tree" ; \
 	echo "$$ make craff_gen META_AXXIA_REL=<tag-name>" ; \
-	echo "    Create yocto.craff image from hddimg after building sdk\n"; \
+	echo "    Create yocto.craff image from .wic after building sdk\n"; \
 	echo ; \
         echo "Parameters" ; \
         echo "----------" ; \
@@ -233,10 +225,14 @@ help:
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: 4.19" ; \
-	echo "    Other choices are: 4.14, 4.12 "; \
+	echo "    Supported versions are: 4.19, 5.4"; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
-	echo "    Defaults to '12'" ; \
+	echo "    Defaults to '24'" ; \
+	echo "DL_DIR=<download-directory>: Optional:"; \
+	echo "    A pre-populated shared download directory used for"; \
+	echo "    build time/space saving"; \
+	echo "    Defaults to $BLDDIR/downloads" ; \
 
 all: fs
 
@@ -279,8 +275,10 @@ $(TOP)/meta-security: $(TOP)/meta-intel-axxia
 	$(call  checkout_layer_from_file,$@)
 
 $(TOP)/meta-ros: $(TOP)/meta-intel-axxia
+ifeq ($(LINUX_VERSION),4.19)
 	$(call  populate,$@,$(META_ROS))
 	$(call  checkout_layer_from_file,$@)
+endif
 
 # create bitbake build
 .PHONY: build
@@ -294,16 +292,19 @@ build: get-rdk get-simics $(LAYERS)
 		echo "PWD = $$PWD" ; \
 		sed -i s/^DISTRO[[:space:]]*=.*/DISTRO\ =\ \"$(DISTRO)\"/g conf/local.conf ; \
 		sed -i s/^RUNTARGET.*/RUNTARGET\ =\ \"$(RUNTARGET)\"/g conf/local.conf ; \
-		sed -i sX^PREFERRED_PROVIDER_virtual/kernel.*XPREFERRED_PROVIDER_virtual/kernel\ =\ \"$(PREFERRED_PROVIDER_virtual/kernel)\"Xg conf/local.conf ; \
-		sed -i s/^PREFERRED_VERSION_linux.*/$(PREFERRED_VERSION_linux)\ =\ \"$(LINUX_VERSION)%\"/g conf/local.conf ; \
+		sed -i s/^BB_NUMBER_THREADS.*/BB_NUMBER_THREADS\ =\ \"$(BB_NUMBER_THREADS)\"/g conf/local.conf ; \
+		sed -i s/^PARALLEL_MAKE.*/PARALLEL_MAKE\ =\ \"$(PARALLEL_MAKE)\"/g conf/local.conf ; \
+		sed -i '/^PREFERRED_PROVIDER_virtual\/kernel/ d' conf/local.conf ; \
+		sed -i '/^PREFERRED_VERSION_linux/ d' conf/local.conf ; \
+		echo "PREFERRED_PROVIDER_virtual/kernel = \"$(PREFERRED_PROVIDER_virtual/kernel)\"" >> conf/local.conf ; \
+		echo "$(PREFERRED_VERSION_linux) = \"$(LINUX_VERSION)%\"" >> conf/local.conf ; \
 		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
 		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
-		grep "meta-ros" conf/bblayers.conf || echo "BBLAYERS += \"$(TOP)/meta-ros\"" >> conf/bblayers.conf; \
+		if [[ "$(LINUX_VERSION)" == "4.19" ]]; then \
+			grep "meta-ros" conf/bblayers.conf || echo "BBLAYERS += \"$(TOP)/meta-ros\"" >> conf/bblayers.conf; \
+		fi ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
 			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ;\
-			if [[ "$(DL_DIR)" != "" ]]; then \
-				echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
-			fi ; \
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
 			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
 			RC=$(grep IES_ENABLE_SHM conf/local.conf) ; \
@@ -327,8 +328,11 @@ build: get-rdk get-simics $(LAYERS)
 			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" != "true" ]]; then \
-			sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; \
-		fi;
+			sed -i '/DISTRO_FEATURES_append.*simicsfs/s/^/#/g' conf/local.conf; \
+		fi; \
+		if [[ "$(DL_DIR)" != "" ]]; then \
+			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
+		fi ;
 
 .PHONY: get-rdk
 get-rdk: $(LAYERS)
@@ -364,13 +368,14 @@ ifdef SDK_INSTALL_DIR
 	set -e ; \
 	cd $(BLDDIR)/tmp/deploy/sdk ; \
 	mkdir -p $(SDK_INSTALL_DIR) ; \
-	$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE)*toolchain-$(META_AXXIA_REL).sh -y -d $(SDK_INSTALL_DIR) ; \
+	rm -rf $(SDK_INSTALL_DIR)/* ;\
+	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE)*toolchain-$(META_AXXIA_REL).sh -y -d $(SDK_INSTALL_DIR) ; \
 	cd $(SDK_INSTALL_DIR) ; \
 	unset LD_LIBRARY_PATH ; \
 	source environment-setup*; \
 	cd $(SDK_INSTALL_DIR)/sysroots/*-intelaxxia-linux/usr/src/kernel ; \
 	unset HOST_EXTRACFLAGS; \
-	make clean oldconfig scripts tools/objtool ;
+	make clean oldconfig scripts tools/objtool
 else
 	$(error SDK_INSTALL_DIR is undefined, run 'make help' for usage)
 endif
@@ -382,7 +387,7 @@ ifeq ($(INCLUDE_SIMICSFS),true)
 	cd $(BLDDIR) ; \
 	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | head -n 1) ; \
 	cd $(BLDDIR)/tmp/deploy/images/axxiax86-64 ; \
-	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-axxiax86-64.craff $(BB_IMAGE_TYPE)-axxiax86-64.hddimg
+	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-axxiax86-64.craff $(BB_IMAGE_TYPE)-axxiax86-64.wic
 endif
 
 clobber:

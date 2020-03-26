@@ -100,11 +100,15 @@ SDK_INSTALL_DIR=<sdk-install-location>
 
 LINUX_VERSION=<version>: Optional:
     Default: '4.19'
-    Other choices are: '4.14'
+    Supported versions are: 4.19, 5.4
 
 BB_NUMBER_THREADS=<num_threads>: Optional:
     Number of parallel threads to run
-    Defaults to '12'
+    Defaults to '24'
+
+DL_DIR=<download-directory>: Optional:
+    A pre-populated shared download directory used for build time/space saving.
+    Default: $BLDDIR/downloads
 
 
 Manual Build Instructions
