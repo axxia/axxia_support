@@ -34,7 +34,7 @@ BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
-META_AXXIA_REL          ?= snr_rdk_2003
+META_AXXIA_REL          ?= snr_rdk_2005.rc5
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
@@ -43,15 +43,17 @@ IES_ENABLE_SHM          ?= true
 LINUX_VERSION           ?= 4.19
 PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
-
-ifeq ($(filter $(LINUX_VERSION),4.19 5.4),)
-    $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
+ifeq (,$(filter $(LINUX_VERSION),4.19 5.4))
+  $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
-META_AXXIA_DEPENDENCY               ?= $(TOP)/meta-intel-axxia/DEPENDENCIES
+META_AXXIA_DEPENDENCY               ?= $(TOP)/meta-intel-axxia/DEPENDENCIES.vcn
 DISTRO                              := "intel-axxia"
 RUNTARGET                           := "snr"
 DISTRO_FEATURES_append_intree       := " rdk-userspace"
+
+AXXIA_REPO_NAME                     := meta-intel-axxia/meta-intel-vcn
+RDK_REPO_NAME                       := meta-intel-axxia/meta-intel-rdk
 
 # Define V=1 to echo everything
 V ?= 1
@@ -62,17 +64,7 @@ endif
 RM = $(Q)rm -f
 
 META_AXXIA_URL   ?= https://github.com/axxia/meta-intel-axxia.git
-AXXIA_REPO_NAME   = meta-intel-axxia/meta-intel-axxia
 LAYERS           += $(TOP)/meta-intel-axxia
-
-ifeq ($(INCLUDE_RDK),true)
-  META_AXXIA_RDK_URL ?= https://github.com/axxia/meta-intel-axxia-rdk.git
-  LAYERS             += $(TOP)/meta-intel-axxia-rdk
-  RDK_REPO_NAME       = meta-intel-axxia-rdk
-  DISTRO             := "intel-axxia-indist"
-endif
-
-LAYERS       += $(TOP)
 
 POKY_URL      = https://git.yoctoproject.org/git/poky
 LAYERS       += $(TOP)/poky
@@ -185,16 +177,13 @@ help:
 	echo "META_AXXIA_URL=<URL-for-meta-intel-axxia>: Optional:"; \
 	echo "    Defaults to https://github.com/axxia/meta-intel-axxia.git"; \
 	echo "META_AXXIA_DEPENDENCY=<File which contains commit ids of meta layers>: Optional:"; \
-	echo "    Defaults to <current-dir>/meta-intel-axxia/DEPENDENCIES"; \
+	echo "    Defaults to <current-dir>/meta-intel-axxia/DEPENDENCIES.vcn"; \
 	echo "INCLUDE_RDK: Optional: Default = true:" ; \
 	echo "    When set to 'true', builds RDK in-tree,"; \
 	echo "    Set to 'false' to only build Linux"; \
 	echo "INCLUDE_SIMICSFS: Optional: Default = true:" ; \
 	echo "    When set to 'true', builds with simicsfs,"; \
 	echo "    Set to 'false' builds Linux without simicsfs"; \
-	echo "META_AXXIA_RDK_URL=<URL for meta-intel-axxia-rdk>: Optional:"; \
-	echo "    Only used if INCLUDE_RDK is set to 'true'"; \
-	echo "    Default: https://github.com/axxia/meta-intel-axxia-rdk.git"; \
 	echo "RDK_SRC_PATH=<Location-of-RDK-Archives>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>"; \
@@ -242,18 +231,6 @@ $(TOP)/meta-intel-axxia:
 	$(call  populate,$@,$(META_AXXIA_URL))
 	$(call  checkout_rev,$@,$(META_AXXIA_REL))
 
-$(TOP)/meta-intel-axxia-rdk:
-ifeq ($(INCLUDE_RDK),true)
-	$(call  populate,$@,$(META_AXXIA_RDK_URL))
-	$(call  checkout_rev,$@,$(META_AXXIA_REL))
-ifeq ($(RDK_MODULES_STATIC),true)
-	(RDK_CFG=$@/recipes-kernel/linux/frags/rdk-modules.cfg ; \
-         sed -i 's/=m$$/=y/' $$RDK_CFG ; \
-	 cd `dirname $$RDK_CFG` ; \
-	 git commit -a -m"Set modules to static for $(META_AXXIA_REL)")
-endif
-endif
-
 $(TOP)/meta-openembedded: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(OE_URL))
 	$(call  checkout_layer_from_file,$@)
@@ -300,9 +277,6 @@ build: get-rdk get-simics $(LAYERS)
 		echo "$(PREFERRED_VERSION_linux) = \"$(LINUX_VERSION)%\"" >> conf/local.conf ; \
 		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
 		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
-		if [[ "$(LINUX_VERSION)" == "4.19" ]]; then \
-			grep "meta-ros" conf/bblayers.conf || echo "BBLAYERS += \"$(TOP)/meta-ros\"" >> conf/bblayers.conf; \
-		fi ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
 			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ;\
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
@@ -328,7 +302,7 @@ build: get-rdk get-simics $(LAYERS)
 			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" != "true" ]]; then \
-			sed -i '/DISTRO_FEATURES_append.*simicsfs/s/^/#/g' conf/local.conf; \
+			sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; \
 		fi; \
 		if [[ "$(DL_DIR)" != "" ]]; then \
 			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
@@ -339,6 +313,12 @@ get-rdk: $(LAYERS)
 ifeq ($(INCLUDE_RDK),true)
 	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE))
 	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE))
+ifeq ($(RDK_MODULES_STATIC),true)
+	(RDK_CFG=$(TOP)/$(RDK_REPO_NAME)/recipes-kernel/linux/frags/rdk-modules.cfg ; \
+	sed -i 's/=m$$/=y/' $$RDK_CFG ; \
+	cd `dirname $$RDK_CFG` ; \
+	git commit -a -m"Set modules to static for $(META_AXXIA_REL)")
+endif
 endif
 
 .PHONY: get-simics
@@ -373,9 +353,7 @@ ifdef SDK_INSTALL_DIR
 	cd $(SDK_INSTALL_DIR) ; \
 	unset LD_LIBRARY_PATH ; \
 	source environment-setup*; \
-	cd $(SDK_INSTALL_DIR)/sysroots/*-intelaxxia-linux/usr/src/kernel ; \
-	unset HOST_EXTRACFLAGS; \
-	make clean oldconfig scripts tools/objtool
+	./external-modules-setup.sh ;
 else
 	$(error SDK_INSTALL_DIR is undefined, run 'make help' for usage)
 endif

@@ -47,7 +47,7 @@ META_AXXIA_URL=<URL-for-meta-intel-axxia>: Optional:
     Defaults to https://github.com/axxia/meta-intel-axxia.git
 
 META_AXXIA_DEPENDENCY=<File which contains commit ids of meta layers>: Optional:
-    Defaults to <current-dir>/meta-intel-axxia/DEPENDENCIES
+    Defaults to <current-dir>/meta-intel-axxia/DEPENDENCIES.vcn
 
 INCLUDE_RDK: Optional: Default = true:
     When set to 'true', builds RDK in-tree,
@@ -56,10 +56,6 @@ INCLUDE_RDK: Optional: Default = true:
 INCLUDE_SIMICSFS: Optional: Default = true:
     When set to 'true', builds with simicsfs,
     Set to 'false' builds without simicsfs
-
-META_AXXIA_RDK_URL=<URL for meta-intel-axxia-rdk>: Optional:
-    Only used if INCLUDE_RDK is set to 'true'
-    Default: https://github.com/axxia/meta-intel-axxia-rdk.git
 
 RDK_SRC_PATH=<Location-of-RDK-Archives>
     Required: when INCLUDE_RDK='true'
@@ -117,7 +113,7 @@ Manual Build Instructions
 The step-by-step build instructions and linux patch information is included
 in the README of the meta-intel-axxia layer. This can be viewed at:
 
-    https://github.com/axxia/meta-intel-axxia/blob/<META_AXXIA_REL>/README
+    https://github.com/axxia/meta-intel-axxia/blob/<META_AXXIA_REL>/README.vcn
 
     where: META_AXXIA_REL is the release tag.
 
