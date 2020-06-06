@@ -34,13 +34,13 @@ BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
-META_AXXIA_REL          ?= snr_rdk_2005.1
+META_AXXIA_REL          ?= snr_rdk_2005.1_linux54
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
 IES_ENABLE_SHM          ?= true
 
-LINUX_VERSION           ?= 4.19
+LINUX_VERSION           ?= 5.4
 PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
 ifeq (,$(filter $(LINUX_VERSION),4.19 5.4))
