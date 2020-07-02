@@ -95,7 +95,7 @@ SDK_INSTALL_DIR=<sdk-install-location>
     Required when 'install-sdk' is called
 
 LINUX_VERSION=<version>: Optional:
-    Default: '4.19'
+    Default: '5.4'
     Supported versions are: 4.19, 5.4
 
 BB_NUMBER_THREADS=<num_threads>: Optional:
