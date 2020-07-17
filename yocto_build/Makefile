@@ -34,11 +34,12 @@ BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
-META_AXXIA_REL          ?= snr_ase_rdk_2007
+META_AXXIA_REL          ?= snr_ase_rdk_2007.1
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
 IES_ENABLE_SHM          ?= true
+RDK_LTTNG_ENABLE        ?= false
 
 LINUX_VERSION           ?= 4.19
 PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
@@ -201,6 +202,10 @@ help:
 	echo "    Enable building for RDK with IES in shared-memory mode" ; \
 	echo "    Defaults to 'true'" ; \
 	echo "    When set to false, will build IES in RPC mode" ; \
+	echo "RDK_LTTNG_ENABLE=[true|false]:"; \
+	echo "    Enable building RDK with LTTNG enabled in user space" ; \
+	echo "    Defaults to 'false'" ; \
+	echo "    When set to true, will build RDK with LTTNG enabled" ; \
 	echo "SIMICS_FILE=<Location-of-Simics-archive>: Required"; \
 	echo "    Default: <current-dir>/simics-*" ; \
 	echo "BLDDIR=<build dir>: Optional" ; \
@@ -288,6 +293,14 @@ build: get-rdk get-simics $(LAYERS)
 				rm -f sed.tmp ; \
 			else \
 				echo "IES_ENABLE_SHM = \"$(IES_ENABLE_SHM)\"" >> conf/local.conf ; \
+			fi ; \
+			RC=$(grep RDK_LTTNG_ENABLE conf/local.conf) ; \
+			if [[ $$RC == 0 ]]; then \
+				echo "s/RDK_LTTNG_ENABLE.*$$/RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"/g" > sed.tmp ; \
+				sed -i -f sed.tmp conf/local.conf ; \
+				rm -f sed.tmp; \
+			else \
+				echo "RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"" >> conf/local.conf ; \
 			fi ; \
 			echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
 			echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
