@@ -34,7 +34,8 @@ BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
-META_AXXIA_REL          ?= snr_ase_rdk_2007.3
+META_AXXIA_REL          ?= snr_ase_rdk_2007.4
+SIMICS_VERSION          ?= 6.0.45
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
@@ -220,6 +221,9 @@ help:
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: 4.19" ; \
 	echo "    Supported versions are: 4.19, 5.4"; \
+	echo "SIMICS_VERSION=<version>" ; \
+	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
+	echo "    Default: 6.0.45" ; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '24'" ; \
@@ -316,6 +320,8 @@ build: get-rdk get-simics $(LAYERS)
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" != "true" ]]; then \
 			sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; \
+                else \
+                        echo "SIMICS_VERSION = \"$(SIMICS_VERSION)\"" >> conf/local.conf; \
 		fi; \
 		if [[ "$(DL_DIR)" != "" ]]; then \
 			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
