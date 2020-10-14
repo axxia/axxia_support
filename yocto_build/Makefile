@@ -34,8 +34,8 @@ BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
-META_AXXIA_REL          ?= snr_ase_rdk_2007.4
-SIMICS_VERSION          ?= 6.0.45
+SIMICS_VERSION          ?= 6.0.51
+META_AXXIA_REL          ?= snr_ase_rdk_2010
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
@@ -318,10 +318,11 @@ build: get-rdk get-simics $(LAYERS)
 			fi ; \
 			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
-		if [[ "$(INCLUDE_SIMICSFS)" != "true" ]]; then \
-			sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; \
+		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
+                        echo "DISTRO_FEATURES_append = \" simicsfs\"" >> conf/local.conf ;\
+                        echo "SIMICS_VERSION = \"$(SIMICS_VERSION)\"" >> conf/local.conf ;\
                 else \
-                        echo "SIMICS_VERSION = \"$(SIMICS_VERSION)\"" >> conf/local.conf; \
+			sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; \
 		fi; \
 		if [[ "$(DL_DIR)" != "" ]]; then \
 			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
