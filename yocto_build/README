@@ -95,7 +95,7 @@ SDK_INSTALL_DIR=<sdk-install-location>
     Required when 'install-sdk' is called
 
 LINUX_VERSION=<version>: Optional:
-    Default: '5.4'
+    Default: '4.19'
     Supported versions are: 4.19, 5.4
 
  SIMICS_VERSION=<version>

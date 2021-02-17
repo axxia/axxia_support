@@ -34,8 +34,8 @@ BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
-SIMICS_VERSION          ?= 6.0.51
-META_AXXIA_REL          ?= snr_ase_rdk_2101_linux54
+SIMICS_VERSION          ?= 6.0.70
+META_AXXIA_REL          ?= grr_ase_del1
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
@@ -45,7 +45,7 @@ RDK_LTTNG_ENABLE        ?= false
 LINUX_VERSION           ?= 5.4
 PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
-ifeq (,$(filter $(LINUX_VERSION),4.19 5.4))
+ifeq (,$(filter $(LINUX_VERSION),5.4))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
@@ -219,8 +219,8 @@ help:
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
-	echo "    Default: 4.19" ; \
-	echo "    Supported versions are: 4.19, 5.4"; \
+	echo "    Default: 5.4" ; \
+	echo "    Supported versions : 5.4"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
 	echo "    Default: 6.0.45" ; \
@@ -259,12 +259,6 @@ $(TOP)/poky: $(TOP)/meta-intel-axxia
 $(TOP)/meta-security: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(SECURITY_URL))
 	$(call  checkout_layer_from_file,$@)
-
-$(TOP)/meta-ros: $(TOP)/meta-intel-axxia
-ifeq ($(LINUX_VERSION),4.19)
-	$(call  populate,$@,$(META_ROS))
-	$(call  checkout_layer_from_file,$@)
-endif
 
 # create bitbake build
 .PHONY: build
