@@ -32,10 +32,10 @@ RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
 SIMICS_FILE             ?= $(TOP)/simics*
 BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-INCLUDE_RDK             ?= true
+INCLUDE_RDK             ?= false
 INCLUDE_SIMICSFS        ?= true
 SIMICS_VERSION          ?= 6.0.70
-META_AXXIA_REL          ?= grr_ase_del1
+META_AXXIA_REL          ?= grr_ase_del1_2102
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
@@ -92,6 +92,7 @@ define bitbake
 	source oe-init-build-env $(BLDDIR) ; \
 	echo BLDDIR=$(BLDDIR) ; \
 	cd $(BLDDIR) ; \
+	bitbake -c cleanall $(1) ; \
 	bitbake $(1)
 endef
 
@@ -100,6 +101,7 @@ define bitbake-task
 	cd $(TOP)/poky ; \
 	source oe-init-build-env $(BLDDIR) ; \
 	cd $(BLDDIR) ; \
+	bitbake -c cleanall $(1) ; \
 	bitbake $(1) -c $(2)
 endef
 
@@ -223,7 +225,7 @@ help:
 	echo "    Supported versions : 5.4"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
-	echo "    Default: 6.0.45" ; \
+	echo "    Default: 6.0.70" ; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '24'" ; \
@@ -377,7 +379,7 @@ craff_gen:
 ifeq ($(INCLUDE_SIMICSFS),true)
 	set -e ; \
 	cd $(BLDDIR) ; \
-	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | head -n 1) ; \
+	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | grep bin | head -n 1) ; \
 	cd $(BLDDIR)/tmp/deploy/images/axxiax86-64 ; \
 	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-axxiax86-64.craff $(BB_IMAGE_TYPE)-axxiax86-64.wic
 endif
