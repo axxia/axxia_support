@@ -35,7 +35,9 @@ PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
 SIMICS_VERSION          ?= 6.0.51
-META_AXXIA_REL          ?= snr_rdk_2101.01
+META_AXXIA_REL          ?= snr_rdk_2101.02
+RDK_KLM_VERSION         ?= 2101.02
+RDK_TOOLS_VERSION       ?= 2101.02
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
@@ -45,7 +47,7 @@ RDK_LTTNG_ENABLE        ?= false
 LINUX_VERSION           ?= 4.19
 PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
-ifeq (,$(filter $(LINUX_VERSION),4.19 5.4))
+ifeq (,$(filter $(LINUX_VERSION),4.19 5.4 5.10))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
@@ -220,17 +222,17 @@ help:
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: 4.19" ; \
-	echo "    Supported versions are: 4.19, 5.4"; \
+	echo "    Supported versions are: 4.19, 5.4, 5.10"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
-	echo "    Default: 6.0.45" ; \
+	echo "    Default: 6.0.51" ; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '24'" ; \
 	echo "DL_DIR=<download-directory>: Optional:"; \
 	echo "    A pre-populated shared download directory used for"; \
 	echo "    build time/space saving"; \
-	echo "    Defaults to $BLDDIR/downloads" ; \
+	echo "    Defaults to BLDDIR/downloads" ; \
 
 all: fs
 
@@ -308,11 +310,9 @@ build: get-rdk get-simics $(LAYERS)
 			fi ; \
 			echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
 			echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
-			$(eval RDK_TOOLS_VERSION := $(shell echo $(RDK_TOOLS_ARCHIVE) | cut -d'.' -f1 | sed 's/rdk_user_src//g')) \
 			if [[ "$(RDK_TOOLS_VERSION)" != "" ]]; then \
-				echo "RDK_TOOLS_VERSION = \"$(shell echo $(RDK_TOOLS_VERSION) | cut -c 2-)\"" >> conf/local.conf ; \
+				echo "RDK_TOOLS_VERSION = \"$(RDK_TOOLS_VERSION)\"" >> conf/local.conf ; \
 			fi ; \
-			$(eval RDK_KLM_VERSION := $(shell echo $(META_AXXIA_REL) | sed 's/snr_ase_rdk_//g')) \
 			if [[ "$(RDK_KLM_VERSION)" != "" ]]; then \
 				echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
 			fi ; \
