@@ -25,17 +25,17 @@
 TOP                     ?= $(shell pwd)
 SHELL                    = /bin/bash
 BLDDIR                  ?= $(TOP)/axxia
-BB_IMAGE_TYPE           ?= axxia-image-vcn
+BB_IMAGE_TYPE           ?= axxia-image-sim
 RDK_SRC_PATH            ?= $(TOP)
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
-RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
 SIMICS_FILE             ?= $(TOP)/simics*
 BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-INCLUDE_RDK             ?= false
+INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
-SIMICS_VERSION          ?= 6.0.70
-META_AXXIA_REL          ?= grr_ase_del1_2102
+SIMICS_VERSION          ?= 6.0.78
+META_AXXIA_REL          ?= grr_ase_del2_d_54
+RDK_KLM_VERSION         ?= grr_del2
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
@@ -101,7 +101,6 @@ define bitbake-task
 	cd $(TOP)/poky ; \
 	source oe-init-build-env $(BLDDIR) ; \
 	cd $(BLDDIR) ; \
-	bitbake -c cleanall $(1) ; \
 	bitbake $(1) -c $(2)
 endef
 
@@ -112,7 +111,6 @@ define bitbake-cleansstate
 	cd $(BLDDIR) ; \
 	CLEAN_TARGETS="virtual/kernel $(1)" ; \
 	if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then CLEAN_TARGETS="$$CLEAN_TARGETS simicsfs-client" ; fi ; \
-	if [[ "$(INCLUDE_RDK)" = "true" ]]; then CLEAN_TARGETS="$$CLEAN_TARGETS rdk-tools linux-firmware" ; fi ; \
 	bitbake -c cleansstate $$CLEAN_TARGETS
 endef
 
@@ -194,9 +192,6 @@ help:
 	echo "RDK_KLM_ARCHIVE=<Name-of-RDK-KLM-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>/rdk_klm_src.txz"; \
-	echo "RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>"; \
-	echo "    Required: when INCLUDE_RDK='true'"; \
-	echo "    Default:  <current-dir>/rdk_user_src.txz"; \
 	echo "RDK_MODULES_STATIC: Indicates if the RDK modules should"; \
 	echo "                    be statically linked in the linux kernel"; \
 	echo "    Optional: Applies only when INCLUDE_RDK='true'" ; \
@@ -216,8 +211,8 @@ help:
 	echo "    Defaults to <current-dir>/axxia" ; \
 	echo "BB_IMAGE_TYPE=<image name>: Optional"; \
 	echo "    The type of image to build"; \
-	echo "    Default: axxia-image-vcn" ; \
-	echo "    Other choices are: axxia-image-sim, axxia-image-small"; \
+	echo "    Default: axxia-image-sim" ; \
+	echo "    Other choices are: axxia-image-vcn, axxia-image-small"; \
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
@@ -225,14 +220,14 @@ help:
 	echo "    Supported versions : 5.4"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
-	echo "    Default: 6.0.70" ; \
+	echo "    Default: 6.0.78" ; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '24'" ; \
 	echo "DL_DIR=<download-directory>: Optional:"; \
 	echo "    A pre-populated shared download directory used for"; \
 	echo "    build time/space saving"; \
-	echo "    Defaults to $BLDDIR/downloads" ; \
+	echo "    Defaults to $(BLDDIR)/downloads" ; \
 
 all: fs
 
@@ -303,12 +298,6 @@ build: get-rdk get-simics $(LAYERS)
 				echo "RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"" >> conf/local.conf ; \
 			fi ; \
 			echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
-			echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
-			$(eval RDK_TOOLS_VERSION := $(shell echo $(RDK_TOOLS_ARCHIVE) | cut -d'.' -f1 | sed 's/rdk_user_src//g')) \
-			if [[ "$(RDK_TOOLS_VERSION)" != "" ]]; then \
-				echo "RDK_TOOLS_VERSION = \"$(shell echo $(RDK_TOOLS_VERSION) | cut -c 2-)\"" >> conf/local.conf ; \
-			fi ; \
-			$(eval RDK_KLM_VERSION := $(shell echo $(META_AXXIA_REL) | sed 's/snr_ase_rdk_//g')) \
 			if [[ "$(RDK_KLM_VERSION)" != "" ]]; then \
 				echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
 			fi ; \
@@ -328,7 +317,6 @@ build: get-rdk get-simics $(LAYERS)
 get-rdk: $(LAYERS)
 ifeq ($(INCLUDE_RDK),true)
 	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE))
-	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE))
 ifeq ($(RDK_MODULES_STATIC),true)
 	(RDK_CFG=$(TOP)/$(RDK_REPO_NAME)/recipes-kernel/linux/frags/rdk-modules.cfg ; \
 	sed -i 's/=m$$/=y/' $$RDK_CFG ; \
