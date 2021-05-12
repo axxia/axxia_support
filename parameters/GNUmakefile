@@ -18,6 +18,8 @@ all: \
 	AXM5600_rc_3.bin \
 	AXM5600_rc_4.bin \
 	AXM5600_rc_5.bin \
+	AXM5600_rio_host.bin \
+	AXM5600_rio_agent.bin \
 	AXC6700_emu.bin \
 	AXC6700.bin \
 	AXC6700_retention.bin \
@@ -78,6 +80,12 @@ AXM5600_rc_3.bin: AXM5600_rc_3.parameters
 	ncpBootMem -v 9 -c 56xx -a image -r parameters $< $@
 
 AXM5600_rc_4.bin: AXM5600_rc_4.parameters
+	ncpBootMem -v 9 -c 56xx -a image -r parameters $< $@
+
+AXM5600_rio_host.bin: AXM5600_rio_host.parameters
+	ncpBootMem -v 9 -c 56xx -a image -r parameters $< $@
+
+AXM5600_rio_agent.bin: AXM5600_rio_agent.parameters
 	ncpBootMem -v 9 -c 56xx -a image -r parameters $< $@
 
 AXM5600_rc_5.bin: AXM5600_rc_5.parameters
