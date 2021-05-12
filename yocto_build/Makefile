@@ -35,9 +35,9 @@ PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
 SIMICS_VERSION          ?= 6.0.51
-META_AXXIA_REL          ?= snr_rdk_2101.02_linux54
-RDK_TOOLS_VERSION       ?= 2101.02
-RDK_KLM_VERSION         ?= 2101.02
+META_AXXIA_REL          ?= snr_ase_rdk_2010.5_linux54
+RDK_TOOLS_VERSION       ?= 2101.05_54
+RDK_KLM_VERSION         ?= 2101.05_54
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
@@ -221,7 +221,7 @@ help:
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
-	echo "    Default: 4.19" ; \
+	echo "    Default: 5.4" ; \
 	echo "    Supported versions are: 4.19, 5.4"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
@@ -232,7 +232,7 @@ help:
 	echo "DL_DIR=<download-directory>: Optional:"; \
 	echo "    A pre-populated shared download directory used for"; \
 	echo "    build time/space saving"; \
-	echo "    Defaults to BLDDIR/downloads" ; \
+	echo "    Defaults to $(BLDDIR)/downloads" ; \
 
 all: fs
 
