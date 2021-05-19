@@ -35,19 +35,19 @@ PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
 SIMICS_VERSION          ?= 6.0.51
-META_AXXIA_REL          ?= snr_rdk_2101.02_linux54
-RDK_TOOLS_VERSION       ?= 2101.02
-RDK_KLM_VERSION         ?= 2101.02
+META_AXXIA_REL          ?= snr_rdk_2101.03_linux510
+RDK_TOOLS_VERSION       ?= 2101.03_510
+RDK_KLM_VERSION         ?= 2101.03_510
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
 IES_ENABLE_SHM          ?= true
 RDK_LTTNG_ENABLE        ?= false
 
-LINUX_VERSION           ?= 5.4
+LINUX_VERSION           ?= 5.10
 PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
-ifeq (,$(filter $(LINUX_VERSION),4.19 5.4))
+ifeq (,$(filter $(LINUX_VERSION),4.19 5.4 5.10))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
@@ -221,8 +221,8 @@ help:
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
-	echo "    Default: 4.19" ; \
-	echo "    Supported versions are: 4.19, 5.4"; \
+	echo "    Default: 5.10" ; \
+	echo "    Supported versions are: 4.19, 5.4 and 5.10"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
 	echo "    Default: 6.0.51" ; \
