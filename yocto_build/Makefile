@@ -33,17 +33,21 @@ SIMICS_FILE             ?= $(TOP)/simics*
 BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
-INCLUDE_SIMICSFS        ?= true
-META_AXXIA_REL          ?= snr_rdk_2005.1_linux54
+INCLUDE_SIMICSFS        ?= false
+SIMICS_VERSION          ?= 6.0.51
+META_AXXIA_REL          ?= snr_rdk_2106_d_54
+RDK_TOOLS_VERSION       ?= 2106_d_54
+RDK_KLM_VERSION         ?= 2106_d_54
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
 IES_ENABLE_SHM          ?= true
+RDK_LTTNG_ENABLE        ?= false
 
 LINUX_VERSION           ?= 5.4
 PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
-ifeq (,$(filter $(LINUX_VERSION),4.19 5.4))
+ifeq (,$(filter $(LINUX_VERSION),4.19 5.4 5.10))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
@@ -201,6 +205,10 @@ help:
 	echo "    Enable building for RDK with IES in shared-memory mode" ; \
 	echo "    Defaults to 'true'" ; \
 	echo "    When set to false, will build IES in RPC mode" ; \
+	echo "RDK_LTTNG_ENABLE=[true|false]:"; \
+	echo "    Enable building RDK with LTTNG enabled in user space" ; \
+	echo "    Defaults to 'false'" ; \
+	echo "    When set to true, will build RDK with LTTNG enabled" ; \
 	echo "SIMICS_FILE=<Location-of-Simics-archive>: Required"; \
 	echo "    Default: <current-dir>/simics-*" ; \
 	echo "BLDDIR=<build dir>: Optional" ; \
@@ -214,14 +222,17 @@ help:
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: 5.4" ; \
-	echo "    Supported versions are: 4.19, 5.4"; \
+	echo "    Supported versions are: 4.19, 5.4, 5.10"; \
+	echo "SIMICS_VERSION=<version>" ; \
+	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
+	echo "    Default: 6.0.51" ; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '24'" ; \
 	echo "DL_DIR=<download-directory>: Optional:"; \
 	echo "    A pre-populated shared download directory used for"; \
 	echo "    build time/space saving"; \
-	echo "    Defaults to $BLDDIR/downloads" ; \
+	echo "    Defaults to $(BLDDIR)/downloads" ; \
 
 all: fs
 
@@ -289,19 +300,28 @@ build: get-rdk get-simics $(LAYERS)
 			else \
 				echo "IES_ENABLE_SHM = \"$(IES_ENABLE_SHM)\"" >> conf/local.conf ; \
 			fi ; \
+			RC=$(grep RDK_LTTNG_ENABLE conf/local.conf) ; \
+			if [[ $$RC == 0 ]]; then \
+				echo "s/RDK_LTTNG_ENABLE.*$$/RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"/g" > sed.tmp ; \
+				sed -i -f sed.tmp conf/local.conf ; \
+				rm -f sed.tmp; \
+			else \
+				echo "RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"" >> conf/local.conf ; \
+			fi ; \
 			echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
 			echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
-			$(eval RDK_TOOLS_VERSION := $(shell echo $(RDK_TOOLS_ARCHIVE) | cut -d'.' -f1 | sed 's/rdk_user_src//g')) \
 			if [[ "$(RDK_TOOLS_VERSION)" != "" ]]; then \
-				echo "RDK_TOOLS_VERSION = \"$(shell echo $(RDK_TOOLS_VERSION) | cut -c 2-)\"" >> conf/local.conf ; \
+				echo "RDK_TOOLS_VERSION = \"$(RDK_TOOLS_VERSION)\"" >> conf/local.conf ; \
 			fi ; \
-			$(eval RDK_KLM_VERSION := $(shell echo $(META_AXXIA_REL) | sed 's/snr_ase_rdk_//g')) \
 			if [[ "$(RDK_KLM_VERSION)" != "" ]]; then \
 				echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
 			fi ; \
 			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
-		if [[ "$(INCLUDE_SIMICSFS)" != "true" ]]; then \
+		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
+                        echo "DISTRO_FEATURES_append = \" simicsfs\"" >> conf/local.conf ;\
+                        echo "SIMICS_VERSION = \"$(SIMICS_VERSION)\"" >> conf/local.conf ;\
+                else \
 			sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; \
 		fi; \
 		if [[ "$(DL_DIR)" != "" ]]; then \
