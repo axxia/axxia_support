@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# Authors: behlul.sutarwala@intel.com
+# Authors: sudhir.gopal@intel.com
 #
 # Makefile for AXXIA Yocto Build
 
@@ -33,18 +33,17 @@ SIMICS_FILE             ?= $(TOP)/simics*
 BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
-INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 SIMICS_VERSION          ?= 6.0.51
-META_AXXIA_REL          ?= snr_rdk_2106.01_h_510
-RDK_KLM_VERSION         ?= 2106.01_h_510
-RDK_TOOLS_VERSION       ?= 2106.01_h_510
+META_AXXIA_REL          ?= snr_rdk_21.06.01_t_419
+RDK_TOOLS_VERSION       ?= 2106.01
+RDK_KLM_VERSION         ?= 2106.01
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
 IES_ENABLE_SHM          ?= true
 RDK_LTTNG_ENABLE        ?= false
-LINUX_VERSION           ?= 5.10
+LINUX_VERSION           ?= 4.19
 PREFERRED_VERSION_linux  = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
 
@@ -95,7 +94,6 @@ define bitbake
 	source oe-init-build-env $(BLDDIR) ; \
 	echo BLDDIR=$(BLDDIR) ; \
 	cd $(BLDDIR) ; \
-	bitbake -c cleanall $(1) ; \
 	bitbake $(1)
 endef
 
@@ -114,8 +112,7 @@ define bitbake-cleansstate
 	cd $(BLDDIR) ; \
 	CLEAN_TARGETS="virtual/kernel $(1)" ; \
 	if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then CLEAN_TARGETS="$$CLEAN_TARGETS simicsfs-client" ; fi ; \
-	if [[ "$(INCLUDE_RDK)" = "true" && "$(INCLUDE_RDK_TOOLS)" = "true" ]]; then \
-		CLEAN_TARGETS="$$CLEAN_TARGETS rdk-tools linux-firmware" ; fi ; \
+	if [[ "$(INCLUDE_RDK)" = "true" ]]; then CLEAN_TARGETS="$$CLEAN_TARGETS rdk-tools linux-firmware" ; fi ; \
 	bitbake -c cleansstate $$CLEAN_TARGETS
 endef
 
@@ -188,10 +185,6 @@ help:
 	echo "INCLUDE_RDK: Optional: Default = true:" ; \
 	echo "    When set to 'true', builds RDK in-tree,"; \
 	echo "    Set to 'false' to only build Linux"; \
-	echo "INCLUDE_RDK_TOOLS: Optional: Default = true:" ; \
-	echo "    Depends on INCLUDE_RDK = true,"; \
-	echo "    When set to 'true', builds RDK userspace tools,"; \
-	echo "    Set to 'false' build RDK in-tree without rdk-tools"; \
 	echo "INCLUDE_SIMICSFS: Optional: Default = true:" ; \
 	echo "    When set to 'true', builds with simicsfs,"; \
 	echo "    Set to 'false' builds Linux without simicsfs"; \
@@ -202,7 +195,7 @@ help:
 	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>/rdk_klm_src.txz"; \
 	echo "RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>"; \
-	echo "    Required: when INCLUDE_RDK='true' and INCLUDE_RDK_TOOLS='true'"; \
+	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>/rdk_user_src.txz"; \
 	echo "RDK_MODULES_STATIC: Indicates if the RDK modules should"; \
 	echo "                    be statically linked in the linux kernel"; \
@@ -229,7 +222,7 @@ help:
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: 5.10" ; \
-	echo "    Supported versions are: 4.19, 5.4, 5.10"; \
+	echo "    Supported versions are: 4.19, 5.4 and 5.10"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
 	echo "    Default: 6.0.51" ; \
@@ -296,7 +289,7 @@ build: get-rdk get-simics $(LAYERS)
 		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
 		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
-			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
+			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ;\
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
 			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
 			RC=$(grep IES_ENABLE_SHM conf/local.conf) ; \
@@ -316,10 +309,12 @@ build: get-rdk get-simics $(LAYERS)
 				echo "RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"" >> conf/local.conf ; \
 			fi ; \
 			echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
-			echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
-			if [[ "$(INCLUDE_RDK_TOOLS)" == "true" ]]; then \
-				echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
+			echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
+			if [[ "$(RDK_TOOLS_VERSION)" != "" ]]; then \
 				echo "RDK_TOOLS_VERSION = \"$(RDK_TOOLS_VERSION)\"" >> conf/local.conf ; \
+			fi ; \
+			if [[ "$(RDK_KLM_VERSION)" != "" ]]; then \
+				echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
 			fi ; \
 			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
@@ -337,9 +332,7 @@ build: get-rdk get-simics $(LAYERS)
 get-rdk: $(LAYERS)
 ifeq ($(INCLUDE_RDK),true)
 	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE))
-ifeq ($(INCLUDE_RDK_TOOLS),true)
 	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE))
-endif
 ifeq ($(RDK_MODULES_STATIC),true)
 	(RDK_CFG=$(TOP)/$(RDK_REPO_NAME)/recipes-kernel/linux/frags/rdk-modules.cfg ; \
 	sed -i 's/=m$$/=y/' $$RDK_CFG ; \
@@ -390,7 +383,7 @@ craff_gen:
 ifeq ($(INCLUDE_SIMICSFS),true)
 	set -e ; \
 	cd $(BLDDIR) ; \
-	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | grep bin | head -n 1) ; \
+	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | head -n 1) ; \
 	cd $(BLDDIR)/tmp/deploy/images/axxiax86-64 ; \
 	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-axxiax86-64.craff $(BB_IMAGE_TYPE)-axxiax86-64.wic
 endif

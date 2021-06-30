@@ -53,11 +53,6 @@ INCLUDE_RDK: Optional: Default = true:
     When set to 'true', builds RDK in-tree,
     Set to 'false' to only build Linux
 
-INCLUDE_RDK_TOOLS: Optional: Default = true:
-    Depends on INCLUDE_RDK = true,
-    When set to 'true', builds RDK userspace tools,
-    Set to 'false' build RDK in-tree without rdk-tools
-
 INCLUDE_SIMICSFS: Optional: Default = true:
     When set to 'true', builds with simicsfs,
     Set to 'false' builds without simicsfs
@@ -100,8 +95,8 @@ SDK_INSTALL_DIR=<sdk-install-location>
     Required when 'install-sdk' is called
 
 LINUX_VERSION=<version>: Optional:
-    Default: '4.19'
-    Supported versions are: 4.19, 5.4 and 5.10
+    Default: '5.4'
+    Supported versions are: 4.19, 5.4
 
  SIMICS_VERSION=<version>
      Optional: Only used when INCLUDE_SIMICSFS='true'
@@ -115,15 +110,6 @@ DL_DIR=<download-directory>: Optional:
     A pre-populated shared download directory used for build time/space saving.
     Default: $BLDDIR/downloads
 
-IES_ENABLE_SHM=[true|false]
-    Enable building for RDK with IES in shared-memory mode
-    Defaults to 'true'
-    When set to false, will build IES in RPC mode
-
-RDK_LTTNG_ENABLE=[true|false]
-    Enable building RDK with LTTNG enabled in user space
-    Defaults to 'false'
-    When set to true, will build RDK with LTTNG enabled
 
 Manual Build Instructions
 -------------------------
