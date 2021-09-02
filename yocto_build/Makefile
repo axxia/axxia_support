@@ -34,21 +34,15 @@ BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= true
-META_AXXIA_REL          ?= snr_rdk_2002.1
+META_AXXIA_REL          ?= snr_rdk_2002.6
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
 RDK_MODULES_STATIC      ?= false
 AXXIA_REPO_NAME          = meta-intel-axxia
 IES_ENABLE_SHM          ?= true
-
 LINUX_VERSION           ?= 4.19
-ifeq ($(LINUX_VERSION),4.12)
-  PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-yocto"
-  PREFERRED_PROVIDER_virtual/kernel := "linux-yocto"
-else ifeq ($(LINUX_VERSION),4.14)
-  PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
-  PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
-else ifeq ($(LINUX_VERSION),4.19)
+
+ifeq ($(LINUX_VERSION),4.19)
   PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
   PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
   AXXIA_REPO_NAME                    = meta-intel-axxia/meta-intel-axxia
@@ -233,7 +227,6 @@ help:
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: 4.19" ; \
-	echo "    Other choices are: 4.14, 4.12 "; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '12'" ; \
