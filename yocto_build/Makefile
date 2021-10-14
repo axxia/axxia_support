@@ -25,39 +25,40 @@
 TOP                     ?= $(shell pwd)
 SHELL                    = /bin/bash
 BLDDIR                  ?= $(TOP)/axxia
-BB_IMAGE_TYPE           ?= axxia-image-sim
-RDK_SRC_PATH            ?= $(TOP)
-RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
-RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
-SIMICS_FILE             ?= $(TOP)/simics*
+BB_IMAGE_TYPE           ?= axxia-image-run
+BB_MACHINE_NAME         ?= intel-axxia-grr
+BB_NO_NETWORK           ?= 0
 BB_NUMBER_THREADS       ?= "24"
-PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
+DL_DIR                  ?=
+IES_ENABLE_SHM          ?= true
 INCLUDE_RDK             ?= true
 INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
-SIMICS_VERSION          ?= 6.0.103_del5
-META_AXXIA_REL          ?= grr_ase_rdk_del5
-RDK_KLM_VERSION         ?= grr_del5
-RDK_TOOLS_VERSION       ?= grr_del5
-DL_DIR                  ?=
-BB_NO_NETWORK           ?= 0
-RDK_MODULES_STATIC      ?= false
-IES_ENABLE_SHM          ?= true
-RDK_LTTNG_ENABLE        ?= false
-
 LINUX_VERSION           ?= 5.10
+PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
+META_AXXIA_REL          ?= grr_ase_rdk_del6
+RDK_KLM_VERSION         ?= grr_del4
+RDK_TOOLS_VERSION       ?= grr_del4
+RDK_LTTNG_ENABLE        ?= false
+RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
+RDK_MODULES_STATIC      ?= false
+RDK_SRC_PATH            ?= $(TOP)
+RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
+SIMICS_FILE             ?= $(TOP)/simics*
+SIMICS_VERSION          ?= 6.0.103_del5
+
 PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
 ifeq (,$(filter $(LINUX_VERSION),5.10))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
-META_AXXIA_DEPENDENCY               ?= $(TOP)/meta-intel-axxia/DEPENDENCIES.vcn
+META_AXXIA_DEPENDENCY               ?= $(TOP)/meta-intel-axxia/DEPENDENCIES.distro
 DISTRO                              := "intel-axxia"
-RUNTARGET                           := "snr"
+RUNTARGET                           := "vcn"
 DISTRO_FEATURES_append_intree       := " rdk-userspace"
 
-AXXIA_REPO_NAME                     := meta-intel-axxia/meta-intel-vcn
+AXXIA_REPO_NAME                     := meta-intel-axxia/meta-intel-distro
 RDK_REPO_NAME                       := meta-intel-axxia/meta-intel-rdk
 
 # Define V=1 to echo everything
@@ -71,28 +72,34 @@ RM = $(Q)rm -f
 META_AXXIA_URL   ?= https://github.com/axxia/meta-intel-axxia.git
 LAYERS           += $(TOP)/meta-intel-axxia
 
-POKY_URL      = https://git.yoctoproject.org/git/poky
-LAYERS       += $(TOP)/poky
+POKY_URL          = https://git.yoctoproject.org/git/poky
+LAYERS           += $(TOP)/poky
 
-OE_URL        = https://github.com/openembedded/meta-openembedded.git
-LAYERS       += $(TOP)/meta-openembedded
+OE_URL            = https://github.com/openembedded/meta-openembedded.git
+LAYERS           += $(TOP)/meta-openembedded
 
-VIRT_URL      = https://git.yoctoproject.org/git/meta-virtualization
-LAYERS       += $(TOP)/meta-virtualization
+VIRT_URL          = https://git.yoctoproject.org/git/meta-virtualization
+LAYERS           += $(TOP)/meta-virtualization
 
-INTEL_URL     = https://git.yoctoproject.org/git/meta-intel
-LAYERS       += $(TOP)/meta-intel
+INTEL_URL         = https://git.yoctoproject.org/git/meta-intel
+LAYERS           += $(TOP)/meta-intel
 
-SECURITY_URL  = https://git.yoctoproject.org/git/meta-security
-LAYERS       += $(TOP)/meta-security
+SECURITY_URL      = https://git.yoctoproject.org/git/meta-security
+LAYERS           += $(TOP)/meta-security
 
-META_ROS      = https://github.com/bmwcarit/meta-ros.git
-LAYERS       += $(TOP)/meta-ros
+META_ROS          = https://github.com/bmwcarit/meta-ros.git
+LAYERS           += $(TOP)/meta-ros
+
+define source-bb-env
+    cd $(TOP)/meta-intel-axxia               ; \
+    source meta-intel-distro/axxia-env       ; \
+    cd $(TOP)/poky                           ; \
+    source oe-init-build-env $(BLDDIR)
+endef
 
 define bitbake
 	set -e ; \
-	cd $(TOP)/poky ; \
-	source oe-init-build-env $(BLDDIR) ; \
+    $(call source-bb-env) ; \
 	echo BLDDIR=$(BLDDIR) ; \
 	cd $(BLDDIR) ; \
 	bitbake -c cleanall $(1) ; \
@@ -101,16 +108,14 @@ endef
 
 define bitbake-task
 	set -e ; \
-	cd $(TOP)/poky ; \
-	source oe-init-build-env $(BLDDIR) ; \
+    $(call source-bb-env) ; \
 	cd $(BLDDIR) ; \
 	bitbake $(1) -c $(2)
 endef
 
 define bitbake-cleansstate
 	set -e ; \
-        cd $(TOP)/poky ; \
-        source oe-init-build-env $(BLDDIR) ; \
+    $(call source-bb-env) ; \
 	cd $(BLDDIR) ; \
 	CLEAN_TARGETS="virtual/kernel $(1)" ; \
 	if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then CLEAN_TARGETS="$$CLEAN_TARGETS simicsfs-client" ; fi ; \
@@ -184,7 +189,7 @@ help:
 	echo "META_AXXIA_URL=<URL-for-meta-intel-axxia>: Optional:"; \
 	echo "    Defaults to https://github.com/axxia/meta-intel-axxia.git"; \
 	echo "META_AXXIA_DEPENDENCY=<File which contains commit ids of meta layers>: Optional:"; \
-	echo "    Defaults to <current-dir>/meta-intel-axxia/DEPENDENCIES.vcn"; \
+	echo "    Defaults to <current-dir>/meta-intel-axxia/DEPENDENCIES.distro"; \
 	echo "INCLUDE_RDK: Optional: Default = true:" ; \
 	echo "    When set to 'true', builds RDK in-tree,"; \
 	echo "    Set to 'false' to only build Linux"; \
@@ -223,8 +228,8 @@ help:
 	echo "    Defaults to <current-dir>/axxia" ; \
 	echo "BB_IMAGE_TYPE=<image name>: Optional"; \
 	echo "    The type of image to build"; \
-	echo "    Default: axxia-image-sim" ; \
-	echo "    Other choices are: axxia-image-vcn, axxia-image-small"; \
+	echo "    Default: axxia-image-run" ; \
+	echo "    Other choices are: axxia-image-dev, axxia-image-small"; \
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
@@ -232,7 +237,7 @@ help:
 	echo "    Supported versions : 5.10"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
-	echo "    Default: 6.0.88" ; \
+	echo "    Default: 6.0.103" ; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '24'" ; \
@@ -275,11 +280,11 @@ build: get-rdk get-simics $(LAYERS)
 		set -e ; \
                 echo "Generating local.conf in $(BLDDIR)" ; \
 		cd $(TOP); \
-		rm -rf $(BLDDIR)/conf; \
-		source $(AXXIA_REPO_NAME)/axxia-env ; \
-		source poky/oe-init-build-env $(BLDDIR) ; \
+		rm -rf $(BLDDIR)/conf ; \
+        $(call source-bb-env) ; \
 		echo "PWD = $$PWD" ; \
 		sed -i s/^DISTRO[[:space:]]*=.*/DISTRO\ =\ \"$(DISTRO)\"/g conf/local.conf ; \
+		sed -i s/^MACHINE.*/MACHINE\ =\ \"$(BB_MACHINE_NAME)\"/g conf/local.conf; \
 		sed -i s/^RUNTARGET.*/RUNTARGET\ =\ \"$(RUNTARGET)\"/g conf/local.conf ; \
 		sed -i s/^BB_NUMBER_THREADS.*/BB_NUMBER_THREADS\ =\ \"$(BB_NUMBER_THREADS)\"/g conf/local.conf ; \
 		sed -i s/^PARALLEL_MAKE.*/PARALLEL_MAKE\ =\ \"$(PARALLEL_MAKE)\"/g conf/local.conf ; \
@@ -289,6 +294,7 @@ build: get-rdk get-simics $(LAYERS)
 		echo "$(PREFERRED_VERSION_linux) = \"$(LINUX_VERSION)%\"" >> conf/local.conf ; \
 		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
 		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
+                echo "DISTRO_FEATURES_append = \" multilib\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
 			if [[ "$(INCLUDE_RDK_TOOLS)" == "true" ]]; then \
 				echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
@@ -387,8 +393,8 @@ ifeq ($(INCLUDE_SIMICSFS),true)
 	set -e ; \
 	cd $(BLDDIR) ; \
 	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | grep bin | head -n 1) ; \
-	cd $(BLDDIR)/tmp/deploy/images/axxiax86-64 ; \
-	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-axxiax86-64.craff $(BB_IMAGE_TYPE)-axxiax86-64.wic
+	cd $(BLDDIR)/tmp/deploy/images/$(BB_MACHINE_NAME) ; \
+	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).craff $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).wic
 endif
 
 clobber:
