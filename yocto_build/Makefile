@@ -25,7 +25,7 @@
 TOP                     ?= $(shell pwd)
 SHELL                    = /bin/bash
 BLDDIR                  ?= $(TOP)/axxia
-BB_IMAGE_TYPE           ?= axxia-image-vcn
+BB_IMAGE_TYPE           ?= axxia-image-dev
 BB_MACHINE_NAME         ?= intel-axxia-snr
 BB_NO_NETWORK           ?= 0
 BB_NUMBER_THREADS       ?= "24"
@@ -36,7 +36,7 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2106.02_h_510
+META_AXXIA_REL          ?= snr_rdk_2110_h_510
 RDK_KLM_VERSION         ?= 2110
 RDK_TOOLS_VERSION       ?= 2110
 RDK_LTTNG_ENABLE        ?= false
