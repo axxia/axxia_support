@@ -36,16 +36,16 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= grr_ase_rdk_del6
-RDK_KLM_VERSION         ?= grr_del6
-RDK_TOOLS_VERSION       ?= grr_del6
+META_AXXIA_REL          ?= grr_ase_rdk_del7
+RDK_KLM_VERSION         ?= grr_del7
+RDK_TOOLS_VERSION       ?= grr_del7
 RDK_LTTNG_ENABLE        ?= false
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
 RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
 SIMICS_FILE             ?= $(TOP)/simics*
-SIMICS_VERSION          ?= 6.0.110_del6
+SIMICS_VERSION          ?= 6.0.116_del7
 
 PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
@@ -198,8 +198,8 @@ help:
 	echo "    When set to 'true', builds RDK userspace tools,"; \
 	echo "    Set to 'false' build RDK in-tree without rdk-tools"; \
 	echo "INCLUDE_SIMICSFS: Optional: Default = true:" ; \
-	echo "    When set to 'true', builds with simicsfs,"; \
-	echo "    Set to 'false' builds Linux without simicsfs"; \
+	echo "    When set to 'true', builds with simics,"; \
+	echo "    Set to 'false' builds Linux without simics"; \
 	echo "RDK_SRC_PATH=<Location-of-RDK-Archives>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>"; \
@@ -326,10 +326,10 @@ build: get-rdk get-simics $(LAYERS)
 			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
-                        echo "DISTRO_FEATURES_append = \" simicsfs\"" >> conf/local.conf ;\
+                        echo "DISTRO_FEATURES_append = \" simics\"" >> conf/local.conf ;\
                         echo "SIMICS_VERSION = \"$(SIMICS_VERSION)\"" >> conf/local.conf ;\
                 else \
-			sed -i /DISTRO_FEATURES_append.*simicsfs/s/^/#/g conf/local.conf; \
+			sed -i /DISTRO_FEATURES_append.*simics/s/^/#/g conf/local.conf; \
 		fi; \
 		if [[ "$(DL_DIR)" != "" ]]; then \
 			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
