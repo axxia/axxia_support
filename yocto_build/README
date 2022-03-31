@@ -84,8 +84,16 @@ RDK_MODULES_STATIC=<true | false>: Optional
     Indicates that the RDK modules should be statically linked
     in the kernel tree (obj-y). Default is to build the RDK as modules (obj-m).
 
-SIMICS_FILE=<Location-of-Simics-archive>: Required
+SIMICS_FILE=<Location-of-Simics-archive>: Required iff INCLUDE_SIMICS==true
     Default: <Current Directory>
+
+INCLUDE_UPDATES: Optional: Default = true:
+    When set to 'true', will include meta-intel-axxia-updates Yocto
+    layer with minimal changes to fix older Intel Axxia relases.
+
+META_UPDATES_URL=<URL-for-meta-intel-axxia-updates>: Optional:
+    Defaults to https://github.com/axxia/meta-intel-axxia-updates.git"
+    Required: when INCLUDE_UPDATES='true'
 
 BLDDIR=<build dir>: Optional
     Location of the build
