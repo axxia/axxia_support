@@ -35,11 +35,12 @@ PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= false
 SIMICS_VERSION          ?= 6.0.51
-META_AXXIA_REL          ?= snr_rdk_2201_d_54
-RDK_TOOLS_VERSION       ?= 2201
-RDK_KLM_VERSION         ?= 2201
+META_AXXIA_REL          ?= snr_rdk_2201.01_d_54
+RDK_TOOLS_VERSION       ?= 2201.01
+RDK_KLM_VERSION         ?= 2201.01
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
+INCLUDE_UPDATES         ?= true
 RDK_MODULES_STATIC      ?= false
 IES_ENABLE_SHM          ?= true
 RDK_LTTNG_ENABLE        ?= false
@@ -58,6 +59,7 @@ DISTRO_FEATURES_append_intree       := " rdk-userspace"
 
 AXXIA_REPO_NAME                     := meta-intel-axxia/meta-intel-vcn
 RDK_REPO_NAME                       := meta-intel-axxia/meta-intel-rdk
+UPDATES_REPO_NAME                   := meta-intel-axxia-updates
 
 # Define V=1 to echo everything
 V ?= 1
@@ -87,6 +89,16 @@ LAYERS       += $(TOP)/meta-security
 
 META_ROS      = https://github.com/bmwcarit/meta-ros.git
 LAYERS       += $(TOP)/meta-ros
+
+META_UPDATES_URL ?= https://github.com/axxia/meta-intel-axxia-updates.git
+LAYERS           += $(TOP)/meta-intel-axxia-updates
+
+define source-bb-env
+    cd $(TOP)/meta-intel-axxia               ; \
+    source meta-intel-distro/axxia-env       ; \
+    cd $(TOP)/poky                           ; \
+    source oe-init-build-env $(BLDDIR)
+endef
 
 define bitbake
 	set -e ; \
@@ -128,6 +140,16 @@ define populate
             git clean -dfx; \
 	    git fetch --all -f ; \
 	fi;
+endef
+
+#
+# Default to main if branch not available.
+#
+define checkout_rev_main
+	set -e ; \
+	(git -C $(1) show-branch origin/$(2) &>/dev/null) && \
+		(git -C $(1) checkout $(2)) || \
+		(git -C $(1) checkout main)
 endef
 
 define checkout_rev
@@ -185,9 +207,13 @@ help:
 	echo "INCLUDE_RDK: Optional: Default = true:" ; \
 	echo "    When set to 'true', builds RDK in-tree,"; \
 	echo "    Set to 'false' to only build Linux"; \
-	echo "INCLUDE_SIMICSFS: Optional: Default = true:" ; \
-	echo "    When set to 'true', builds with simicsfs,"; \
-	echo "    Set to 'false' builds Linux without simicsfs"; \
+	echo "INCLUDE_RDK_TOOLS: Optional: Default = true:" ; \
+	echo "    Depends on INCLUDE_RDK = true,"; \
+	echo "    When set to 'true', builds RDK userspace tools,"; \
+	echo "    Set to 'false' build RDK in-tree without rdk-tools"; \
+	echo "INCLUDE_SIMICSFS: Optional: Default = false:" ; \
+	echo "    When set to 'true', builds with simics,"; \
+	echo "    Set to 'false' builds Linux without simics"; \
 	echo "RDK_SRC_PATH=<Location-of-RDK-Archives>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>"; \
@@ -226,6 +252,12 @@ help:
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
 	echo "    Default: 6.0.51" ; \
+	echo "INCLUDE_UPDATES: Optional: Default = true" ; \
+	echo "    When set to 'true', will include meta-intel-axxia-updates Yocto"; \
+	echo "    layer with minimal changes to fix older Intel Axxia relases"; \
+	echo "META_UPDATES_URL=<URL-for-meta-intel-axxia-updates>: Optional:"; \
+	echo "    Defaults to https://github.com/axxia/meta-intel-axxia-updates.git";\
+	echo "    Required: when INCLUDE_UPDATES='true'"; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '24'" ; \
@@ -268,6 +300,12 @@ ifeq ($(LINUX_VERSION),4.19)
 	$(call  checkout_layer_from_file,$@)
 endif
 
+$(TOP)/meta-intel-axxia-updates: $(TOP)/meta-intel-axxia-updates
+ifeq ($(INCLUDE_UPDATES),true)
+	$(call  populate,$@,$(META_UPDATES_URL))
+	$(call  checkout_rev_main,$@,$(META_AXXIA_REL))
+endif
+
 # create bitbake build
 .PHONY: build
 build: get-rdk get-simics $(LAYERS)
@@ -289,7 +327,8 @@ build: get-rdk get-simics $(LAYERS)
 		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
 		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
-			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ;\
+			bitbake-layers add-layer -F $(TOP)/$(RDK_REPO_NAME) ; \
+			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
 			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
 			RC=$(grep IES_ENABLE_SHM conf/local.conf) ; \
@@ -316,7 +355,6 @@ build: get-rdk get-simics $(LAYERS)
 			if [[ "$(RDK_KLM_VERSION)" != "" ]]; then \
 				echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
 			fi ; \
-			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
                         echo "DISTRO_FEATURES_append = \" simicsfs\"" >> conf/local.conf ;\
@@ -326,7 +364,10 @@ build: get-rdk get-simics $(LAYERS)
 		fi; \
 		if [[ "$(DL_DIR)" != "" ]]; then \
 			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
-		fi ;
+		fi ; \
+		if [[ "$(INCLUDE_UPDATES)" == "true" ]]; then \
+			bitbake-layers add-layer -F $(TOP)/$(UPDATES_REPO_NAME); \
+		fi
 
 .PHONY: get-rdk
 get-rdk: $(LAYERS)
