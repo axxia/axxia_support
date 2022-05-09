@@ -30,22 +30,25 @@ BB_MACHINE_NAME         ?= intel-axxia-grr
 BB_NO_NETWORK           ?= 0
 BB_NUMBER_THREADS       ?= "24"
 DL_DIR                  ?=
-IES_ENABLE_SHM          ?= true
+IES_ENABLE_SHM          ?= false
 INCLUDE_RDK             ?= true
 INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= grr_ase_rdk_del8
-RDK_KLM_VERSION         ?= grr_del8
-RDK_TOOLS_VERSION       ?= grr_del8
+META_AXXIA_REL          ?= grr_ase_rdk_del9
+RDK_KLM_VERSION         ?= grr_del9
+RDK_TOOLS_VERSION       ?= grr_del9
 RDK_LTTNG_ENABLE        ?= false
+INCLUDE_UPDATES         ?= true
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
 RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
+USE_RDK_REPO            ?= false
+RDK_REPO                ?= https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
 SIMICS_FILE             ?= $(TOP)/simics*
-SIMICS_VERSION          ?= 6.0.120_del8
+SIMICS_VERSION          ?= 6.0.126_del9
 
 PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
@@ -60,6 +63,7 @@ DISTRO_FEATURES_append_intree       := " rdk-userspace"
 
 AXXIA_REPO_NAME                     := meta-intel-axxia/meta-intel-distro
 RDK_REPO_NAME                       := meta-intel-axxia/meta-intel-rdk
+UPDATES_REPO_NAME                   := meta-intel-axxia-updates
 
 # Define V=1 to echo everything
 V ?= 1
@@ -89,6 +93,9 @@ LAYERS           += $(TOP)/meta-security
 
 META_ROS          = https://github.com/bmwcarit/meta-ros.git
 LAYERS           += $(TOP)/meta-ros
+
+META_UPDATES_URL ?= https://github.com/axxia/meta-intel-axxia-updates.git
+LAYERS           += $(TOP)/meta-intel-axxia-updates
 
 define source-bb-env
     cd $(TOP)/meta-intel-axxia               ; \
@@ -136,6 +143,16 @@ define populate
             git clean -dfx; \
 	    git fetch --all -f ; \
 	fi;
+endef
+
+#
+# Default to main if branch not available.
+#
+define checkout_rev_main
+	set -e ; \
+	(git -C $(1) show-branch origin/$(2) &>/dev/null) && \
+		(git -C $(1) checkout $(2)) || \
+		(git -C $(1) checkout main)
 endef
 
 define checkout_rev
@@ -209,14 +226,28 @@ help:
 	echo "RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true' and INCLUDE_RDK_TOOLS='true'"; \
 	echo "    Default:  <current-dir>/rdk_user_src.txz"; \
+	echo "USE_RDK_REPO: Optional: Default = false:"; \
+	echo "    When set to 'true', get RDK sources from a git repository."; \
+	echo "    Depends on INCLUDE_RDK=true"; \
+	echo "    Special access permissions from Intel are required to be able to fetch"; \
+	echo "    RDK sources from the Intel GitHub repositories."; \
+	echo "RDK_REPO=<RDK-Git-repository>:"; \
+	echo "    Required: when USE_RDK_REPO='true'"; \
+	echo "    Defaults to https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases"; \
+	echo "    Depends on INCLUDE_RDK=true and USE_RDK_REPO=true"; \
+	echo "RDK_REPO_REV=<tag/commit>:"; \
+	echo "    Required: when USE_RDK_REPO='true'"; \
+	echo "    Should contain the git revision (tag or commit SHA) for the RDK git repository."; \
+	echo "    Depends on INCLUDE_RDK=true and USE_RDK_REPO=true"; \
 	echo "RDK_MODULES_STATIC: Indicates if the RDK modules should"; \
 	echo "                    be statically linked in the linux kernel"; \
 	echo "    Optional: Applies only when INCLUDE_RDK='true'" ; \
 	echo "    Default:  false"; \
 	echo "IES_ENABLE_SHM=[true|false]:"; \
-	echo "    Enable building for RDK with IES in shared-memory mode" ; \
-	echo "    Defaults to 'true'" ; \
-	echo "    When set to false, will build IES in RPC mode" ; \
+	echo "    Enable building for RDK with IES in shared-memory or RPC mode" ; \
+	echo "    Defaults to 'false'" ; \
+	echo "    When set to true, will build IES in shared-memory mode" ; \
+	echo "    and when set to false, will build IES in RPC mode" ; \
 	echo "RDK_LTTNG_ENABLE=[true|false]:"; \
 	echo "    Enable building RDK with LTTNG enabled in user space" ; \
 	echo "    Defaults to 'false'" ; \
@@ -237,7 +268,13 @@ help:
 	echo "    Supported versions : 5.10"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
-	echo "    Default: 6.0.103" ; \
+	echo "    Default: 6.0.128" ; \
+	echo "INCLUDE_UPDATES: Optional: Default = true" ; \
+	echo "    When set to 'true', will include meta-intel-axxia-updates Yocto"; \
+	echo "    layer with minimal changes to fix older Intel Axxia relases"; \
+	echo "META_UPDATES_URL=<URL-for-meta-intel-axxia-updates>: Optional:"; \
+	echo "    Defaults to https://github.com/axxia/meta-intel-axxia-updates.git";\
+	echo "    Required: when INCLUDE_UPDATES='true'"; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '24'" ; \
@@ -274,6 +311,12 @@ $(TOP)/meta-security: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(SECURITY_URL))
 	$(call  checkout_layer_from_file,$@)
 
+$(TOP)/meta-intel-axxia-updates: $(TOP)/meta-intel-axxia-updates
+ifeq ($(INCLUDE_UPDATES),true)
+	$(call  populate,$@,$(META_UPDATES_URL))
+	$(call  checkout_rev_main,$@,$(META_AXXIA_REL))
+endif
+
 # create bitbake build
 .PHONY: build
 build: get-rdk get-simics $(LAYERS)
@@ -296,9 +339,8 @@ build: get-rdk get-simics $(LAYERS)
 		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
                 echo "DISTRO_FEATURES_append = \" multilib\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
-			if [[ "$(INCLUDE_RDK_TOOLS)" == "true" ]]; then \
-				echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
-			fi ; \
+			bitbake-layers add-layer -F $(TOP)/$(RDK_REPO_NAME) ; \
+			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
 			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
 			RC=$(grep IES_ENABLE_SHM conf/local.conf) ; \
@@ -317,13 +359,23 @@ build: get-rdk get-simics $(LAYERS)
 			else \
 				echo "RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"" >> conf/local.conf ; \
 			fi ; \
-			if [[ "$(INCLUDE_RDK_TOOLS)" == "true" ]]; then \
-				echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
-				echo "RDK_TOOLS_VERSION = \"$(RDK_TOOLS_VERSION)\"" >> conf/local.conf ; \
+			if [[ "$(USE_RDK_REPO)" == "true" ]]; then \
+				echo "USE_RDK_REPO = \"$(USE_RDK_REPO)\"" >> conf/local.conf ; \
+				echo "RDK_REPO = \"$(RDK_REPO)\"" >> conf/local.conf ; \
+				if [[ "x$(RDK_REPO_REV)" != "x" ]]; then \
+					echo "RDK_REPO_REV = \"$(RDK_REPO_REV)\"" >> conf/local.conf ; \
+				else \
+					echo "Error: RDK_REPO_REV not set. When USE_RDK_REPO is 'true', need to set RDK_REPO_REV to either a commit SHA or tag."; \
+					exit 1; \
+				fi ; \
+			else \
+				echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
+				echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
+				if [[ "$(INCLUDE_RDK_TOOLS)" == "true" ]]; then \
+					echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
+					echo "RDK_TOOLS_VERSION = \"$(RDK_TOOLS_VERSION)\"" >> conf/local.conf ; \
+				fi ; \
 			fi ; \
-			echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
-			echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
-			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
                         echo "DISTRO_FEATURES_append = \" simics\"" >> conf/local.conf ;\
@@ -333,14 +385,19 @@ build: get-rdk get-simics $(LAYERS)
 		fi; \
 		if [[ "$(DL_DIR)" != "" ]]; then \
 			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
-		fi ;
+		fi ; \
+		if [[ "$(INCLUDE_UPDATES)" == "true" ]]; then \
+			bitbake-layers add-layer -F $(TOP)/$(UPDATES_REPO_NAME); \
+		fi
 
 .PHONY: get-rdk
 get-rdk: $(LAYERS)
 ifeq ($(INCLUDE_RDK),true)
+ifeq ($(USE_RDK_REPO),false)
 	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE))
 ifeq ($(INCLUDE_RDK_TOOLS),true)
 	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE))
+endif
 endif
 ifeq ($(RDK_MODULES_STATIC),true)
 	(RDK_CFG=$(TOP)/$(RDK_REPO_NAME)/recipes-kernel/linux/frags/rdk-modules.cfg ; \
