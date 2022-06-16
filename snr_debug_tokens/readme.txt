@@ -11,5 +11,5 @@ gcc -o ./getpartID ./getpartID.c
 gcc -o ./delete_debug_token ./delete_debug_token.c
 gcc -o ./write_debug_token ./write_debug_token.c
 
-For further information, please refer to APplication Note 727118 - Jacbosville BTS - Creating OEM Debug Tokens
+For further information, please refer to Application Note 727118 - Jacbosville BTS - Creating OEM Debug Tokens
 
