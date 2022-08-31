@@ -133,6 +133,10 @@ RDK_LTTNG_ENABLE=[true|false]
     Defaults to 'false'
     When set to true, will build RDK with LTTNG enabled
 
+LTTNG_VERSION=<lttng_version>
+    The version of LTTNG to build with
+    Defaults to 2.13*
+
 Manual Build Instructions
 -------------------------
 
