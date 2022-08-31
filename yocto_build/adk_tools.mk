@@ -18,14 +18,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# Authors: shekar.nimmath@intel.com
+# Authors: behlul.sutarwala@intel.com
 #
 # Makefile for AXXIA Yocto Build
 
 TOP                     ?= $(shell pwd)
 SHELL                    = /bin/bash
 BLDDIR                  ?= $(TOP)/axxia
-BB_IMAGE_TYPE           ?= axxia-image-dev
+BB_IMAGE_TYPE           ?= axxia-image-vcn
 RDK_SRC_PATH            ?= $(TOP)
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
 RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
@@ -33,18 +33,18 @@ SIMICS_FILE             ?= $(TOP)/simics*
 BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
+INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 SIMICS_VERSION          ?= 6.0.51
-META_AXXIA_REL          ?= snr_rdk_2208_t_419
-RDK_TOOLS_VERSION       ?= 2208
-RDK_KLM_VERSION         ?= 2208
+META_AXXIA_REL          ?= snr_rdk_2106.02_h_510
+RDK_KLM_VERSION         ?= 2110
+RDK_TOOLS_VERSION       ?= 2110
 DL_DIR                  ?=
 BB_NO_NETWORK           ?= 0
-INCLUDE_UPDATES         ?= true
 RDK_MODULES_STATIC      ?= false
+INCLUDE_ADK_EXTRAS      ?= false
 IES_ENABLE_SHM          ?= true
-RDK_LTTNG_ENABLE        ?= false
-LINUX_VERSION           ?= 4.19
+LINUX_VERSION           ?= 5.10
 PREFERRED_VERSION_linux  = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
 
@@ -56,10 +56,9 @@ META_AXXIA_DEPENDENCY               ?= $(TOP)/meta-intel-axxia/DEPENDENCIES.vcn
 DISTRO                              := "intel-axxia"
 RUNTARGET                           := "snr"
 DISTRO_FEATURES_append_intree       := " rdk-userspace"
-
+DISTRO_FEATURES_append_adk          := " openstack"
 AXXIA_REPO_NAME                     := meta-intel-axxia/meta-intel-vcn
 RDK_REPO_NAME                       := meta-intel-axxia/meta-intel-rdk
-UPDATES_REPO_NAME                   := meta-intel-axxia-updates
 
 # Define V=1 to echo everything
 V ?= 1
@@ -72,33 +71,43 @@ RM = $(Q)rm -f
 META_AXXIA_URL   ?= https://github.com/axxia/meta-intel-axxia.git
 LAYERS           += $(TOP)/meta-intel-axxia
 
-POKY_URL          = https://git.yoctoproject.org/git/poky
-LAYERS           += $(TOP)/poky
+ifeq ($(INCLUDE_ADK_EXTRAS),true)
+    META_AXXIA_ADK_EXTRAS_REL      ?= master
+    META_AXXIA_ADK_EXTRAS_URL      ?= ssh://git-amr-2.devtools.intel.com:29418/iwa_adk-meta-intel-axxia-adknetd-extras
+    LAYERS                         += $(TOP)/meta-intel-axxia-adknetd-extras
+    ADK_EXTRAS_REPO_NAME            = meta-intel-axxia-adknetd-extras
+    ADK_EXTRAS_GNOME_REPO_NAME      = "meta-openembedded/meta-gnome"
+    ADK_EXTRAS_MULTIMEDIA_REPO_NAME = "meta-openembedded/meta-multimedia"
+    ADK_EXTRAS_WEBSERVER_REPO_NAME  = "meta-openembedded/meta-webserver"
+    ADK_EXTRAS_XFCE_REPO_NAME       = "meta-openembedded/meta-xfce"
+    ADK_EXTRAS_ROS_REPO_NAME        = "meta-ros"
+    ADK_EXTRAS_CLOUD_SERVICES_REPO_NAME        = "meta-cloud-services"
+    ADK_EXTRAS_OPENSTACK_REPO_NAME  = "meta-cloud-services/meta-openstack"
+endif
 
-OE_URL            = https://github.com/openembedded/meta-openembedded.git
-LAYERS           += $(TOP)/meta-openembedded
+POKY_URL      = https://git.yoctoproject.org/git/poky
+LAYERS       += $(TOP)/poky
 
-VIRT_URL          = https://git.yoctoproject.org/git/meta-virtualization
-LAYERS           += $(TOP)/meta-virtualization
+OE_URL        = https://github.com/openembedded/meta-openembedded.git
+LAYERS       += $(TOP)/meta-openembedded
 
-INTEL_URL         = https://git.yoctoproject.org/git/meta-intel
-LAYERS           += $(TOP)/meta-intel
+VIRT_URL      = https://git.yoctoproject.org/git/meta-virtualization
+LAYERS       += $(TOP)/meta-virtualization
 
-SECURITY_URL      = https://git.yoctoproject.org/git/meta-security
-LAYERS           += $(TOP)/meta-security
+INTEL_URL     = https://git.yoctoproject.org/git/meta-intel
+LAYERS       += $(TOP)/meta-intel
 
-META_ROS          = https://github.com/bmwcarit/meta-ros.git
-LAYERS           += $(TOP)/meta-ros
+SECURITY_URL  = https://git.yoctoproject.org/git/meta-security
+LAYERS       += $(TOP)/meta-security
 
-META_UPDATES_URL ?= https://github.com/axxia/meta-intel-axxia-updates.git
-LAYERS           += $(TOP)/meta-intel-axxia-updates
+META_ROS      = https://github.com/bmwcarit/meta-ros.git
+LAYERS       += $(TOP)/meta-ros
 
-define source-bb-env
-    cd $(TOP)/meta-intel-axxia               ; \
-    source meta-intel-distro/axxia-env       ; \
-    cd $(TOP)/poky                           ; \
-    source oe-init-build-env $(BLDDIR)
-endef
+META_CLS_URL  = https://git.yoctoproject.org/git/meta-cloud-services
+META_CLS_BR  := thud
+ifeq ($(INCLUDE_ADK_EXTRAS),true)
+    LAYERS   += $(TOP)/meta-cloud-services
+endif
 
 define bitbake
 	set -e ; \
@@ -106,6 +115,7 @@ define bitbake
 	source oe-init-build-env $(BLDDIR) ; \
 	echo BLDDIR=$(BLDDIR) ; \
 	cd $(BLDDIR) ; \
+	bitbake -c cleanall $(1) ; \
 	bitbake $(1)
 endef
 
@@ -123,8 +133,12 @@ define bitbake-cleansstate
         source oe-init-build-env $(BLDDIR) ; \
 	cd $(BLDDIR) ; \
 	CLEAN_TARGETS="virtual/kernel $(1)" ; \
-	if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then CLEAN_TARGETS="$$CLEAN_TARGETS simicsfs-client" ; fi ; \
-	if [[ "$(INCLUDE_RDK)" = "true" ]]; then CLEAN_TARGETS="$$CLEAN_TARGETS rdk-tools linux-firmware" ; fi ; \
+	if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
+		CLEAN_TARGETS="$$CLEAN_TARGETS simicsfs-client" ; \
+	fi ; \
+	if [[ "$(INCLUDE_RDK)" = "true" && "$(INCLUDE_RDK_TOOLS)" = "true" ]]; then \
+		CLEAN_TARGETS="$$CLEAN_TARGETS rdk-tools linux-firmware" ; \
+	fi ; \
 	bitbake -c cleansstate $$CLEAN_TARGETS
 endef
 
@@ -138,18 +152,10 @@ define populate
 	    echo "Pull on Repo $(2)" ; \
 	    cd $(1); \
             git clean -dfx; \
-	    git fetch --all -f ; \
+            git checkout master; \
+	    git fetch --all    ; \
+	    git pull  --force  ; \
 	fi;
-endef
-
-#
-# Default to main if branch not available.
-#
-define checkout_rev_main
-	set -e ; \
-	(git -C $(1) show-branch origin/$(2) &>/dev/null) && \
-		(git -C $(1) checkout $(2)) || \
-		(git -C $(1) checkout main)
 endef
 
 define checkout_rev
@@ -163,6 +169,14 @@ define check-file-exists
 		echo "Error: $(1) is not present"; \
 		exit 1; \
 	fi
+endef
+
+#
+# Specific layers that do not rely on n README for commit-id.
+#
+define checkout_layer
+	(set -e ; \
+        git -C $(1) checkout $(2))
 endef
 
 define checkout_layer_from_file
@@ -193,7 +207,7 @@ help:
 	echo "$$ make sdk install-sdk META_AXXIA_REL=<tag-name> SDK_INSTALL_DIR=<sdk-install-dir>"; \
 	echo "    Build and Install SDK with RDK in-tree" ; \
 	echo "$$ make craff_gen META_AXXIA_REL=<tag-name>" ; \
-	echo "    Create yocto.craff image from .wic after building sdk\n"; \
+	echo "    Create yocto.craff image from hddimg after building sdk\n"; \
 	echo ; \
         echo "Parameters" ; \
         echo "----------" ; \
@@ -207,13 +221,16 @@ help:
 	echo "INCLUDE_RDK: Optional: Default = true:" ; \
 	echo "    When set to 'true', builds RDK in-tree,"; \
 	echo "    Set to 'false' to only build Linux"; \
-	echo "INCLUDE_RDK_TOOLS: Optional: Default = true:" ; \
-	echo "    Depends on INCLUDE_RDK = true,"; \
-	echo "    When set to 'true', builds RDK userspace tools,"; \
-	echo "    Set to 'false' build RDK in-tree without rdk-tools"; \
-	echo "INCLUDE_SIMICSFS: Optional: Default = false:" ; \
-	echo "    When set to 'true', builds with simics,"; \
-	echo "    Set to 'false' builds Linux without simics"; \
+        echo "INCLUDE_RDK_TOOLS: Optional: Default = true:" ; \
+        echo "    Depends on INCLUDE_RDK = true,"; \
+        echo "    When set to 'true', builds RDK userspace tools,"; \
+        echo "    Set to 'false' build RDK in-tree without rdk-tools"; \
+	echo "INCLUDE_SIMICSFS: Optional: Default = true:" ; \
+	echo "    When set to 'true', builds with simicsfs,"; \
+	echo "    Set to 'false' builds Linux without simicsfs"; \
+	echo "SIMICS_VERSION=<version>" ; \
+	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
+	echo "    Default: 6.0.51" ; \
 	echo "RDK_SRC_PATH=<Location-of-RDK-Archives>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>"; \
@@ -221,7 +238,7 @@ help:
 	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>/rdk_klm_src.txz"; \
 	echo "RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>"; \
-	echo "    Required: when INCLUDE_RDK='true'"; \
+	echo "    Required: when INCLUDE_RDK='true' and INCLUDE_RDK_TOOLS='true'"; \
 	echo "    Default:  <current-dir>/rdk_user_src.txz"; \
 	echo "RDK_MODULES_STATIC: Indicates if the RDK modules should"; \
 	echo "                    be statically linked in the linux kernel"; \
@@ -231,10 +248,13 @@ help:
 	echo "    Enable building for RDK with IES in shared-memory mode" ; \
 	echo "    Defaults to 'true'" ; \
 	echo "    When set to false, will build IES in RPC mode" ; \
-	echo "RDK_LTTNG_ENABLE=[true|false]:"; \
-	echo "    Enable building RDK with LTTNG enabled in user space" ; \
-	echo "    Defaults to 'false'" ; \
-	echo "    When set to true, will build RDK with LTTNG enabled" ; \
+	echo "INCLUDE_ADK_EXTRAS: Optional: Default = false:" ; \
+	echo "    When set to 'true', builds ADK Extras into the filesystem"; \
+	echo "    Set to 'false' Doesn't add ADK Extras into the filesystem"; \
+	echo "META_AXXIA_ADK_EXTRAS_URL=<URL for meta-intel-axxia-adknetd-extra >: Optional:"; \
+	echo "    Only used if INCLUDE_ADK_EXTRAS is set to 'true'"; \
+	echo "    Default: https://.com/axxia/meta-intel-axxia-rdk.git"; \
+	echo "META_AXXIA_ADK_EXTRAS_REL=<tag-name>: Optional:" ; \
 	echo "SIMICS_FILE=<Location-of-Simics-archive>: Required"; \
 	echo "    Default: <current-dir>/simics-*" ; \
 	echo "BLDDIR=<build dir>: Optional" ; \
@@ -242,22 +262,13 @@ help:
 	echo "    Defaults to <current-dir>/axxia" ; \
 	echo "BB_IMAGE_TYPE=<image name>: Optional"; \
 	echo "    The type of image to build"; \
-	echo "    Default: axxia-image-dev" ; \
-	echo "    Other choices are: axxia-image-run, axxia-image-small"; \
+	echo "    Default: axxia-image-vcn" ; \
+	echo "    Other choices are: axxia-image-sim, axxia-image-small"; \
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
-	echo "    Default: 4.19" ; \
-	echo "    Supported versions are: 4.19, 5.4 and 5.10"; \
-	echo "SIMICS_VERSION=<version>" ; \
-	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
-	echo "    Default: 6.0.51" ; \
-	echo "INCLUDE_UPDATES: Optional: Default = true" ; \
-	echo "    When set to 'true', will include meta-intel-axxia-updates Yocto"; \
-	echo "    layer with minimal changes to fix older Intel Axxia relases"; \
-	echo "META_UPDATES_URL=<URL-for-meta-intel-axxia-updates>: Optional:"; \
-	echo "    Defaults to https://github.com/axxia/meta-intel-axxia-updates.git";\
-	echo "    Required: when INCLUDE_UPDATES='true'"; \
+	echo "    Default: 5.10" ; \
+	echo "    Supported versions are: 4.19, 5.4, 5.10"; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '24'" ; \
@@ -273,6 +284,12 @@ all: fs
 $(TOP)/meta-intel-axxia:
 	$(call  populate,$@,$(META_AXXIA_URL))
 	$(call  checkout_rev,$@,$(META_AXXIA_REL))
+
+$(TOP)/meta-intel-axxia-adknetd-extras:
+ifeq ($(INCLUDE_ADK_EXTRAS),true)
+	$(call  populate,$@,$(META_AXXIA_ADK_EXTRAS_URL))
+	$(call  checkout_rev,$@,$(META_AXXIA_ADK_EXTRAS_REL))
+endif
 
 $(TOP)/meta-openembedded: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(OE_URL))
@@ -300,11 +317,9 @@ ifeq ($(LINUX_VERSION),4.19)
 	$(call  checkout_layer_from_file,$@)
 endif
 
-$(TOP)/meta-intel-axxia-updates: $(TOP)/meta-intel-axxia-updates
-ifeq ($(INCLUDE_UPDATES),true)
-	$(call  populate,$@,$(META_UPDATES_URL))
-	$(call  checkout_rev_main,$@,$(META_AXXIA_REL))
-endif
+$(TOP)/meta-cloud-services:
+	$(call  populate,$@,$(META_CLS_URL))
+	$(call  checkout_layer,$@,$(META_CLS_BR))
 
 # create bitbake build
 .PHONY: build
@@ -327,8 +342,7 @@ build: get-rdk get-simics $(LAYERS)
 		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
 		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
-			bitbake-layers add-layer -F $(TOP)/$(RDK_REPO_NAME) ; \
-			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
+			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ;\
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
 			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
 			RC=$(grep IES_ENABLE_SHM conf/local.conf) ; \
@@ -339,22 +353,25 @@ build: get-rdk get-simics $(LAYERS)
 			else \
 				echo "IES_ENABLE_SHM = \"$(IES_ENABLE_SHM)\"" >> conf/local.conf ; \
 			fi ; \
-			RC=$(grep RDK_LTTNG_ENABLE conf/local.conf) ; \
-			if [[ $$RC == 0 ]]; then \
-				echo "s/RDK_LTTNG_ENABLE.*$$/RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"/g" > sed.tmp ; \
-				sed -i -f sed.tmp conf/local.conf ; \
-				rm -f sed.tmp; \
-			else \
-				echo "RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"" >> conf/local.conf ; \
-			fi ; \
 			echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
-			echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
-			if [[ "$(RDK_TOOLS_VERSION)" != "" ]]; then \
+			echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
+			if [[ "$(INCLUDE_RDK_TOOLS)" == "true" ]]; then \
+				echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
 				echo "RDK_TOOLS_VERSION = \"$(RDK_TOOLS_VERSION)\"" >> conf/local.conf ; \
 			fi ; \
-			if [[ "$(RDK_KLM_VERSION)" != "" ]]; then \
-				echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
-			fi ; \
+			echo "BBLAYERS += \"$(TOP)/$(RDK_REPO_NAME)\"" >> conf/bblayers.conf; \
+		fi ; \
+		if [[ "$(INCLUDE_ADK_EXTRAS)" == "true" ]]; \
+		then  \
+			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_adk)\"" >> conf/local.conf ;\
+			echo "BBLAYERS += \"$(TOP)/$(ADK_EXTRAS_REPO_NAME)\"" >> conf/bblayers.conf; \
+			echo "BBLAYERS += \"$(TOP)/$(ADK_EXTRAS_GNOME_REPO_NAME)\"" >> conf/bblayers.conf; \
+			echo "BBLAYERS += \"$(TOP)/$(ADK_EXTRAS_MULTIMEDIA_REPO_NAME)\"" >> conf/bblayers.conf; \
+			echo "BBLAYERS += \"$(TOP)/$(ADK_EXTRAS_WEBSERVER_REPO_NAME)\"" >> conf/bblayers.conf; \
+			echo "BBLAYERS += \"$(TOP)/$(ADK_EXTRAS_XFCE_REPO_NAME)\"" >> conf/bblayers.conf; \
+			echo "BBLAYERS += \"$(TOP)/$(ADK_EXTRAS_ROS_REPO_NAME)\"" >> conf/bblayers.conf; \
+			echo "BBLAYERS += \"$(TOP)/$(ADK_EXTRAS_CLOUD_SERVICES_REPO_NAME)\"" >> conf/bblayers.conf; \
+			echo "BBLAYERS += \"$(TOP)/$(ADK_EXTRAS_OPENSTACK_REPO_NAME)\"" >> conf/bblayers.conf; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
                         echo "DISTRO_FEATURES_append = \" simicsfs\"" >> conf/local.conf ;\
@@ -364,16 +381,15 @@ build: get-rdk get-simics $(LAYERS)
 		fi; \
 		if [[ "$(DL_DIR)" != "" ]]; then \
 			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
-		fi ; \
-		if [[ "$(INCLUDE_UPDATES)" == "true" ]]; then \
-			bitbake-layers add-layer -F $(TOP)/$(UPDATES_REPO_NAME); \
-		fi
+		fi ;
 
 .PHONY: get-rdk
 get-rdk: $(LAYERS)
 ifeq ($(INCLUDE_RDK),true)
 	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE))
+ifeq ($(INCLUDE_RDK_TOOLS),true)
 	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE))
+endif
 ifeq ($(RDK_MODULES_STATIC),true)
 	(RDK_CFG=$(TOP)/$(RDK_REPO_NAME)/recipes-kernel/linux/frags/rdk-modules.cfg ; \
 	sed -i 's/=m$$/=y/' $$RDK_CFG ; \
@@ -424,7 +440,7 @@ craff_gen:
 ifeq ($(INCLUDE_SIMICSFS),true)
 	set -e ; \
 	cd $(BLDDIR) ; \
-	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | head -n 1) ; \
+	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | grep bin | head -n 1) ; \
 	cd $(BLDDIR)/tmp/deploy/images/axxiax86-64 ; \
 	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-axxiax86-64.craff $(BB_IMAGE_TYPE)-axxiax86-64.wic
 endif
