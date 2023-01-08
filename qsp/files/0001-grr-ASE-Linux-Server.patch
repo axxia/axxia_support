@@ -1,96 +1,238 @@
+From 880350b58b10b94228a1b650cc1d2226086ac192 Mon Sep 17 00:00:00 2001
+From: John Jacques <john.jacques@intel.com>
+Date: Sat, 7 Jan 2023 09:33:28 -0600
+Subject: grr: ASE Linux Server
+
+Based on core-image-full-cmdline.
+
+Runs within the simulation environment (ASE) to provide dhcp,
+tftp, and the simicsfs client.
+
+Simics archive should be copied to the poky directory and
+the version should be set in local.conf via SIMICS_VERSION
+variable.
+
+If simics isn't available, comment out the IMAGE_INSTALL:append
+line in local.conf that adds simicsfs-client etc.
+
+Signed-off-by: John Jacques <john.jacques@intel.com>
+Signed-off-by: Daniel Dragomir <daniel1x.dragomir@intel.com>
+---
+ .../axxia-rc-local/axxia-rc-local.bb          |  19 +++
+ .../axxia-rc-local/rc.local.etc.qsp           |  28 +++++
+ .../axxia-rc-local/rc.local.init              |  36 ++++++
+ meta/recipes-core/busybox/busybox.inc         |  19 ++-
+ meta/recipes-core/busybox/busybox/defconfig   |  34 +++---
+ meta/recipes-core/busybox/busybox_1.35.0.bb   |   2 +
+ meta/recipes-core/busybox/files/inetd.conf    |   2 +
+ meta/recipes-core/busybox/files/testfile.txt  |  54 +++++++++
+ meta/recipes-core/busybox/files/udhcpd.conf   | 113 ++++++++++++++++++
+ .../init-ifupdown-1.0/interfaces              |   6 +-
+ meta/recipes-support/simics/libmagicpipe.bb   |  19 +++
+ meta/recipes-support/simics/simics-agent.bb   |  14 +++
+ meta/recipes-support/simics/simics.inc        |  15 +++
+ .../recipes-support/simics/simicsfs-client.bb |  16 +++
+ 14 files changed, 358 insertions(+), 19 deletions(-)
+ create mode 100644 meta/recipes-core/axxia-rc-local/axxia-rc-local.bb
+ create mode 100644 meta/recipes-core/axxia-rc-local/axxia-rc-local/rc.local.etc.qsp
+ create mode 100644 meta/recipes-core/axxia-rc-local/axxia-rc-local/rc.local.init
+ create mode 100644 meta/recipes-core/busybox/files/testfile.txt
+ create mode 100644 meta/recipes-core/busybox/files/udhcpd.conf
+ create mode 100644 meta/recipes-support/simics/libmagicpipe.bb
+ create mode 100644 meta/recipes-support/simics/simics-agent.bb
+ create mode 100644 meta/recipes-support/simics/simics.inc
+ create mode 100644 meta/recipes-support/simics/simicsfs-client.bb
+
+diff --git a/meta/recipes-core/axxia-rc-local/axxia-rc-local.bb b/meta/recipes-core/axxia-rc-local/axxia-rc-local.bb
+new file mode 100644
+index 0000000000..19b567077b
+--- /dev/null
++++ b/meta/recipes-core/axxia-rc-local/axxia-rc-local.bb
+@@ -0,0 +1,19 @@
++DESCRIPTION = "Custom init files for INTEL AXXIA images"
++LICENSE = "MIT"
++LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
++
++SRC_URI = "file://rc.local.etc.qsp \
++           file://rc.local.init "
++
++S = "${WORKDIR}"
++
++inherit update-rc.d
++
++INITSCRIPT_NAME = "rc.local"
++INITSCRIPT_PARAMS = "start 99 2 3 4 5 ."
++
++do_install () {
++    install -d ${D}/${sysconfdir}/init.d
++    install -m 755 ${S}/rc.local.init ${D}/${sysconfdir}/init.d/rc.local
++    install -m 755 ${S}/rc.local.etc.qsp ${D}/${sysconfdir}/rc.local
++}
+diff --git a/meta/recipes-core/axxia-rc-local/axxia-rc-local/rc.local.etc.qsp b/meta/recipes-core/axxia-rc-local/axxia-rc-local/rc.local.etc.qsp
+new file mode 100644
+index 0000000000..da1d14c6ef
+--- /dev/null
++++ b/meta/recipes-core/axxia-rc-local/axxia-rc-local/rc.local.etc.qsp
+@@ -0,0 +1,28 @@
++#!/bin/sh -e
++#
++# rc.local
++#
++# This script is executed at the end of each multiuser runlevel.
++# Make sure that the script will "exit 0" on success or any other
++# value on error.
++#
++# In order to enable or disable this script just change the execution
++# bits.
++#
++# By default this script does nothing.
++
++# Start services and customize the boot process here.
++echo "Running /etc/rc.local..."
++
++# DO NOT run any long running tasks or loops as these will delay
++# the /init script and the console shell.
++
++# Automatically mount host filesystem using simicsfs-client.
++type simicsfs-client &>/dev/null && simicsfs-client -o allow_other /host
++
++/etc/init.d/inetd.busybox stop
++/etc/init.d/busybox-udhcpd stop
++ifconfig eth0 down
++ifconfig eth0 10.10.0.10 up
++/etc/init.d/busybox-udhcpd start
++/etc/init.d/inetd.busybox start
+diff --git a/meta/recipes-core/axxia-rc-local/axxia-rc-local/rc.local.init b/meta/recipes-core/axxia-rc-local/axxia-rc-local/rc.local.init
+new file mode 100644
+index 0000000000..13402a7582
+--- /dev/null
++++ b/meta/recipes-core/axxia-rc-local/axxia-rc-local/rc.local.init
+@@ -0,0 +1,36 @@
++#! /bin/sh
++### BEGIN INIT INFO
++# Provides:          rc.local
++# Required-Start:    $all
++# Required-Stop:
++# Default-Start:     2 3 4 5
++# Default-Stop:
++# Short-Description: Run /etc/rc.local if it exist
++### END INIT INFO
++
++PATH=/sbin:/usr/sbin:/bin:/usr/bin
++
++do_start() {
++	if [ -x /etc/rc.local ]; then
++		echo -n "Running local boot scripts (/etc/rc.local)"
++		/etc/rc.local
++		[ $? = 0 ] && echo "." || echo "error"
++		return $ES
++	fi
++}
++
++case "$1" in
++    start)
++	do_start
++        ;;
++    restart|reload|force-reload)
++        echo "Error: argument '$1' not supported" >&2
++        exit 3
++        ;;
++    stop)
++        ;;
++    *)
++        echo "Usage: $0 start|stop" >&2
++        exit 3
++        ;;
++esac
 diff --git a/meta/recipes-core/busybox/busybox.inc b/meta/recipes-core/busybox/busybox.inc
-index b2f1960..a431d3e 100644
+index 5f1c473d5e..f9ed49da5a 100644
 --- a/meta/recipes-core/busybox/busybox.inc
 +++ b/meta/recipes-core/busybox/busybox.inc
-@@ -26,10 +26,14 @@ PACKAGES =+ "${PN}-httpd ${PN}-udhcpd ${PN}-udhcpc ${PN}-syslog ${PN}-mdev ${PN}
- FILES_${PN}-httpd = "${sysconfdir}/init.d/busybox-httpd /srv/www"
- FILES_${PN}-syslog = "${sysconfdir}/init.d/syslog* ${sysconfdir}/syslog-startup.conf* ${sysconfdir}/syslog.conf* ${systemd_unitdir}/system/syslog.service ${sysconfdir}/default/busybox-syslog"
- FILES_${PN}-mdev = "${sysconfdir}/init.d/mdev ${sysconfdir}/mdev.conf ${sysconfdir}/mdev/*"
--FILES_${PN}-udhcpd = "${sysconfdir}/init.d/busybox-udhcpd"
-+#FILES_${PN}-udhcpd = "${sysconfdir}/init.d/busybox-udhcpd"
- FILES_${PN}-udhcpc = "${sysconfdir}/udhcpc.d ${datadir}/udhcpc"
- FILES_${PN}-hwclock = "${sysconfdir}/init.d/hwclock.sh"
+@@ -3,7 +3,7 @@ DESCRIPTION = "BusyBox combines tiny versions of many common UNIX utilities into
+ HOMEPAGE = "https://www.busybox.net"
+ BUGTRACKER = "https://bugs.busybox.net/"
  
-+FILES_${PN}  += "/tftpboot/"
+-DEPENDS += "kern-tools-native virtual/crypt"
++DEPENDS += "kern-tools-native virtual/crypt update-rc.d-native"
+ 
+ # bzip2 applet in busybox is based on lightly-modified bzip2-1.0.4 source
+ # the GPL is version 2 only
+@@ -26,10 +26,15 @@ PACKAGES =+ "${PN}-httpd ${PN}-udhcpd ${PN}-udhcpc ${PN}-syslog ${PN}-mdev ${PN}
+ FILES:${PN}-httpd = "${sysconfdir}/init.d/busybox-httpd /srv/www"
+ FILES:${PN}-syslog = "${sysconfdir}/init.d/syslog* ${sysconfdir}/syslog-startup.conf* ${sysconfdir}/syslog.conf* ${systemd_system_unitdir}/syslog.service ${sysconfdir}/default/busybox-syslog"
+ FILES:${PN}-mdev = "${sysconfdir}/init.d/mdev ${sysconfdir}/mdev.conf ${sysconfdir}/mdev/*"
+-FILES:${PN}-udhcpd = "${sysconfdir}/init.d/busybox-udhcpd"
++#FILES:${PN}-udhcpd = "${sysconfdir}/init.d/busybox-udhcpd"
+ FILES:${PN}-udhcpc = "${sysconfdir}/udhcpc.d ${datadir}/udhcpc"
+ FILES:${PN}-hwclock = "${sysconfdir}/init.d/hwclock.sh"
+ 
 +FILES_${PN}  += "${sysconfdir}/init.d/inetd.busybox"
 +
++FILES:${PN}  += "/tftpboot/"
++FILES:${PN}  += "${sysconfdir}/init.d/inetd.busybox"
 +
  INITSCRIPT_PACKAGES = "${PN}-httpd ${PN}-syslog ${PN}-udhcpd ${PN}-mdev ${PN}-hwclock"
  
- INITSCRIPT_NAME_${PN}-httpd = "busybox-httpd"
-@@ -183,6 +187,11 @@ do_install () {
+ INITSCRIPT_NAME:${PN}-httpd = "busybox-httpd"
+@@ -38,6 +43,9 @@ INITSCRIPT_NAME:${PN}-mdev = "mdev"
+ INITSCRIPT_PARAMS:${PN}-mdev = "start 04 S ."
+ INITSCRIPT_NAME:${PN}-syslog = "syslog"
+ INITSCRIPT_NAME:${PN}-udhcpd = "busybox-udhcpd"
++INITSCRIPT_PARAMS:${PN}-udhcpd = "start 80 5 . stop 80 S ."
++INITSCRIPT_NAME:inetd-${PN} = "inetd-busybox"
++INITSCRIPT_PARAMS:inetd-${PN} = "start 80 5 . stop 80 S ."
+ 
+ SYSTEMD_PACKAGES = "${PN}-syslog"
+ SYSTEMD_SERVICE:${PN}-syslog = "${@bb.utils.contains('SRC_URI', 'file://syslog.cfg', 'busybox-syslog.service', '', d)}"
+@@ -215,6 +223,9 @@ do_install () {
  
  	install -d ${D}${sysconfdir}/init.d
  
-+#jl Add a tftpboot folder and sample file
 +	install -d ${D}${base_prefix}/tftpboot
-+	install -m 0644 ${WORKDIR}/testfile.txt    ${D}/tftpboot/testfile.txt 
-+
++	install -m 0644 ${WORKDIR}/testfile.txt ${D}/tftpboot/testfile.txt 
 +
  	if ! grep -q "CONFIG_FEATURE_INDIVIDUAL=y" ${B}/.config; then
  		# Install ${base_bindir}/busybox, and the ${base_bindir}/sh link so the postinst script
  		# can run. Let update-alternatives handle the rest.
-@@ -251,6 +260,14 @@ do_install () {
+@@ -282,6 +293,9 @@ do_install () {
  	fi
- 	if grep "CONFIG_UDHCPD=y" ${B}/.config; then
+ 	if grep -q "CONFIG_UDHCPD=y" ${B}/.config; then
  		install -m 0755 ${WORKDIR}/busybox-udhcpd ${D}${sysconfdir}/init.d/
-+#jl
 +		install -m 0755 ${WORKDIR}/busybox-udhcpd ${D}${sysconfdir}/init.d/busybox-udhcpd
-+		install -m 0644 ${WORKDIR}/udhcpd.conf    ${D}${sysconfdir}/udhcpd.conf
-+
-+	
-+		update-rc.d -r ${D} busybox-udhcpd start 85 2 3 4 5 .
-+
-+
++		install -m 0644 ${WORKDIR}/udhcpd.conf ${D}${sysconfdir}/udhcpd.conf
++                update-rc.d -r ${D} busybox-udhcpd start 85 2 3 4 5 .
  	fi
- 	if grep "CONFIG_HWCLOCK=y" ${B}/.config; then
+ 	if grep -q "CONFIG_HWCLOCK=y" ${B}/.config; then
  		install -m 0755 ${WORKDIR}/hwclock.sh ${D}${sysconfdir}/init.d/
-@@ -266,6 +283,11 @@ do_install () {
+@@ -297,6 +311,7 @@ do_install () {
  		install -m 0755 ${WORKDIR}/inetd ${D}${sysconfdir}/init.d/inetd.${BPN}
  		sed -i "s:/usr/sbin/:${sbindir}/:" ${D}${sysconfdir}/init.d/inetd.${BPN}
  		install -m 0644 ${WORKDIR}/inetd.conf ${D}${sysconfdir}/
-+
-+#jl
 +                update-rc.d -r ${D} inetd.busybox start 80 2 3 4 5 .
-+
-+
  	fi
-         if grep "CONFIG_MDEV=y" ${B}/.config; then
-                install -m 0755 ${WORKDIR}/mdev ${D}${sysconfdir}/init.d/mdev
+ 	if grep -q "CONFIG_MDEV=y" ${B}/.config; then
+ 		install -m 0755 ${WORKDIR}/mdev ${D}${sysconfdir}/init.d/mdev
 diff --git a/meta/recipes-core/busybox/busybox/defconfig b/meta/recipes-core/busybox/busybox/defconfig
-index c0459d5..288a7ad 100644
+index 5e1e1f5638..3391157fac 100644
 --- a/meta/recipes-core/busybox/busybox/defconfig
 +++ b/meta/recipes-core/busybox/busybox/defconfig
-@@ -775,9 +775,9 @@ CONFIG_FEATURE_WGET_STATUSBAR=y
- CONFIG_FEATURE_WGET_AUTHENTICATION=y
- CONFIG_FEATURE_WGET_LONG_OPTIONS=y
- CONFIG_FEATURE_WGET_TIMEOUT=y
--# CONFIG_FEATURE_WGET_OPENSSL is not set
--# CONFIG_FEATURE_WGET_SSL_HELPER is not set
--# CONFIG_WHOIS is not set
-+CONFIG_FEATURE_WGET_OPENSSL=y
-+CONFIG_FEATURE_WGET_SSL_HELPER=y
-+CONFIG_WHOIS=y
- CONFIG_FEATURE_IPV6=y
- # CONFIG_FEATURE_UNIX_LOCAL is not set
- CONFIG_FEATURE_PREFER_IPV4_ADDRESS=y
-@@ -790,12 +790,12 @@ CONFIG_FEATURE_PREFER_IPV4_ADDRESS=y
+@@ -866,12 +866,12 @@ CONFIG_FEATURE_HWIB=y
+ # CONFIG_FEATURE_BRCTL_SHOW is not set
  # CONFIG_DNSD is not set
  # CONFIG_ETHER_WAKE is not set
- # CONFIG_FAKEIDENTD is not set
 -# CONFIG_FTPD is not set
 +CONFIG_FTPD=y
- # CONFIG_FEATURE_FTP_WRITE is not set
+ # CONFIG_FEATURE_FTPD_WRITE is not set
  # CONFIG_FEATURE_FTPD_ACCEPT_BROKEN_LIST is not set
- # CONFIG_FEATURE_FTP_AUTHENTICATION is not set
+ # CONFIG_FEATURE_FTPD_AUTHENTICATION is not set
 -# CONFIG_FTPGET is not set
 -# CONFIG_FTPPUT is not set
 +CONFIG_FTPGET=y
 +CONFIG_FTPPUT=y
  # CONFIG_FEATURE_FTPGETPUT_LONG_OPTIONS is not set
  CONFIG_HOSTNAME=y
- # CONFIG_HTTPD is not set
-@@ -827,13 +827,13 @@ CONFIG_FEATURE_IFUPDOWN_IPV4=y
+ CONFIG_DNSDOMAINNAME=y
+@@ -907,12 +907,12 @@ CONFIG_FEATURE_IFUPDOWN_IPV4=y
  CONFIG_FEATURE_IFUPDOWN_IPV6=y
  CONFIG_FEATURE_IFUPDOWN_MAPPING=y
  CONFIG_FEATURE_IFUPDOWN_EXTERNAL_DHCP=y
@@ -100,21 +242,19 @@ index c0459d5..288a7ad 100644
 -# CONFIG_FEATURE_INETD_SUPPORT_BUILTIN_TIME is not set
 -# CONFIG_FEATURE_INETD_SUPPORT_BUILTIN_DAYTIME is not set
 -# CONFIG_FEATURE_INETD_SUPPORT_BUILTIN_CHARGEN is not set
--# CONFIG_FEATURE_INETD_RPC is not set
 +CONFIG_INETD=y
 +CONFIG_FEATURE_INETD_SUPPORT_BUILTIN_ECHO=y
 +CONFIG_FEATURE_INETD_SUPPORT_BUILTIN_DISCARD=y
 +CONFIG_FEATURE_INETD_SUPPORT_BUILTIN_TIME=y
 +CONFIG_FEATURE_INETD_SUPPORT_BUILTIN_DAYTIME=y
 +CONFIG_FEATURE_INETD_SUPPORT_BUILTIN_CHARGEN=y
-+CONFIG_FEATURE_INETD_RPC=y
+ # CONFIG_FEATURE_INETD_RPC is not set
  CONFIG_IP=y
- CONFIG_FEATURE_IP_ADDRESS=y
- CONFIG_FEATURE_IP_LINK=y
-@@ -865,20 +865,20 @@ CONFIG_ROUTE=y
- CONFIG_TELNET=y
+ # CONFIG_IPADDR is not set
+@@ -966,16 +966,17 @@ CONFIG_TELNET=y
  # CONFIG_FEATURE_TELNET_TTYPE is not set
  CONFIG_FEATURE_TELNET_AUTOLOGIN=y
+ CONFIG_FEATURE_TELNET_WIDTH=y
 -# CONFIG_TELNETD is not set
 -# CONFIG_FEATURE_TELNETD_STANDALONE is not set
 -# CONFIG_FEATURE_TELNETD_INETD_WAIT is not set
@@ -122,63 +262,56 @@ index c0459d5..288a7ad 100644
 +CONFIG_FEATURE_TELNETD_STANDALONE=y
 +CONFIG_FEATURE_TELNETD_INETD_WAIT=y
  CONFIG_TFTP=y
+ # CONFIG_FEATURE_TFTP_PROGRESS_BAR is not set
+ CONFIG_FEATURE_TFTP_HPA_COMPAT=y
 -# CONFIG_TFTPD is not set
 +CONFIG_TFTPD=y
- 
- #
- # Common options for tftp/tftpd
- #
  CONFIG_FEATURE_TFTP_GET=y
  CONFIG_FEATURE_TFTP_PUT=y
 -# CONFIG_FEATURE_TFTP_BLOCKSIZE is not set
--# CONFIG_FEATURE_TFTP_PROGRESS_BAR is not set
--# CONFIG_TFTP_DEBUG is not set
 +CONFIG_FEATURE_TFTP_BLOCKSIZE=y
 +CONFIG_FEATURE_TFTP_PROGRESS_BAR=y
-+#CONFIG_TFTP_DEBUG is not set
+ # CONFIG_TFTP_DEBUG is not set
+ CONFIG_TLS=y
  CONFIG_TRACEROUTE=y
- # CONFIG_TRACEROUTE6 is not set
- # CONFIG_FEATURE_TRACEROUTE_VERBOSE is not set
-diff --git a/meta/recipes-core/busybox/busybox_1.24.1.bb b/meta/recipes-core/busybox/busybox_1.24.1.bb
-index 400cdfe..c177680 100644
---- a/meta/recipes-core/busybox/busybox_1.24.1.bb
-+++ b/meta/recipes-core/busybox/busybox_1.24.1.bb
-@@ -57,6 +57,8 @@ SRC_URI = "http://www.busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
-            file://0001-libiproute-handle-table-ids-larger-than-255.patch \
-            file://ifupdown-pass-interface-device-name-for-ipv6-route-c.patch \
-            file://BUG9071_buffer_overflow_arp.patch \
+@@ -992,8 +993,9 @@ CONFIG_FEATURE_WGET_FTP=y
+ CONFIG_FEATURE_WGET_AUTHENTICATION=y
+ CONFIG_FEATURE_WGET_TIMEOUT=y
+ CONFIG_FEATURE_WGET_HTTPS=y
+-# CONFIG_FEATURE_WGET_OPENSSL is not set
+-# CONFIG_WHOIS is not set
++CONFIG_FEATURE_WGET_OPENSSL=y
++CONFIG_FEATURE_WGET_SSL_HELPER=y
++CONFIG_WHOIS=y
+ # CONFIG_ZCIP is not set
+ CONFIG_UDHCPD=y
+ # CONFIG_FEATURE_UDHCPD_BASE_IP_ON_MAC is not set
+diff --git a/meta/recipes-core/busybox/busybox_1.35.0.bb b/meta/recipes-core/busybox/busybox_1.35.0.bb
+index e9ca6fdb1a..e28829e765 100644
+--- a/meta/recipes-core/busybox/busybox_1.35.0.bb
++++ b/meta/recipes-core/busybox/busybox_1.35.0.bb
+@@ -51,6 +51,8 @@ SRC_URI = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
+            file://0002-nslookup-sanitize-all-printed-strings-with-printable.patch \
+            file://CVE-2022-30065.patch \
+            file://0001-devmem-add-128-bit-width.patch \
 +           file://udhcpd.conf  \
-+	   file://testfile.txt \
- "
- SRC_URI_append_libc-musl = " file://musl.cfg "
- 
-diff --git a/meta/recipes-core/busybox/busybox_git.bb b/meta/recipes-core/busybox/busybox_git.bb
-index c29b894..082cb95 100644
---- a/meta/recipes-core/busybox/busybox_git.bb
-+++ b/meta/recipes-core/busybox/busybox_git.bb
-@@ -46,6 +46,8 @@ SRC_URI = "git://busybox.net/busybox.git \
-            file://rcS \
-            file://rcK \
-            file://runlevel \
-+           file://udhcpd.conf  \
-+	   file://testfile.txt \
- "
- SRC_URI_append_libc-musl = " file://musl.cfg "
++           file://testfile.txt \
+            "
+ SRC_URI:append:libc-musl = " file://musl.cfg "
  
 diff --git a/meta/recipes-core/busybox/files/inetd.conf b/meta/recipes-core/busybox/files/inetd.conf
-index b02fe85..b94b9e5 100644
+index b02fe850c9..147a5ad8ec 100644
 --- a/meta/recipes-core/busybox/files/inetd.conf
 +++ b/meta/recipes-core/busybox/files/inetd.conf
-@@ -18,3 +18,6 @@
+@@ -18,3 +18,5 @@
  #daytime	dgram	udp	wait	root	internal
  #time		stream	tcp	nowait	root	internal
  #time		dgram	udp	wait	root	internal
 +69              dgram   udp     nowait  root    tftpd   tftpd -c /tftpboot
 +23              stream  tcp     nowait  root    /usr/sbin/telnetd      telnetd -i -l /bin/login
-+ 
 diff --git a/meta/recipes-core/busybox/files/testfile.txt b/meta/recipes-core/busybox/files/testfile.txt
 new file mode 100644
-index 0000000..2422dda
+index 0000000000..ceede5b419
 --- /dev/null
 +++ b/meta/recipes-core/busybox/files/testfile.txt
 @@ -0,0 +1,54 @@
@@ -236,10 +369,9 @@ index 0000000..2422dda
 +wVaSB3rH+e3zYQjNp5fIkTOqWga1fEB6Mn+5R5CyPVUYkPie7gEIIGJOmdrBbpFEgSqN6aeqIp/S
 +Vo5ZxQfsCiRC9AFXghibw/c4Vp7n7pj4U7Qz7CL2i6PsIICsD2cgHp6aJvUs6Efqvji9C4MSJ2+j
 +NGrqJUQXRPCdbRC
-\ No newline at end of file
 diff --git a/meta/recipes-core/busybox/files/udhcpd.conf b/meta/recipes-core/busybox/files/udhcpd.conf
 new file mode 100644
-index 0000000..63cbacf
+index 0000000000..63cbacf8bb
 --- /dev/null
 +++ b/meta/recipes-core/busybox/files/udhcpd.conf
 @@ -0,0 +1,113 @@
@@ -357,10 +489,10 @@ index 0000000..63cbacf
 +#opt staticroutes   STATIC_ROUTES
 +#opt msstaticroutes STATIC_ROUTES
 diff --git a/meta/recipes-core/init-ifupdown/init-ifupdown-1.0/interfaces b/meta/recipes-core/init-ifupdown/init-ifupdown-1.0/interfaces
-index 0acf4cf..c68b056 100644
+index 0acf4cf441..c5aa8e2be3 100644
 --- a/meta/recipes-core/init-ifupdown/init-ifupdown-1.0/interfaces
 +++ b/meta/recipes-core/init-ifupdown/init-ifupdown-1.0/interfaces
-@@ -15,9 +15,18 @@ iface atml0 inet dhcp
+@@ -15,7 +15,11 @@ iface atml0 inet dhcp
  
  # Wired or wireless interfaces
  auto eth0
@@ -370,32 +502,97 @@ index 0acf4cf..c68b056 100644
 +	netmask 255.255.255.0
 +	network 10.10.0.0
 +	gateway 10.10.0.1
-+
-+#iface eth0 inet dhcp
-+
  iface eth1 inet dhcp
  
-+
-+
  # Ethernet/RNDIS gadget (g_ether)
- # ... or on host side, usbnet and random hwaddr
- iface usb0 inet static
-diff --git a/scripts/lib/wic/canned-wks/directdisk_qsp.wks b/scripts/lib/wic/canned-wks/directdisk_qsp.wks
+diff --git a/meta/recipes-support/simics/libmagicpipe.bb b/meta/recipes-support/simics/libmagicpipe.bb
 new file mode 100644
-index 0000000..4b36b3d
+index 0000000000..05bd65a464
 --- /dev/null
-+++ b/scripts/lib/wic/canned-wks/directdisk_qsp.wks
-@@ -0,0 +1,13 @@
-+# short-description: Create a 'pcbios' direct disk image
-+# long-description: Creates a partitioned legacy BIOS disk image that the user
-+# can directly dd to boot media.
++++ b/meta/recipes-support/simics/libmagicpipe.bb
+@@ -0,0 +1,19 @@
++SUMMARY = "Simics Magic Pipe library (libmagicpipe)"
++DESCRIPTION = "Simics Magic Pipe library (libmagicpipe)"
 +
-+# Simics changes:
-+# - add '--size 2000'
-+# - vga=0x318 changed to vga=0x202
++require simics.inc
 +
-+part /boot --source bootimg-pcbios --ondisk sda --label boot --active --align 1024
-+part / --source rootfs --ondisk sda --fstype=ext3 --label platform --align 1024 --size 2000
++do_install () {
++	install -d ${D}${libdir}
++	install -d ${D}${includedir}
++	install -m 0644 ${S}/*.a   ${D}${libdir}
++	install -m 0644 ${S}/*.h   ${D}${includedir}
++}
 +
-+bootloader  --timeout=0  --append="rootwait rootfstype=ext3  console=ttyS0"
++ALLOW_EMPTY:${PN} = "1"
 +
++FILES:${PN}-dev = "${includedir}/*.h"
++
++FILES:${PN}-staticdev = "${libdir}/*.a"
++
++BBCLASSEXTEND = "native nativesdk"
+diff --git a/meta/recipes-support/simics/simics-agent.bb b/meta/recipes-support/simics/simics-agent.bb
+new file mode 100644
+index 0000000000..cbd6a1540a
+--- /dev/null
++++ b/meta/recipes-support/simics/simics-agent.bb
+@@ -0,0 +1,14 @@
++SUMMARY = "Simics agent that communicates with the Simics simulator via magic instructions"
++DESCRIPTION="The Simics agent is a user-level program that communicates with the Simics \
++simulator via magic instructions – this makes it very easy to port to a new system, and \
++it can effectively punch through layers of hypervisors and operating systems since it does \
++not need to get down to memory-mapped devices in hardware."
++
++require simics.inc
++
++do_install () {
++	install -d ${D}${bindir}
++	install -m 0755 ${S}/simics-agent  ${D}${bindir}
++}
++
++FILES:${PN} = "${bindir}"
+diff --git a/meta/recipes-support/simics/simics.inc b/meta/recipes-support/simics/simics.inc
+new file mode 100644
+index 0000000000..fdac46d8df
+--- /dev/null
++++ b/meta/recipes-support/simics/simics.inc
+@@ -0,0 +1,15 @@
++HOMEPAGE = "https://windriver.com/products/simics"
++LICENSE = "CLOSED"
++
++SIMICS_VERSION ?= "generic"
++PV = "${SIMICS_VERSION}"
++
++FILESEXTRAPATHS:prepend := "${THISDIR}/../../../:"
++
++SRC_URI = "file://simics-${PV}.tgz"
++
++S = "${WORKDIR}/simics-${PV}/src/misc/${PN}"
++
++do_compile () {
++	oe_runmake
++}
+diff --git a/meta/recipes-support/simics/simicsfs-client.bb b/meta/recipes-support/simics/simicsfs-client.bb
+new file mode 100644
+index 0000000000..7d5e0ffe14
+--- /dev/null
++++ b/meta/recipes-support/simics/simicsfs-client.bb
+@@ -0,0 +1,16 @@
++SUMMARY = "SimicsFS client that talks to a simulated device"
++DESCRIPTION="SimicsFS gives you access to the file system of your real \
++computer inside the simulated machine. This greatly simplifies the process \
++of importing files into the simulated machine."
++
++require simics.inc
++
++DEPENDS = "fuse libmagicpipe"
++RDEPENDS:${PN} = "fuse"
++
++do_install () {
++	install -d ${D}${bindir} ${D}/host
++	install -m 0755 ${S}/simicsfs-client  ${D}${bindir}
++}
++
++FILES:${PN} = "${bindir} /host"
+-- 
+2.25.1
+

@@ -1,0 +1,74 @@
+################################################################################
+################################################################################
+	Light Weight DHCP and SimicsFS Client Server for ASE
+	Based on the Yocto Project Quick Start Guide (now called Quick Build)
+################################################################################
+################################################################################
+
+## Introduction ##
+##################
+
+This document describes the steps to build a Yocto Project based Linux
+server for ASE.  This build will use the 'kirkstone' Yocto branch for
+a generic x86_64 target.  The approach is to patch the poky repository
+to provide a dhcp server as well as the simicsfs client for host
+filesystem access.  The kernel and filesystem will be generated and
+stored in a compressed hard disk image which can be used in the Intel
+ASE simulation environment.
+
+## Requirements ##
+##################
+
+In addition to the files included here, get a tarball of the simics
+release.  You can get the tarball from the ASE insallation as follows.
+
+    - cd <ASE installation>/simics
+    - tar czf simics-<simics-version>.tgz simics-<simics-version>
+
+Copy the simics tarball to this directory.
+
+## Building ##
+##############
+
+In the directory containing README and files, do the following.
+
+SUPPORT=$(pwd)
+BUILD=$(mktemp -d /tmp/qsp.XXXXXXXXXX)
+
+cd $BUILD
+
+git clone https://github.com/openembedded/meta-openembedded.git
+cd meta-openembedded
+git checkout --track -b kirkstone origin/kirkstone
+cd ..
+
+git clone git://git.yoctoproject.org/poky.git
+cd poky
+git checkout --track -b kirkstone origin/kirkstone
+git am -3 $SUPPORT/files/0001-grr-ASE-Linux-Server.patch
+cp $SUPPORT/simics-*tgz .
+cd ..
+
+source ./poky/oe-init-build-env qsp
+
+cp $SUPPORT/files/bblayers.conf conf
+cp $SUPPORT/files/local.conf conf
+
+NOTE: If the build directory is NOT on a local disk, specify TMPDIR
+      and SSTATE_DIR on a local disk by adding 'TMPDIR = "<the tmp
+      directory>"' and 'SSTATE_DIR = "<the sstate directory>"' in
+      conf/local.conf.
+
+bitbake core-image-full-cmdline
+
+Use <TMPDIR>/deploy/images/genericx86-64/core-image-full-cmdline-genericx86-64.hddimg in ASE.
+
+## Notes from Within Intel ##
+#############################
+
+The Intel proxy servers do not allow downloads from
+https://download.savannah.nongnu.org/releases because the certificate
+cannot be verified.  To avoid this, add the following line to
+conf/local.conf before building.
+
+    SAVANNAH_NONGNU_MIRROR = "http://download-mirror.savannah.gnu.org/releases"
