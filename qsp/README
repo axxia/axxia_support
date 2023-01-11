@@ -40,11 +40,13 @@ cd $BUILD
 git clone https://github.com/openembedded/meta-openembedded.git
 cd meta-openembedded
 git checkout --track -b kirkstone origin/kirkstone
+git reset --hard a9c25bef8882a69fd35ea7dbac3d978ce440fe06
 cd ..
 
 git clone git://git.yoctoproject.org/poky.git
 cd poky
 git checkout --track -b kirkstone origin/kirkstone
+git reset --hard ebfc6bdba43761481676b4c9528463546c35dd33
 git am -3 $SUPPORT/files/0001-grr-ASE-Linux-Server.patch
 cp $SUPPORT/simics-*tgz .
 cd ..
@@ -54,10 +56,10 @@ source ./poky/oe-init-build-env qsp
 cp $SUPPORT/files/bblayers.conf conf
 cp $SUPPORT/files/local.conf conf
 
-NOTE: If the build directory is NOT on a local disk, specify TMPDIR
-      and SSTATE_DIR on a local disk by adding 'TMPDIR = "<the tmp
-      directory>"' and 'SSTATE_DIR = "<the sstate directory>"' in
-      conf/local.conf.
+# If the build directory is NOT on a local disk, specify TMPDIR and
+# SSTATE_DIR on a local disk by adding 'TMPDIR = "<the tmp
+# directory>"' and 'SSTATE_DIR = "<the sstate directory>"' in
+# conf/local.conf.
 
 bitbake core-image-full-cmdline
 
@@ -71,4 +73,4 @@ https://download.savannah.nongnu.org/releases because the certificate
 cannot be verified.  To avoid this, add the following line to
 conf/local.conf before building.
 
-    SAVANNAH_NONGNU_MIRROR = "http://download-mirror.savannah.gnu.org/releases"
+SAVANNAH_NONGNU_MIRROR = "http://download-mirror.savannah.gnu.org/releases"
