@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2208.02_h_510
-RDK_KLM_VERSION         ?= 2208.02
-RDK_TOOLS_VERSION       ?= 2208.02
+META_AXXIA_REL          ?= snr_rdk_2208.03_h_510
+RDK_KLM_VERSION         ?= 2208.03
+RDK_TOOLS_VERSION       ?= 2208.03
 RDK_LTTNG_ENABLE        ?= false
 LTTNG_VERSION           ?= "2.13%"
 INCLUDE_UPDATES         ?= true
@@ -332,7 +332,7 @@ build: get-rdk get-simics $(LAYERS)
 		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
 			bitbake-layers add-layer -F $(TOP)/$(RDK_REPO_NAME) ; \
-			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
+			echo "DISTRO_FEATURES:append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
 			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
 			RC=$(grep IES_ENABLE_SHM conf/local.conf) ; \
@@ -360,10 +360,10 @@ build: get-rdk get-simics $(LAYERS)
 			fi ; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
-                        echo "DISTRO_FEATURES_append = \" simics\"" >> conf/local.conf ;\
+                        echo "DISTRO_FEATURES:append = \" simics\"" >> conf/local.conf ;\
                         echo "SIMICS_VERSION = \"$(SIMICS_VERSION)\"" >> conf/local.conf ;\
                 else \
-			sed -i /DISTRO_FEATURES_append.*simics/s/^/#/g conf/local.conf; \
+                        sed -i /DISTRO_FEATURES:append.*simics/s/^/#/g conf/local.conf; \
 		fi; \
 		if [[ "$(DL_DIR)" != "" ]]; then \
 			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
