@@ -1,0 +1,361 @@
+#!/usr/bin/env bash
+######################################################################
+#
+# unit_test.sh
+#
+# Template for shell scripts...
+#
+######################################################################
+
+# Export everything
+set -a
+
+# Version
+VERSION=__VERSION__
+
+# Name
+SCRIPT_NAME=$(basename "${0}")
+
+# Script directory
+SCRIPT_DIR=`dirname $0`
+pushd ${SCRIPT_DIR} >/dev/null 2>&1
+SCRIPT_DIR=$(pwd)
+popd >/dev/null 2>&1
+
+#############
+# Functions #
+#############
+
+function getdv {
+    if [ -f /etc/os-release ]; then
+	# freedesktop.org and systemd
+	. /etc/os-release
+	DISTRO=$NAME
+	VER=$VERSION_ID
+    elif type lsb_release >/dev/null 2>&1; then
+	# linuxbase.org
+	DISTRO=$(lsb_release -si)
+	VER=$(lsb_release -sr)
+    else
+	# Fall back to uname, e.g. "Linux <version>", also works for BSD, etc.
+	DISTRO=$(uname -s)
+	VER=$(uname -r)
+    fi
+
+    echo "$DISTRO:$VER"
+}
+
+function script_info {
+    echo "--> ${SCRIPT_NAME} version is ${VERSION}"
+    echo "--> running on $(getdv)"
+}
+
+############
+# Defaults #
+############
+
+DRIVER=""
+SAMPLE_DIR=""
+KEEP_TEMP="false"
+
+######################################################################
+# usage_
+#
+# Display usage and exit with the given code.
+
+function usage {
+
+    cat << EOF
+${SCRIPT_NAME} [-d driver] [-h] [-k] -s directory [-v]
+  -d : The OOBMSM driver -- if not specified, assumed to be loaded.
+  -h : Display this wonderful help screen.
+  -k : Keep temporary output instead of deleting it.
+  -s : Directory containing the sample.
+  -v : Display the version.
+EOF
+    exit $1
+
+}
+
+##################################
+# Parse the command line options #
+##################################
+
+while getopts "d:hks:v" option ; do
+
+    case $option in
+
+	d)
+	    DRIVER=$OPTARG
+	    ;;
+
+        h)
+            usage 0
+            ;;
+
+	k)
+	    KEEP_TEMP="true"
+	    ;;
+
+	s)
+	    SAMPLE_DIR=$OPTARG
+	    ;;
+
+	v)
+	    script_info
+	    exit 0
+	    ;;
+
+        *)
+            usage 1
+            ;;
+
+    esac
+
+done
+
+shift $(($OPTIND - 1))
+
+##########################################
+# Capture stdout and stdin in a log file #
+##########################################
+
+exec 3<&1
+exec 4<&2
+
+# Create a log file and redirect. 
+TEMP=$(mktemp -d /tmp/${SCRIPT_NAME}.XXXXXXXXXXXX)
+LOG=$TEMP/log
+PIPE=$TEMP/pipe
+
+if [ "$KEEP_TEMP" = "true" ]
+then
+    echo "--> Saving temporary files in ${TEMP}"
+else
+    trap "rm -rf $TEMP" EXIT
+fi
+
+mknod $PIPE p
+tee <$PIPE $LOG &
+exec 1>&-
+exec 1>$PIPE
+exec 2>&-
+exec 2>$PIPE
+
+#######################
+# Do something useful #
+#######################
+
+script_info
+
+## Make sure the driver (if specified) and samples are avaialble.
+
+if [ "$DRIVER" != "" ]
+then
+    if [ ! -f "$DRIVER" ]
+    then
+	echo "$DRIVER specified, but does not exist!"
+	exit 1
+    fi
+fi
+
+if [ ! -f "${SAMPLE_DIR}/attest/attest" ]
+then
+    echo "${SAMPLE_DIR}/attest/attest does not exist!"
+    exit 1
+fi
+
+ATTEST="${SAMPLE_DIR}/attest/attest"
+
+## Clear the system log and unload the driver if it has already been loaded.
+dmesg -C
+
+## Load the driver (if specified).
+if [ "$DRIVER" != "" ]
+then
+    echo -n "--> (Re)loading module... "
+
+    lsmod | grep oobmsm_rdk >/dev/null
+    if [ "$?" -eq 0 ]
+    then
+	rmmod oobmsm_rdk
+    fi
+
+    insmod "$DRIVER"
+
+    if [ $? -eq 0 ]
+    then
+	echo "succeeded!"
+    else
+	echo "failed."
+	exit 1
+    fi
+
+    ## Work-around for register access.
+    setpci -d 8086:09a7 4.B=02
+fi
+
+## Get Version
+echo -n "--> Get version... "
+"${ATTEST}" -c get_ver
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+## Get Capabilities
+echo -n "--> Get capabilities... "
+"${ATTEST}" -c get_caps
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+## Negotiate Algorithms
+echo -n "--> Negotiate algorightms... "
+"${ATTEST}" -c neg_algs
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+## Get CSR, create a local certificate authority, and sign the request.
+echo -n "--> Get certificate signing request... "
+"${ATTEST}" -c get_csr -o csr.der
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+echo -n "--> Creating a local certificate authority... "
+${SCRIPT_DIR}/create_ca.sh
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+echo -n "--> Signing the csr... "
+${SCRIPT_DIR}/create_crt.sh -c ca -s csr -n s3m
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+## Set Certificate
+echo -n "--> Set certificate... "
+"${ATTEST}" -c set_crt -i ca.dgst:s3m.der
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+## Get Digest
+echo -n "--> Get digest... "
+"${ATTEST}" -c get_dgsts -o s3m.dgst
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+## Get Certificate
+echo -n "--> Get certificate... "
+"${ATTEST}" -c get_crt -o dgst_from_s3m:crt_from_s3m
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+## Challenge
+echo -n "--> Challenge... "
+dd if=/dev/random of=cnonce.in bs=1 count=32
+"${ATTEST}" -c chlg -i cnonce.in -o chash:cnonce.out:mshash:csig
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+## Get Measurements
+echo -n "--> Get Measurements... "
+dd if=/dev/random of=mnonce.in bs=1 count=32
+"${ATTEST}" -c get_mmts -i mnonce.in -o mmts:mnonce.out:msig
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+## Unload the driver (if specified).
+if [ "$DRIVER" != "" ]
+then
+    echo -n "--> Unloading module... "
+    rmmod oobmsm_rdk
+
+    if [ $? -eq 0 ]
+    then
+	echo "succeeded!"
+    else
+	echo "failed."
+	exit 1
+    fi
+fi
+
+## Dump dmesg.
+echo "--> System logs..."
+dmesg -c
+
+#############################
+# Restore stdout and stderr #
+#############################
+
+rm -f $PIPE
+exec 1<&3 3<&-
+exec 2<&4 4<&-
+
+##############
+# That's all #
+##############
+
+exit 0

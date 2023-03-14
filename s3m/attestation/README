@@ -1,0 +1,129 @@
+################################################################################
+################################################################################
+	CPU Attestation Sample
+################################################################################
+################################################################################
+
+##############
+## Building ##
+##############
+
+If cross compiling, source the environment, then...
+
+make -C attest all
+make -C scripts all
+
+As theses are scripts, the only purpose of the "build" is to set the
+version for tracking.
+
+##############
+## Overview ##
+##############
+
+The attest program handles single commands as described in the
+documentation [TODO: What documentation?].  To get a description of
+the commands, 'attest -c help'.  For general help, 'attest -h'.
+
+attest.c - main() and agrument parsing
+attest.h - all the structures and prototypes
+message.c - handles sending/receiving DOE messages
+command.c - the commands
+oobmsm-dev.h - the uapi header from the driver
+
+##############
+## Sequence ##
+##############
+
+## Load the OOBMSM Driver ##
+############################
+
+vvvv NOTES vvvv
+
+## 1 ##
+
+To use the driver in simics, do the following at the simics prompt to
+run the simulation.
+
+    echo '@s3m_die.fw_bypass_flags["KEY_GEN"] = 0' > fw_bypass.simics
+    echo '@s3m_die.fw_bypass_flags["ATTESTATION_KEYS_CERTIFICATE"] = 0' >> fw_bypass.simics
+    echo '$s3m_test_param_overrides = fw_bypass.simics' > main.simics
+    echo 'run-command-file targets/loganville/loganville-tpm-s3m-fmod.simics' >> main.simics
+    ./simics ./main.simics
+
+Once the simulation is running, enter the following at the simics prompt.
+
+pci-write bus = 0 dev = 2 func = 1 offset = 0x04 value = 0x2
+
+## 2 ##
+
+When running on hardware, do the following to allow the driver to
+access the registers.
+
+setpci -d 8086:09a7 4.B=02
+
+^^^^ NOTES ^^^^
+
+insmod oobmsm-rdk.ko
+
+## Get Version ##
+#################
+
+attest -c get_ver
+
+## Get Capabilities ##
+######################
+
+attest -c get_caps
+
+## Negotiate Algorithms ##
+##########################
+
+attest -c neg_algs
+
+## Get CSR ##
+#############
+
+attest -c get_csr -o csr.der
+
+## Set Certificate ##
+#####################
+
+vvvv NOTE vvvv
+The "-subj <string>" in the certification authority and the
+self-signed certificate can not match!  Otherwise, verification will
+fail.  That being the case, I'm using
+
+   -subj "/C=UK/L=Glasgow"
+
+for the certification authority and
+
+    -subj "/C=US/L=Rowlett"
+
+for the self-signed certificates.
+^^^^ NOTE ^^^^
+
+create_ca.sh
+create_crt.sh -c ca -s csr -n s3m
+attest -c set_crt -i ca.dgst:s3m.der
+
+## Get Digests ##
+#################
+
+attest -c get_dgsts -o s3m.dgst
+
+## Get Certificate ##
+#####################
+
+attest -c get_crt -o crt_from_s3m.der
+
+## Challenge ##
+###############
+
+dd if=/dev/random of=cnonce.in bs=1 count=32
+attest -d -c chlg -i cnonce.in -o chash:cnonce.out:mshash:csig
+
+## Get Measurements ##
+######################
+
+dd if=/dev/random of=mnonce.in bs=1 count=32
+attest -d -c get_msrmts -i mnonce.in -o mmts:mnonce.out:msig

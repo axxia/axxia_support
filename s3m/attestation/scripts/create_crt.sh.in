@@ -1,0 +1,253 @@
+#!/usr/bin/env bash
+######################################################################
+#
+# create_cert.sh
+#
+# Create a self-signed certificate given a key and a certificate.
+#
+######################################################################
+
+# Export everything
+set -a
+
+# Version
+VERSION=__VERSION__
+
+# Name
+SCRIPT_NAME=$(basename "${0}")
+
+# Script directory
+SCRIPT_DIR=`dirname $0`
+pushd ${SCRIPT_DIR} >/dev/null 2>&1
+SCRIPT_DIR=$(pwd)
+popd >/dev/null 2>&1
+
+#############
+# Functions #
+#############
+
+function getdv {
+    if [ -f /etc/os-release ]; then
+	# freedesktop.org and systemd
+	. /etc/os-release
+	DISTRO=$NAME
+	VER=$VERSION_ID
+    elif type lsb_release >/dev/null 2>&1; then
+	# linuxbase.org
+	DISTRO=$(lsb_release -si)
+	VER=$(lsb_release -sr)
+    else
+	# Fall back to uname, e.g. "Linux <version>", also works for BSD, etc.
+	DISTRO=$(uname -s)
+	VER=$(uname -r)
+    fi
+
+    echo "$DISTRO:$VER"
+}
+
+function script_info {
+    echo "--> ${SCRIPT_NAME} version is ${VERSION}"
+    echo "--> running on $(getdv)"
+}
+
+############
+# Defaults #
+############
+
+CA=""
+CSR=""
+DIRECTORY=""
+FILTER=""
+KEEP_TEMP="false"
+NAME="output"
+
+######################################################################
+# usage_
+#
+# Display usage and exit with the given code.
+
+function usage {
+
+    cat << EOF
+${SCRIPT_NAME} -c file [-h] [-k] [-n string] [-s string] [-v]
+  -c : Certificate Authority (required).
+  -h : Display this wonderful help screen.
+  -k : Keep temporary output instead of deleting it.
+  -n : Name for the output files. [$NAME]
+  -s : Certificate signing request.  If none is given, one will be created.
+  -v : Display the version.
+EOF
+    exit $1
+
+}
+
+##################################
+# Parse the command line options #
+##################################
+
+while getopts "c:hkn:s:v" option ; do
+
+    case $option in
+
+        c)
+            CA=$OPTARG
+            ;;
+
+        h)
+            usage 0
+            ;;
+
+	k)
+	    KEEP_TEMP="true"
+	    ;;
+
+        n)
+            NAME=$OPTARG
+            ;;
+
+        s)
+            CSR=$OPTARG
+            ;;
+
+	v)
+	    script_info
+	    exit 0
+	    ;;
+
+        *)
+            usage 1
+            ;;
+
+    esac
+
+done
+
+shift $(($OPTIND - 1))
+
+##########################################
+# Capture stdout and stdin in a log file #
+##########################################
+
+exec 3<&1
+exec 4<&2
+
+# Create a log file and redirect. 
+TEMP=$(mktemp -d /tmp/${SCRIPT_NAME}.XXXXXXXXXXXX)
+LOG=$TEMP/log
+PIPE=$TEMP/pipe
+
+if [ "$KEEP_TEMP" = "true" ]
+then
+    echo "--> Saving temporary files in ${TEMP}"
+else
+    trap "rm -rf $TEMP" EXIT
+fi
+
+mknod $PIPE p
+tee <$PIPE $LOG &
+exec 1>&-
+exec 1>$PIPE
+exec 2>&-
+exec 2>$PIPE
+
+#######################
+# Do something useful #
+#######################
+
+script_info
+
+# verify arguments
+
+if [ ! -r "${CA}.pem" ]
+then
+    echo "--> CA Certificate is missing!"
+    exit 1
+fi
+
+if [ ! -r "${CA}.key" ]
+then
+    echo "--> CA Private key is missing!"
+    exit 1
+fi
+
+if [ ! -r "${CSR}.der" ]
+then
+    echo "--> CSR is missing!"
+    exit 1
+fi
+
+# create a key pair
+
+set -x
+openssl genrsa -out ${NAME}.key 3072
+openssl rsa -in ${NAME}.key -pubout -out ${NAME}.pub
+{ set +x; } 2>/dev/null
+
+# create a .pem version of the csr
+
+set -x
+openssl req -inform der -in ${CSR}.der -out ${CSR}.pem
+{ set +x; } 2>/dev/null
+
+# create a certification configuration
+
+cat > ${NAME}.conf <<EOF
+
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = domain
+
+EOF
+
+set -x
+
+# create the self-signed certificate
+openssl x509 \
+	-in ${CSR}.pem \
+	-req \
+	-CA ${CA}.pem -CAkey ${CA}.key \
+	-CAcreateserial \
+	-days 3650 \
+	-extfile ${NAME}.conf \
+	-sha384 \
+	-out ${NAME}.pem
+
+# verify the self-signed certificate
+openssl verify -verbose -CAfile ${CA}.pem ${NAME}.pem >/dev/null 2>&1
+{ RC=$?; } 2>/dev/null
+
+{ set +x; } 2>/dev/null
+
+if [ $RC -eq 0 ]
+then
+    echo "--> ${NAME}.crt has been verified!"
+else
+    echo "--> Verification of the certificate failed!"
+    exit 1
+fi
+
+# create the der
+
+set -x
+openssl x509 -in ${NAME}.pem -out ${NAME}.der -outform DER
+{ set +x; } 2>/dev/null
+
+# only .crt and .key are needed, so clean up the rest
+
+rm -f ${NAME}.conf ${CA}.srl
+
+#############################
+# Restore stdout and stderr #
+#############################
+
+rm -f $PIPE
+exec 1<&3 3<&-
+exec 2<&4 4<&-
+
+##############
+# That's all #
+##############
+
+exit 0
