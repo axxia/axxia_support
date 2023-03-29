@@ -18,14 +18,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# Authors: shekar.nimmathi@intel.com
+# Authors: behlul.sutarwala@intel.com
 #
 # Makefile for AXXIA Yocto Build
 
 TOP                     ?= $(shell pwd)
 SHELL                    = /bin/bash
 BLDDIR                  ?= $(TOP)/axxia
-BB_IMAGE_TYPE           ?= axxia-image-run
+BB_IMAGE_TYPE           ?= axxia-image-dev
 BB_MACHINE_NAME         ?= intel-axxia-grr
 BB_NO_NETWORK           ?= 0
 BB_NUMBER_THREADS       ?= "24"
@@ -36,11 +36,11 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= grr_ase_rdk_del11
-RDK_KLM_VERSION         ?= grr_del11
-RDK_TOOLS_VERSION       ?= grr_del11
+META_AXXIA_REL          ?= grr_a0_po_rel0
+RDK_KLM_VERSION         ?= grr_a0_po_rel0
+RDK_TOOLS_VERSION       ?= grr_a0_po_rel0
 RDK_LTTNG_ENABLE        ?= false
-INCLUDE_UPDATES         ?= true
+INCLUDE_UPDATES         ?= false
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
@@ -48,11 +48,12 @@ RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
 USE_RDK_REPO            ?= false
 RDK_REPO                ?= https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
 SIMICS_FILE             ?= $(TOP)/simics*
-SIMICS_VERSION          ?= 6.0.143_del11
+SIMICS_VERSION          ?= 6.0.157_gcc12_del13
 
-PREFERRED_VERSION_linux            = "PREFERRED_VERSION_linux-intel"
-PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
-ifeq (,$(filter $(LINUX_VERSION),5.10))
+PREFERRED_VERSION_linux              = "PREFERRED_VERSION_linux-intel"
+PREFERRED_VERSION_linux-intel-debug  = "PREFERRED_VERSION_linux-intel-debug"
+PREFERRED_PROVIDER_virtual/kernel   := "linux-intel"
+ifeq (,$(filter $(LINUX_VERSION),5.10 5.15))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
@@ -259,8 +260,8 @@ help:
 	echo "    Defaults to <current-dir>/axxia" ; \
 	echo "BB_IMAGE_TYPE=<image name>: Optional"; \
 	echo "    The type of image to build"; \
-	echo "    Default: axxia-image-run" ; \
-	echo "    Other choices are: axxia-image-dev, axxia-image-small"; \
+	echo "    Default: axxia-image-dev" ; \
+	echo "    Other choices are: axxia-image-run, axxia-image-small"; \
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
@@ -333,14 +334,16 @@ build: get-rdk get-simics $(LAYERS)
 		sed -i s/^PARALLEL_MAKE.*/PARALLEL_MAKE\ =\ \"$(PARALLEL_MAKE)\"/g conf/local.conf ; \
 		sed -i '/^PREFERRED_PROVIDER_virtual\/kernel/ d' conf/local.conf ; \
 		sed -i '/^PREFERRED_VERSION_linux/ d' conf/local.conf ; \
+		sed -i '/^PREFERRED_VERSION_linux-intel-debug / d' conf/local.conf ; \
 		echo "PREFERRED_PROVIDER_virtual/kernel = \"$(PREFERRED_PROVIDER_virtual/kernel)\"" >> conf/local.conf ; \
 		echo "$(PREFERRED_VERSION_linux) = \"$(LINUX_VERSION)%\"" >> conf/local.conf ; \
+		echo "$(PREFERRED_VERSION_linux-intel-debug) = \"$(LINUX_VERSION)%\"" >> conf/local.conf ; \
 		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
 		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
-                echo "DISTRO_FEATURES_append = \" multilib\"" >> conf/local.conf ; \
+		echo "DISTRO_FEATURES:append = \" multilib\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
 			bitbake-layers add-layer -F $(TOP)/$(RDK_REPO_NAME) ; \
-			echo "DISTRO_FEATURES_append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
+			echo "DISTRO_FEATURES:append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
 			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
 			RC=$(grep IES_ENABLE_SHM conf/local.conf) ; \
@@ -378,17 +381,18 @@ build: get-rdk get-simics $(LAYERS)
 			fi ; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
-                        echo "DISTRO_FEATURES_append = \" simics\"" >> conf/local.conf ;\
+                        echo "DISTRO_FEATURES:append = \" simics\"" >> conf/local.conf ;\
                         echo "SIMICS_VERSION = \"$(SIMICS_VERSION)\"" >> conf/local.conf ;\
                 else \
-			sed -i /DISTRO_FEATURES_append.*simics/s/^/#/g conf/local.conf; \
+                        sed -i /DISTRO_FEATURES:append.*simics/s/^/#/g conf/local.conf; \
 		fi; \
 		if [[ "$(DL_DIR)" != "" ]]; then \
 			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
 		fi ; \
 		if [[ "$(INCLUDE_UPDATES)" == "true" ]]; then \
 			bitbake-layers add-layer -F $(TOP)/$(UPDATES_REPO_NAME); \
-		fi
+		fi ; \
+		echo "MACHINE = \"$(BB_MACHINE_NAME)\"" >> conf/local.conf
 
 .PHONY: get-rdk
 get-rdk: $(LAYERS)
