@@ -267,7 +267,7 @@ fi
 
 ## Set Certificate
 echo -n "--> Set certificate... "
-"${ATTEST}" -c set_crt -i ca.dgst:s3m.der
+"${ATTEST}" -c set_crt -i ca.dgst:ca.der,s3m.der
 
 if [ $? -eq 0 ]
 then
@@ -291,7 +291,20 @@ fi
 
 ## Get Certificate
 echo -n "--> Get certificate... "
-"${ATTEST}" -c get_crt -o dgst_from_s3m:crt_from_s3m
+"${ATTEST}" -c get_crt -o crts
+
+if [ $? -eq 0 ]
+then
+    echo "succeeded!"
+else
+    echo "failed."
+    exit 1
+fi
+
+echo -n "--> Verify certificate... "
+
+openssl x509 -inform der -in crts/chain.der -out crts/chain.pem
+openssl verify -verbose -CAfile ca.pem crts/chain.pem >/dev/null
 
 if [ $? -eq 0 ]
 then
@@ -304,7 +317,7 @@ fi
 ## Challenge
 echo -n "--> Challenge... "
 dd if=/dev/random of=cnonce.in bs=1 count=32
-"${ATTEST}" -c chlg -i cnonce.in -o chash:cnonce.out:mshash:csig
+"${ATTEST}" -c chlg -i cnonce.in -o chlg
 
 if [ $? -eq 0 ]
 then
@@ -317,7 +330,7 @@ fi
 ## Get Measurements
 echo -n "--> Get Measurements... "
 dd if=/dev/random of=mnonce.in bs=1 count=32
-"${ATTEST}" -c get_mmts -i mnonce.in -o mmts:mnonce.out:msig
+"${ATTEST}" -c get_mmts -i mnonce.in -o mmts
 
 if [ $? -eq 0 ]
 then

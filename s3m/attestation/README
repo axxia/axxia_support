@@ -104,7 +104,7 @@ for the self-signed certificates.
 
 create_ca.sh
 create_crt.sh -c ca -s csr -n s3m
-attest -c set_crt -i ca.dgst:s3m.der
+attest -c set_crt -i ca.dgst:ca.der,s3m.der
 
 ## Get Digests ##
 #################
@@ -114,16 +114,18 @@ attest -c get_dgsts -o s3m.dgst
 ## Get Certificate ##
 #####################
 
-attest -c get_crt -o crt_from_s3m.der
+attest -c get_crt -o crts
+openssl x509 -inform der -in crts/chain.der -out crts/chain.pem
+openssl verify -verbose -CAfile ca.pem crts/chain.pem
 
 ## Challenge ##
 ###############
 
 dd if=/dev/random of=cnonce.in bs=1 count=32
-attest -d -c chlg -i cnonce.in -o chash:cnonce.out:mshash:csig
+attest -d -c chlg -i cnonce.in -o chlg
 
 ## Get Measurements ##
 ######################
 
 dd if=/dev/random of=mnonce.in bs=1 count=32
-attest -d -c get_msrmts -i mnonce.in -o mmts:mnonce.out:msig
+attest -d -c get_msrmts -i mnonce.in -o mmts

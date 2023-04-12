@@ -475,24 +475,43 @@ int set_crt(void)
 	struct spdm_cert_chain *cert_chain;
 	struct doe *doe = NULL;
 	FILE *dgst = NULL;
-	FILE *crt = NULL;
+	FILE *crts[MAX_NUM_CERTS] = { NULL };
 	char *dgst_name;
-	char *crt_name;
+	char *crt_names[MAX_NUM_CERTS] = { NULL };
 	long dgst_sz;
-	long crt_sz;
+	long crt_szs[MAX_NUM_CERTS];
+	long chain_sz = 0;
 	int rc = 0;
+	int num_crts = 0;
+	int i;
+	int s = 0;
 
 	if (strlen(output)) {
 		PRERR("set_cert doesn't support output to a file.\n");
 		return -1;
 	}
 
-	/* <digest>:<certificate> */
+	/* <digest>:<certificate1>[,<certivicate2>,...] */
 
 	dgst_name = strtok(input, ":");
-	crt_name = strtok(NULL, " ");
+	crt_names[num_crts] = strtok(NULL, ", ");
 
-	if (!strlen(input) || !dgst_name || !crt_name) {
+	if (crt_names[num_crts]) {
+		++num_crts;
+
+		do {
+			if (num_crts == MAX_NUM_CERTS) {
+				PRERR("Too many certificates!\n");
+				return -1;
+			}
+
+			crt_names[num_crts++] = strtok(NULL, ", ");
+		} while (crt_names[num_crts - 1]);
+
+		--num_crts;
+	}
+
+	if (!strlen(input) || !dgst_name || !num_crts) {
 		PRERR("set_crt requires a digest and a certificate!\n");
 		return -1;
 	}
@@ -504,21 +523,32 @@ int set_crt(void)
 		return -1;
 	}
 
-	crt = fopen(crt_name, "r");
-
-	if (!crt) {
-		PRERR("fopen(%s) failed: %s\n", crt_name, strerror(errno));
-		rc = -1;
-		goto cleanup;
-	}
-
 	fseek(dgst, 0L, SEEK_END);
 	dgst_sz = ftell(dgst);
 	rewind(dgst);
 
-	fseek(crt, 0L, SEEK_END);
-	crt_sz = ftell(crt);
-	rewind(crt);
+	for (i = 0; i < num_crts; ++i) {
+		crts[i] = fopen(crt_names[i], "r");
+
+		if (!crts[i]) {
+			PRERR("fopen(%s) failed: %s\n",
+			      crt_names[i], strerror(errno));
+			rc = -1;
+			goto cleanup;
+		}
+
+		fseek(crts[i], 0L, SEEK_END);
+		crt_szs[i] = ftell(crts[i]);
+		rewind(crts[i]);
+
+		chain_sz += crt_szs[i];
+	}
+
+	if (dgst_sz + chain_sz > DOE_MAX_PAYLOAD_SIZE) {
+		PRERR("Digest + Chain too big!\n");
+		rc = -1;
+		goto cleanup;
+	}
 
 	doe = malloc(sizeof(struct doe));
 
@@ -531,18 +561,18 @@ int set_crt(void)
 	memset(doe, 0, sizeof(struct doe));
 	doe->vendor = 0x8086;
 	doe->type = 0xc;
-	doe->length = 5 + ((4 + dgst_sz + crt_sz) / 4);
+	doe->length = 5 + ((4 + dgst_sz + chain_sz) / 4);
 
-	if ((dgst_sz + crt_sz) % 4)
+	if ((dgst_sz + chain_sz) % 4)
 		++doe->length;
 
 	doe->payload[0] = 
-		(4 - ((dgst_sz + crt_sz) % 4)) << 24 |
+		(4 - ((dgst_sz + chain_sz) % 4)) << 24 |
 		S3M_PROXY_COMMAND;
 	doe->payload[1] = CPU_ATTESTATION_COMMAND;
 	doe->payload[2] = (SPDM_SET_CERT << 8 | SPDM_FIRMWARE_VERSION);
 	cert_chain = (struct spdm_cert_chain *)(&doe->payload[3]);
-	cert_chain->length = (4 + dgst_sz + crt_sz);
+	cert_chain->length = (4 + dgst_sz + chain_sz);
 
 	if (dgst_sz != fread(cert_chain->data,
 			     sizeof(unsigned char), dgst_sz, dgst)) {
@@ -551,11 +581,16 @@ int set_crt(void)
 		goto cleanup;
 	}
 
-	if (crt_sz != fread(&cert_chain->data[dgst_sz],
-			    sizeof(unsigned char), crt_sz, crt)) {
-		PRERR("fread() failed: %s\n", strerror(errno));
-		rc = -1;
-		goto cleanup;
+	for (i = 0; i < num_crts; ++i) {
+		if (crt_szs[i] !=
+		    fread(&cert_chain->data[dgst_sz + s],
+			  sizeof(unsigned char), crt_szs[i], crts[i])) {
+			PRERR("fread() failed: %s\n", strerror(errno));
+			rc = -1;
+			goto cleanup;
+		}
+
+		s += crt_szs[i];
 	}
 
 	if (message(doe)) {
@@ -581,8 +616,9 @@ int set_crt(void)
 	if (dgst)
 		fclose(dgst);
 
-	if (crt)
-		fclose(crt);
+	for (i = 0; i < MAX_NUM_CERTS; ++i)
+		if (crts[i])
+			fclose(crts[i]);
 
 	if (doe)
 		free(doe);
@@ -665,40 +701,28 @@ int get_crt(void)
 	int o = 0, s, p, rc = 0;
 	struct doe *doe = NULL;
 	unsigned short length;
-	FILE *dgst = NULL;
  	void *buf = NULL;
-	FILE *crt = NULL;
-	char *dgst_name;
-	char *crt_name;
+	char *dir;
+	char name[PATH_MAX];
+	struct stat st = {0};
+	FILE *out;
+	unsigned char *chain;
+	int offset = 52;
+	int size;
+	int i = 1;
 
 	if (strlen(input)) {
 		PRERR("get_dgsts doesn't support input from file.\n");
 		return -1;
 	}
 
-	/* <digest>:<certificate> */
+	/* <directory for certificates> */
 
-	dgst_name = strtok(output, ":");
-	crt_name = strtok(NULL, " ");
+	dir = strtok(output, "");
 
-	if (!strlen(output) || !dgst_name || !crt_name) {
-		PRERR("get_crt requires filenames for a digest and a certification!\n");
+	if (!dir) {
+		PRERR("get_crt requires a directory for certificates!\n");
 		return -1;
-	}
-
-	dgst = fopen(dgst_name, "w");
-
-	if (!dgst) {
-		PRERR("fopen(%s) failed: %s\n", dgst_name, strerror(errno));
-		return -1;
-	}
-
-	crt = fopen(crt_name, "w");
-
-	if (!crt) {
-		PRERR("fopen(%s) failed: %s\n", crt_name, strerror(errno));
-		rc = -1;
-		goto cleanup;
 	}
 
 	doe = malloc(sizeof(struct doe));
@@ -781,21 +805,81 @@ int get_crt(void)
 		goto cleanup;
 	}
 
-	if (dgst && crt) {
-		fwrite(buf + 4, sizeof(char), 48, dgst);
-		fwrite(buf + 52, sizeof(char), s - 52, crt);
+	if (dir) {
+		/* Create the directory for certificates. */
+		if (stat(dir, &st) == -1) {
+			rc = mkdir(dir, 0700);
+
+			if (rc) {
+				PRERR("mkdir() failed: %s\n", strerror(errno));
+				rc = -1;
+				goto cleanup;
+			}
+		}
+
+		/* digest */
+		sprintf(name, "%s/digest", dir);
+		out = fopen(name, "w+");
+
+		if (!out) {
+			PRERR("fopen(%s) failed: %s\n",
+			      name, strerror(errno));
+			rc = -1;
+			goto cleanup;
+		}
+
+		fwrite(buf + 4, sizeof(char), 48, out);
+		fclose(out);
 	} else {
 		display("digest", buf + 4, 48);
-		display("certificate", buf + 52, s - 52);
+	}
+
+	/* save the full chain */
+	if (dir) {
+		chain = buf + offset;
+		size = s - offset;
+
+		sprintf(name, "%s/chain.der", dir);
+		out = fopen(name, "w");
+
+		if (!out) {
+			PRERR("fopen(%s) failed: %s\n", name, strerror(errno));
+			rc = -1;
+			goto cleanup;
+		}
+
+		fwrite(chain, sizeof(char), size, out);
+		fclose(out);
+	}
+
+	while (offset < s) {
+		chain = (buf + offset);
+		size = (chain[2] * 256) + chain[3] + 4;
+
+		if (dir) {
+			sprintf(name, "%s/certificate%02d.der",
+				dir, i);
+			out = fopen(name, "w");
+
+			if (!out) {
+				PRERR("fopen(%s) failed: %s\n",
+				      name, strerror(errno));
+				rc = -1;
+				goto cleanup;
+			}
+
+			fwrite(chain, sizeof(char), size, out);
+		} else {
+			printf("Certificate %d, Offset %d, Size %d\n",
+			       i, offset, size);
+			display("certificate", chain, size);
+		}
+
+		++i;
+		offset += size;
 	}
 
  cleanup:
-
-	if (dgst)
-		fclose(dgst);
-
-	if (crt)
-		fclose(crt);
 
 	if (doe)
 		free(doe);
@@ -808,8 +892,8 @@ int get_crt(void)
 
 int chlg(void)
 {
-	char *nonce_name, *chash_name, *mhash_name, *sig_name;
-	FILE *nonce, *chash, *mhash, *sig;
+	char *nonce_name;
+	FILE *nonce;
 	struct spdm_challenge_resp *resp;
 	unsigned char nbuf[NONCE_LENGTH];
 	struct doe *doe = NULL;
@@ -908,26 +992,74 @@ int chlg(void)
 	}
 
 	if (strlen(output)) {
-		chash_name = strtok(output, ":");
-		nonce_name = strtok(NULL, ":");
-		mhash_name = strtok(NULL, ":");
-		sig_name = strtok(NULL, " ");
+		struct stat st = {0};
+		char *dir, name[PATH_MAX];
+		FILE *out;
 
-		chash = fopen(chash_name, "w");
-		nonce = fopen(nonce_name, "w");
-		mhash = fopen(mhash_name, "w");
-		sig = fopen(sig_name, "w");
+		dir = strtok(output, "");
 
-		if (!chash || !nonce || !mhash || !sig) {
-			PRERR("Error opening an output file.\n");
+		if (stat(dir, &st) == -1) {
+			rc = mkdir(dir, 0700);
+
+			if (rc) {
+				PRERR("mkdir(%s) failed: %s\n",
+				      dir, strerror(errno));
+				rc = -1;
+				goto cleanup;
+			}
+		}
+
+		/* challenge hash */
+		sprintf(name, "%s/chlg_hash", dir);
+		out = fopen(name, "w+");
+
+		if (!out) {
+			PRERR("fopen(%s) failed: %s\n", name, strerror(errno));
 			rc = -1;
 			goto cleanup;
 		}
 
-		fwrite(resp->chash, sizeof(char), HASH_LENGTH, chash);
-		fwrite(resp->nonce, sizeof(char), NONCE_LENGTH, nonce);
-		fwrite(resp->mhash, sizeof(char), HASH_LENGTH, mhash);
-		fwrite(resp->signature, sizeof(char), SIGNATURE_LENGTH, sig);
+		fwrite(resp->chash, sizeof(char), HASH_LENGTH, out);
+		fclose(out);
+
+		/* nonce */
+		sprintf(name, "%s/nonce", dir);
+		out = fopen(name, "w+");
+
+		if (!out) {
+			PRERR("fopen(%s) failed: %s\n", name, strerror(errno));
+			rc = -1;
+			goto cleanup;
+		}
+
+		fwrite(resp->nonce, sizeof(char), NONCE_LENGTH, out);
+		fclose(out);
+
+		/* measurement hash */
+		sprintf(name, "%s/mmt_hash", dir);
+		out = fopen(name, "w+");
+
+		if (!out) {
+			PRERR("fopen(%s) failed: %s\n", name, strerror(errno));
+			rc = -1;
+			goto cleanup;
+		}
+
+		fwrite(resp->mhash, sizeof(char), HASH_LENGTH, out);
+		fclose(out);
+
+		/* signature */
+		sprintf(name, "%s/signature", dir);
+		out = fopen(name, "w+");
+
+		if (!out) {
+			PRERR("fopen(%s) failed: %s\n", name, strerror(errno));
+			rc = -1;
+			goto cleanup;
+		}
+
+		fwrite(resp->signature, sizeof(char), SIGNATURE_LENGTH, out);
+		fclose(out);
 	} else {
 		display("CertChainHash", resp->chash, HASH_LENGTH);
 		display("Nonce", resp->nonce, NONCE_LENGTH);
@@ -947,7 +1079,7 @@ int get_mmts(void)
 {
 	unsigned char nbuf[NONCE_LENGTH];
 	struct doe *doe = NULL;
-	char *nonce_name;
+	char *nonce_name = NULL;
 	FILE *nonce;
 	unsigned char *buf;
 	int i, ms, rc = 0, sz, t;
@@ -1053,15 +1185,11 @@ int get_mmts(void)
 
 	if (strlen(output)) {
 		char *mmt_dir_name;
-		char *nonce_name;
-		char *sig_name;
 		struct stat st = {0};
 		FILE *out;
 		char out_name[PATH_MAX];
 
-		mmt_dir_name = strtok(output, ":");
-		nonce_name = strtok(NULL, ":");
-		sig_name = strtok(NULL, " ");
+		mmt_dir_name = strtok(output, "");
 
 		if (stat(mmt_dir_name, &st) == -1) {
 			rc = mkdir(mmt_dir_name, 0700);
@@ -1073,6 +1201,7 @@ int get_mmts(void)
 			}
 		}
 
+		/* measurements */
 		for (i = 0; i < ms; ++i) {
 			sz = (buf[3] << 8 | buf[2]);
 			buf += 4;
@@ -1093,7 +1222,9 @@ int get_mmts(void)
 			buf += sz;
 		}
 
-		out = fopen(nonce_name, "w+");
+		/* nonce */
+		sprintf(out_name, "%s/nonce", mmt_dir_name);
+		out = fopen(out_name, "w+");
 
 		if (!out) {
 			PRERR("fopen(%s) failed: %s\n",
@@ -1113,11 +1244,13 @@ int get_mmts(void)
 			goto cleanup;
 		}
 
-		out = fopen(sig_name, "w+");
+		/* signature */
+		sprintf(out_name, "%s/signature", mmt_dir_name);
+		out = fopen(out_name, "w+");
 
 		if (!out) {
 			PRERR("fopen(%s) failed: %s\n",
-			      sig_name, strerror(errno));
+			      out_name, strerror(errno));
 			rc = -1;
 			goto cleanup;
 		}

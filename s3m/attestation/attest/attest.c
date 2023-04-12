@@ -50,7 +50,8 @@ static char command_help_text[] =
 	"## set_crt ##\n"
 	"#############\n"
 	"Set the certificate.\n"
-	"    Supports the input option as follows, digest:certificate.\n\n"
+	"    Supports the input option as follows,\n"
+	"        digest:certificate1[,certificate2,...].\n\n"
 	"## get_dgst ##\n"
 	"##############\n"
 	"Get the digest.\n"
@@ -58,18 +59,20 @@ static char command_help_text[] =
 	"## get_crt ##\n"
 	"#############\n"
 	"Get the certificate chain.\n"
-	"    Supports the output option as follows, digest:certificate.\n\n"
+	"    Supports the output option as follows,\n"
+	"        <directory for certificates>.\n\n"
 	"## chlg ##\n"
 	"##########\n"
 	"Challenge.\n"
-	"    Supports the output option.\n\n"
+	"    Supports the output option as follows.\n"
+	"        <directory for challenge output>\n\n"
 	"## get_mmts ##\n"
 	"##############\n"
 	"Get measurements.\n"
 	"    Supports the input option as follows, if a file is given,\n"
 	"        it will be used to fill in the nonce value.\n"
-	"    Supports the output option as follows,\n"
-	"        <directory for measurements>:nonce:signature\n\n";
+	"    Supports the output option as follows, \n"
+	"        <directory for measurements>\n\n";
 
 static void command_help(void) {
 	printf("%s", command_help_text);

@@ -233,6 +233,7 @@ struct spdm_cert_chain {
 #define SPDM_GET_CERT 0x82
 #define SPDM_CERT     0x02
 
+#define MAX_NUM_CERTS 10	/* From OpenSSL, so not sure... */
 #define MAX_CERT_SIZE 0x800
 
 /**
