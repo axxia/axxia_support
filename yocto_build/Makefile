@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= grr_a0_po_rel3
-RDK_KLM_VERSION         ?= grr_a0_po_rel3
-RDK_TOOLS_VERSION       ?= grr_a0_po_rel3
+META_AXXIA_REL          ?= grr_ase_rdk_2305
+RDK_KLM_VERSION         ?= grr_2305
+RDK_TOOLS_VERSION       ?= grr_2305
 RDK_LTTNG_ENABLE        ?= false
 INCLUDE_UPDATES         ?= false
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
@@ -48,7 +48,7 @@ RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
 USE_RDK_REPO            ?= false
 RDK_REPO                ?= https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
 SIMICS_FILE             ?= $(TOP)/simics*
-SIMICS_VERSION          ?= 6.0.157_gcc12_del13
+SIMICS_VERSION          ?= 6.0.166
 
 PREFERRED_VERSION_linux              = "PREFERRED_VERSION_linux-intel"
 PREFERRED_VERSION_linux-intel-debug  = "PREFERRED_VERSION_linux-intel-debug"
@@ -260,8 +260,8 @@ help:
 	echo "    Defaults to <current-dir>/axxia" ; \
 	echo "BB_IMAGE_TYPE=<image name>: Optional"; \
 	echo "    The type of image to build"; \
-	echo "    Default: axxia-image-dev" ; \
-	echo "    Other choices are: axxia-image-run, axxia-image-small"; \
+	echo "    Default: axxia-image-run" ; \
+	echo "    Other choices are: axxia-image-dev, axxia-image-small"; \
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
