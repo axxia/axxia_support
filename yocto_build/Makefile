@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# Authors: behlul.sutarwala@intel.com
+# Authors: sudhir.gopal@intel.com
 #
 # Makefile for AXXIA Yocto Build
 
@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= grr_ase_rdk_2308
-RDK_KLM_VERSION         ?= grr_2308
-RDK_TOOLS_VERSION       ?= grr_2308
+META_AXXIA_REL          ?= grr_rdk_2309
+RDK_KLM_VERSION         ?= grr_2309
+RDK_TOOLS_VERSION       ?= grr_2309
 RDK_LTTNG_ENABLE        ?= false
 INCLUDE_UPDATES         ?= false
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
