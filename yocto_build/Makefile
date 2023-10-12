@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2208.06_h_510
-RDK_KLM_VERSION         ?= 2208.06
-RDK_TOOLS_VERSION       ?= 2208.06
+META_AXXIA_REL          ?= snr_rdk_2310_h_510
+RDK_KLM_VERSION         ?= snr_2310
+RDK_TOOLS_VERSION       ?= snr_2310
 RDK_LTTNG_ENABLE        ?= false
 LTTNG_VERSION           ?= "2.13%"
 INCLUDE_UPDATES         ?= true
@@ -51,7 +51,7 @@ SIMICS_VERSION          ?= 6.0.51
 PREFERRED_VERSION_linux  = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
 
-ifeq (,$(filter $(LINUX_VERSION),4.19 5.4 5.10))
+ifeq (,$(filter $(LINUX_VERSION),4.19 5.4 5.10 5.15))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
@@ -249,11 +249,14 @@ help:
 	echo "    The type of image to build"; \
 	echo "    Default: axxia-image-dev" ; \
 	echo "    Other choices are: axxia-image-run, axxia-image-small"; \
+	echo "BB_MACHINE_NAME=<machine-name>: Optional"; \
+	echo "    Yocto MACHINE: intel-axxia-snr or intel-axxia-grr"; \
+	echo "    Default: intel-axxia-grr"; \
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: 5.10" ; \
-	echo "    Supported versions are: 4.19, 5.4, 5.10"; \
+	echo "    Supported versions are: 4.19, 5.4, 5.10, 5.15"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='false'" ; \
 	echo "    Default: 6.0.51" ; \
@@ -320,6 +323,7 @@ build: get-rdk get-simics $(LAYERS)
 		rm -rf $(BLDDIR)/conf; \
 		$(call source-bb-env) ; \
 		echo "PWD = $$PWD" ; \
+		sed -i s/^MACHINE[[:space:]]*=.*/MACHINE\ =\ \"$(BB_MACHINE_NAME)\"/g conf/local.conf ; \
 		sed -i s/^DISTRO[[:space:]]*=.*/DISTRO\ =\ \"$(DISTRO)\"/g conf/local.conf ; \
 		sed -i s/^RUNTARGET.*/RUNTARGET\ =\ \"$(RUNTARGET)\"/g conf/local.conf ; \
 		sed -i s/^BB_NUMBER_THREADS.*/BB_NUMBER_THREADS\ =\ \"$(BB_NUMBER_THREADS)\"/g conf/local.conf ; \
