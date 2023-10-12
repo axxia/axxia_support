@@ -34,11 +34,11 @@ IES_ENABLE_SHM          ?= true
 INCLUDE_RDK             ?= true
 INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
-LINUX_VERSION           ?= 5.10
+LINUX_VERSION           ?= 5.4
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2208.06_h_510
-RDK_KLM_VERSION         ?= 2208.06
-RDK_TOOLS_VERSION       ?= 2208.06
+META_AXXIA_REL          ?= snr_rdk_2310_d_54
+RDK_KLM_VERSION         ?= snr_2310
+RDK_TOOLS_VERSION       ?= snr_2310
 RDK_LTTNG_ENABLE        ?= false
 LTTNG_VERSION           ?= "2.13%"
 INCLUDE_UPDATES         ?= true
@@ -51,7 +51,7 @@ SIMICS_VERSION          ?= 6.0.51
 PREFERRED_VERSION_linux  = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
 
-ifeq (,$(filter $(LINUX_VERSION),4.19 5.4 5.10))
+ifeq (,$(filter $(LINUX_VERSION),4.19 5.4 5.10 5.15))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
@@ -252,8 +252,8 @@ help:
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
-	echo "    Default: 5.10" ; \
-	echo "    Supported versions are: 4.19, 5.4, 5.10"; \
+	echo "    Default: 5.4" ; \
+	echo "    Supported versions are: 4.19, 5.4, 5.10 and 5.15"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='false'" ; \
 	echo "    Default: 6.0.51" ; \
