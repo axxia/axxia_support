@@ -6,7 +6,7 @@
  *
  * GPL LICENSE SUMMARY
  *
- * Copyright (C) 2003-2022 Intel Corporation. All rights reserved.
+ * Copyright (C) 2003-2023 Intel Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of version 2 of the GNU General Public License as
@@ -29,7 +29,7 @@
  *
  * BSD LICENSE
  *
- * Copyright (C) 2003-2022 Intel Corporation. All rights reserved.
+ * Copyright (C) 2003-2023 Intel Corporation. All rights reserved.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -120,7 +120,10 @@ struct s_sdos_stateInfo {
 	__u32	srkSet 			: 1;
 	__u32	srkCommitted 		: 1;
 	__u32	eom 			: 1;
-	__u32   reserved		: 26;
+	__u32   pendingVAB		: 1;
+	__u32	debugMode		: 1;
+	__u32	endHostPriv		: 1;
+	__u32   reserved		: 23;
 };
 
 

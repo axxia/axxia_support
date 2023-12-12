@@ -6,7 +6,7 @@
  *
  * GPL LICENSE SUMMARY
  *
- * Copyright (C) 2003-2022 Intel Corporation. All rights reserved.
+ * Copyright (C) 2003-2023 Intel Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of version 2 of the GNU General Public License as
@@ -29,7 +29,7 @@
  *
  * BSD LICENSE
  *
- * Copyright (C) 2003-2022 Intel Corporation. All rights reserved.
+ * Copyright (C) 2003-2023 Intel Corporation. All rights reserved.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -240,6 +240,9 @@ void displayInfo(struct s_sdos_get_info_rsp * getInfoResp) {
 	printf("	SRK Set: 		%x \n",getInfoResp->stateInfo.srkSet);
 	printf("	SDOS Committed: 	%x \n",getInfoResp->stateInfo.srkCommitted);
 	printf("	EOM: 			%x \n",getInfoResp->stateInfo.eom);
+	printf("	Pending VAB:		%x \n",getInfoResp->stateInfo.pendingVAB);
+	printf("	Debug Mode:		%x \n",getInfoResp->stateInfo.debugMode);
+	printf("	End of Host Privileges:	%x \n",getInfoResp->stateInfo.endHostPriv);
 	
 	printf("SRK1: \n");
 	printf("	Valid:		%x \n",getInfoResp->srk1State.valid);
