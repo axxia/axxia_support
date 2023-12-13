@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= grr_rdk_2309
-RDK_KLM_VERSION         ?= grr_2309
-RDK_TOOLS_VERSION       ?= grr_2309
+META_AXXIA_REL          ?= grr_rdk_2311
+RDK_KLM_VERSION         ?= grr_2311
+RDK_TOOLS_VERSION       ?= grr_2311
 RDK_LTTNG_ENABLE        ?= false
 INCLUDE_UPDATES         ?= false
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
@@ -327,6 +327,7 @@ build: get-rdk get-simics $(LAYERS)
 		rm -rf $(BLDDIR)/conf ; \
         $(call source-bb-env) ; \
 		echo "PWD = $$PWD" ; \
+		sed -i s/^MACHINE[[:space:]]*=.*/MACHINE\ =\ \"$(BB_MACHINE_NAME)\"/g conf/local.conf ; \
 		sed -i s/^DISTRO[[:space:]]*=.*/DISTRO\ =\ \"$(DISTRO)\"/g conf/local.conf ; \
 		sed -i s/^MACHINE.*/MACHINE\ =\ \"$(BB_MACHINE_NAME)\"/g conf/local.conf; \
 		sed -i s/^RUNTARGET.*/RUNTARGET\ =\ \"$(RUNTARGET)\"/g conf/local.conf ; \
