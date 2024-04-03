@@ -36,15 +36,15 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 LINUX_VERSION           ?= 5.4
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2310.02_d_54
+META_AXXIA_REL          ?= snr_rdk_2310.2_d_54
 RDK_KLM_VERSION         ?= snr_2310.02
 RDK_TOOLS_VERSION       ?= snr_2310.02
 RDK_LTTNG_ENABLE        ?= false
 LTTNG_VERSION           ?= "2.13%"
 INCLUDE_UPDATES         ?= true
-RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
+RDK_KLM_ARCHIVE         ?= rdk_klm_src.tgz
 RDK_SRC_PATH            ?= $(TOP)
-RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
+RDK_TOOLS_ARCHIVE       ?= rdk_user_src.tgz
 RDK_MODULES_STATIC      ?= false
 SIMICS_FILE             ?= $(TOP)/simics*
 SIMICS_VERSION          ?= 6.0.51
@@ -221,10 +221,10 @@ help:
 	echo "    Default:  <current-dir>"; \
 	echo "RDK_KLM_ARCHIVE=<Name-of-RDK-KLM-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
-	echo "    Default:  <current-dir>/rdk_klm_src.txz"; \
+	echo "    Default:  <current-dir>/rdk_klm_src.tgz"; \
 	echo "RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true' and INCLUDE_RDK_TOOLS='true'"; \
-	echo "    Default:  <current-dir>/rdk_user_src.txz"; \
+	echo "    Default:  <current-dir>/rdk_user_src.tgz"; \
 	echo "RDK_MODULES_STATIC: Indicates if the RDK modules should"; \
 	echo "                    be statically linked in the linux kernel"; \
 	echo "    Optional: Applies only when INCLUDE_RDK='true'" ; \
