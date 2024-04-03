@@ -27,15 +27,15 @@ SHELL                    = /bin/bash
 BLDDIR                  ?= $(TOP)/axxia
 BB_IMAGE_TYPE           ?= axxia-image-dev
 RDK_SRC_PATH            ?= $(TOP)
-RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
-RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
+RDK_KLM_ARCHIVE         ?= rdk_klm_src.tgz
+RDK_TOOLS_ARCHIVE       ?= rdk_user_src.tgz
 SIMICS_FILE             ?= $(TOP)/simics*
 BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
 INCLUDE_RDK             ?= true
 INCLUDE_SIMICSFS        ?= false
 SIMICS_VERSION          ?= 6.0.51
-META_AXXIA_REL          ?= snr_rdk_2310.02_t_419
+META_AXXIA_REL          ?= snr_rdk_2310.2_t_419
 RDK_TOOLS_VERSION       ?= snr_2310.02
 RDK_KLM_VERSION         ?= snr_2310.02
 DL_DIR                  ?=
@@ -72,19 +72,19 @@ RM = $(Q)rm -f
 META_AXXIA_URL   ?= https://github.com/axxia/meta-intel-axxia.git
 LAYERS           += $(TOP)/meta-intel-axxia
 
-POKY_URL          = https://git.yoctoproject.org/git/poky
+POKY_URL          = https://git.yoctoproject.org/poky
 LAYERS           += $(TOP)/poky
 
 OE_URL            = https://github.com/openembedded/meta-openembedded.git
 LAYERS           += $(TOP)/meta-openembedded
 
-VIRT_URL          = https://git.yoctoproject.org/git/meta-virtualization
+VIRT_URL          = https://git.yoctoproject.org/meta-virtualization
 LAYERS           += $(TOP)/meta-virtualization
 
-INTEL_URL         = https://git.yoctoproject.org/git/meta-intel
+INTEL_URL         = https://git.yoctoproject.org/meta-intel
 LAYERS           += $(TOP)/meta-intel
 
-SECURITY_URL      = https://git.yoctoproject.org/git/meta-security
+SECURITY_URL      = https://git.yoctoproject.org/meta-security
 LAYERS           += $(TOP)/meta-security
 
 META_ROS          = https://github.com/bmwcarit/meta-ros.git
@@ -219,10 +219,10 @@ help:
 	echo "    Default:  <current-dir>"; \
 	echo "RDK_KLM_ARCHIVE=<Name-of-RDK-KLM-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
-	echo "    Default:  <current-dir>/rdk_klm_src.txz"; \
+	echo "    Default:  <current-dir>/rdk_klm_src.tgz"; \
 	echo "RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
-	echo "    Default:  <current-dir>/rdk_user_src.txz"; \
+	echo "    Default:  <current-dir>/rdk_user_src.tgz"; \
 	echo "RDK_MODULES_STATIC: Indicates if the RDK modules should"; \
 	echo "                    be statically linked in the linux kernel"; \
 	echo "    Optional: Applies only when INCLUDE_RDK='true'" ; \
