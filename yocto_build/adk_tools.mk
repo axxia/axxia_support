@@ -27,8 +27,8 @@ SHELL                    = /bin/bash
 BLDDIR                  ?= $(TOP)/axxia
 BB_IMAGE_TYPE           ?= axxia-image-vcn
 RDK_SRC_PATH            ?= $(TOP)
-RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
-RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
+RDK_KLM_ARCHIVE         ?= rdk_klm_src.tgz
+RDK_TOOLS_ARCHIVE       ?= rdk_user_src.tgz
 SIMICS_FILE             ?= $(TOP)/simics*
 BB_NUMBER_THREADS       ?= "24"
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
@@ -225,10 +225,10 @@ help:
 	echo "    Default:  <current-dir>"; \
 	echo "RDK_KLM_ARCHIVE=<Name-of-RDK-KLM-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
-	echo "    Default:  <current-dir>/rdk_klm_src.txz"; \
+	echo "    Default:  <current-dir>/rdk_klm_src.tgz"; \
 	echo "RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
-	echo "    Default:  <current-dir>/rdk_user_src.txz"; \
+	echo "    Default:  <current-dir>/rdk_user_src.tgz"; \
 	echo "RDK_MODULES_STATIC: Indicates if the RDK modules should"; \
 	echo "                    be statically linked in the linux kernel"; \
 	echo "    Optional: Applies only when INCLUDE_RDK='true'" ; \

@@ -36,15 +36,15 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= grr_rdk_2401.01_h_510
-RDK_KLM_VERSION         ?= grr_2401.01
-RDK_TOOLS_VERSION       ?= grr_2401.01
+META_AXXIA_REL          ?= grr_rdk_2401.02_h_510
+RDK_KLM_VERSION         ?= grr_2401.02
+RDK_TOOLS_VERSION       ?= grr_2401.02
 RDK_LTTNG_ENABLE        ?= false
 INCLUDE_UPDATES         ?= false
-RDK_KLM_ARCHIVE         ?= rdk_klm_src.txz
+RDK_KLM_ARCHIVE         ?= rdk_klm_src.tgz
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
-RDK_TOOLS_ARCHIVE       ?= rdk_user_src.txz
+RDK_TOOLS_ARCHIVE       ?= rdk_user_src.tgz
 USE_RDK_REPO            ?= false
 RDK_REPO                ?= https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
 SIMICS_FILE             ?= $(TOP)/simics*
@@ -77,19 +77,19 @@ RM = $(Q)rm -f
 META_AXXIA_URL   ?= https://github.com/axxia/meta-intel-axxia.git
 LAYERS           += $(TOP)/meta-intel-axxia
 
-POKY_URL          = https://git.yoctoproject.org/git/poky
+POKY_URL          = https://git.yoctoproject.org/poky
 LAYERS           += $(TOP)/poky
 
 OE_URL            = https://github.com/openembedded/meta-openembedded.git
 LAYERS           += $(TOP)/meta-openembedded
 
-VIRT_URL          = https://git.yoctoproject.org/git/meta-virtualization
+VIRT_URL          = https://git.yoctoproject.org/meta-virtualization
 LAYERS           += $(TOP)/meta-virtualization
 
-INTEL_URL         = https://git.yoctoproject.org/git/meta-intel
+INTEL_URL         = https://git.yoctoproject.org/meta-intel
 LAYERS           += $(TOP)/meta-intel
 
-SECURITY_URL      = https://git.yoctoproject.org/git/meta-security
+SECURITY_URL      = https://git.yoctoproject.org/meta-security
 LAYERS           += $(TOP)/meta-security
 
 META_ROS          = https://github.com/bmwcarit/meta-ros.git
@@ -223,10 +223,10 @@ help:
 	echo "    Default:  <current-dir>"; \
 	echo "RDK_KLM_ARCHIVE=<Name-of-RDK-KLM-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
-	echo "    Default:  <current-dir>/rdk_klm_src.txz"; \
+	echo "    Default:  <current-dir>/rdk_klm_src.tgz"; \
 	echo "RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true' and INCLUDE_RDK_TOOLS='true'"; \
-	echo "    Default:  <current-dir>/rdk_user_src.txz"; \
+	echo "    Default:  <current-dir>/rdk_user_src.tgz"; \
 	echo "USE_RDK_REPO: Optional: Default = false:"; \
 	echo "    When set to 'true', get RDK sources from a git repository."; \
 	echo "    Depends on INCLUDE_RDK=true"; \
