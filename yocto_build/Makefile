@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2310.2_h_510
-RDK_KLM_VERSION         ?= snr_2310.02
-RDK_TOOLS_VERSION       ?= snr_2310.02
+META_AXXIA_REL          ?= snr_rdk_2310.03_h_510
+RDK_KLM_VERSION         ?= snr_2310.03
+RDK_TOOLS_VERSION       ?= snr_2310.03
 RDK_LTTNG_ENABLE        ?= false
 LTTNG_VERSION           ?= "2.13%"
 INCLUDE_UPDATES         ?= true
@@ -75,19 +75,19 @@ RM = $(Q)rm -f
 META_AXXIA_URL   ?= https://github.com/axxia/meta-intel-axxia.git
 LAYERS           += $(TOP)/meta-intel-axxia
 
-POKY_URL          = https://git.yoctoproject.org/git/poky
+POKY_URL          = https://git.yoctoproject.org/poky
 LAYERS           += $(TOP)/poky
 
 OE_URL            = https://github.com/openembedded/meta-openembedded.git
 LAYERS           += $(TOP)/meta-openembedded
 
-VIRT_URL          = https://git.yoctoproject.org/git/meta-virtualization
+VIRT_URL          = https://git.yoctoproject.org/meta-virtualization
 LAYERS           += $(TOP)/meta-virtualization
 
-INTEL_URL         = https://git.yoctoproject.org/git/meta-intel
+INTEL_URL         = https://git.yoctoproject.org/meta-intel
 LAYERS           += $(TOP)/meta-intel
 
-SECURITY_URL      = https://git.yoctoproject.org/git/meta-security
+SECURITY_URL      = https://git.yoctoproject.org/meta-security
 LAYERS           += $(TOP)/meta-security
 
 META_ROS          = https://github.com/bmwcarit/meta-ros.git
