@@ -68,14 +68,14 @@ RDK_SRC_PATH=<Location-of-RDK-Archives>
 
 RDK_KLM_ARCHIVE=<Name-of-RDK-KLM-Archive>
     Required: when INCLUDE_RDK='true'
-    Default: <Current Directory>/rdk_klm_src.txz
-    Recomanded format is rdk_klm_src_<release-tag>.txz; if no release tag present,
+    Default: <Current Directory>/rdk_klm_src.tgz
+    Recomanded format is rdk_klm_src_<release-tag>.tgz; if no release tag present,
     "unknown_release_info" string will be found in commit logs and staging path.
 
 RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>
     Required: when INCLUDE_RDK='true'
-    Default: <Current Directory>/rdk_user_src.txz
-    Recomanded format is rdk_user_src_<release-tag>.txz; if no release tag present,
+    Default: <Current Directory>/rdk_user_src.tgz
+    Recomanded format is rdk_user_src_<release-tag>.tgz; if no release tag present,
     "unknown_release_info" string will be found in the package version on build time.
 
 USE_RDK_REPO: Optional: Default = false:
@@ -125,7 +125,7 @@ SDK_INSTALL_DIR=<sdk-install-location>
 
 LINUX_VERSION=<version>: Optional:
     Default: '5.10'
-    Supported versions are: 5.10
+    Supported versions are: 5.10, 5.15, 6.6
 
  SIMICS_VERSION=<version>
      Optional: Only used when INCLUDE_SIMICSFS='true'
