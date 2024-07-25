@@ -68,15 +68,31 @@ RDK_SRC_PATH=<Location-of-RDK-Archives>
 
 RDK_KLM_ARCHIVE=<Name-of-RDK-KLM-Archive>
     Required: when INCLUDE_RDK='true'
-    Default: <Current Directory>/rdk_klm_src.txz
-    Recomanded format is rdk_klm_src_<release-tag>.txz; if no release tag present,
+    Default: <Current Directory>/rdk_klm_src.tgz
+    Recomanded format is rdk_klm_src_<release-tag>.tgz; if no release tag present,
     "unknown_release_info" string will be found in commit logs and staging path.
 
 RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>
     Required: when INCLUDE_RDK='true'
-    Default: <Current Directory>/rdk_user_src.txz
-    Recomanded format is rdk_user_src_<release-tag>.txz; if no release tag present,
+    Default: <Current Directory>/rdk_user_src.tgz
+    Recomanded format is rdk_user_src_<release-tag>.tgz; if no release tag present,
     "unknown_release_info" string will be found in the package version on build time.
+
+USE_RDK_REPO: Optional: Default = false:
+    When set to 'true', get RDK sources from a git repository.
+    Depends on INCLUDE_RDK=true
+    Special access permissions from Intel are required to be able to fetch
+    RDK sources from the Intel GitHub repositories.
+
+RDK_REPO=<RDK-Git-repository>:
+    Required: when USE_RDK_REPO='true'
+    Defaults to https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
+    Depends on INCLUDE_RDK=true and USE_RDK_REPO=true
+
+RDK_REPO_REV=<tag/commit>:
+    Required: when USE_RDK_REPO='true'
+    Should contain the git revision (tag or commit SHA) for the RDK git repository.
+    Depends on INCLUDE_RDK=true and USE_RDK_REPO=true
 
 RDK_MODULES_STATIC=<true | false>: Optional
     Optional: Only used when INCLUDE_RDK='true'
@@ -84,8 +100,16 @@ RDK_MODULES_STATIC=<true | false>: Optional
     Indicates that the RDK modules should be statically linked
     in the kernel tree (obj-y). Default is to build the RDK as modules (obj-m).
 
-SIMICS_FILE=<Location-of-Simics-archive>: Required
+SIMICS_FILE=<Location-of-Simics-archive>: Required iff INCLUDE_SIMICS==true
     Default: <Current Directory>
+
+INCLUDE_UPDATES: Optional: Default = true:
+    When set to 'true', will include meta-intel-axxia-updates Yocto
+    layer with minimal changes to fix older Intel Axxia relases.
+
+META_UPDATES_URL=<URL-for-meta-intel-axxia-updates>: Optional:
+    Defaults to https://github.com/axxia/meta-intel-axxia-updates.git"
+    Required: when INCLUDE_UPDATES='true'
 
 BLDDIR=<build dir>: Optional
     Location of the build
@@ -93,19 +117,19 @@ BLDDIR=<build dir>: Optional
 
 BB_IMAGE_TYPE=<image name>: Optional
     The type of image to build
-    Default: axxia-image-sim
-    Other choices are: axxia-image-vcn, axxia-image-small
+    Default: axxia-image-run
+    Other choices are: axxia-image-dev, axxia-image-small
 
 SDK_INSTALL_DIR=<sdk-install-location>
     Required when 'install-sdk' is called
 
 LINUX_VERSION=<version>: Optional:
-    Default: '5.10'
-    Supported versions are: 5.10
+    Default: '6.9'
+    Supported versions are: 6.9
 
  SIMICS_VERSION=<version>
      Optional: Only used when INCLUDE_SIMICSFS='true'
-     Default: '6.0.78'
+     Default: '7.12.00'
 
 BB_NUMBER_THREADS=<num_threads>: Optional:
     Number of parallel threads to run
@@ -114,11 +138,6 @@ BB_NUMBER_THREADS=<num_threads>: Optional:
 DL_DIR=<download-directory>: Optional:
     A pre-populated shared download directory used for build time/space saving.
     Default: $BLDDIR/downloads
-
-IES_ENABLE_SHM=[true|false]
-    Enable building for RDK with IES in shared-memory mode
-    Defaults to 'true'
-    When set to false, will build IES in RPC mode
 
 RDK_LTTNG_ENABLE=[true|false]
     Enable building RDK with LTTNG enabled in user space
@@ -131,7 +150,7 @@ Manual Build Instructions
 The step-by-step build instructions and linux patch information is included
 in the README of the meta-intel-axxia layer. This can be viewed at:
 
-    https://github.com/axxia/meta-intel-axxia/blob/<META_AXXIA_REL>/README.vcn
+    https://github.com/axxia/meta-intel-axxia/blob/<META_AXXIA_REL>/README
 
     where: META_AXXIA_REL is the release tag.
 
