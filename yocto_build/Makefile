@@ -37,7 +37,7 @@ INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= v6.9
 LINUX_CONF              ?= $(TOP)/linux.conf
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del1
+META_AXXIA_REL          ?= pmr_ase_del_1
 RDK_KLM_VERSION         ?= pmr_del1
 RDK_TOOLS_VERSION       ?= pmr_del1
 RDK_LTTNG_ENABLE        ?= false
@@ -49,7 +49,7 @@ RDK_TOOLS_ARCHIVE       ?= rdk_user_src.tgz
 USE_RDK_REPO            ?= false
 RDK_REPO                ?= https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
 SIMICS_FILE             ?= $(TOP)/simics*
-SIMICS_VERSION          ?= 7.15.0
+SIMICS_VERSION          ?= 7.8.0
 
 PREFERRED_PROVIDER_virtual/kernel   := "linux-korg"
 KORG_VERSION                         = $(LINUX_VERSION)
@@ -276,7 +276,7 @@ help:
 	echo "    Supported versions : v6.9"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
-	echo "    Default: 7.12.00" ; \
+	echo "    Default: 7.8.0" ; \
 	echo "INCLUDE_UPDATES: Optional: Default = true" ; \
 	echo "    When set to 'true', will include meta-intel-axxia-updates Yocto"; \
 	echo "    layer with minimal changes to fix older Intel Axxia relases"; \
