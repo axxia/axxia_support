@@ -34,9 +34,9 @@ IES_ENABLE_SHM          ?= true
 INCLUDE_RDK             ?= true
 INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
-LINUX_VERSION           ?= 5.10
+LINUX_VERSION           ?= 6.6
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2407_h_510
+META_AXXIA_REL          ?= snr_rdk_2407_s_66
 RDK_KLM_VERSION         ?= snr_2407
 RDK_TOOLS_VERSION       ?= snr_2407
 RDK_LTTNG_ENABLE        ?= false
@@ -252,7 +252,7 @@ help:
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
-	echo "    Default: 5.10" ; \
+	echo "    Default: 6.6" ; \
 	echo "    Supported versions are: 5.10, 6.6"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='false'" ; \
