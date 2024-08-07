@@ -48,7 +48,7 @@ LINUX_VERSION           ?= 5.10
 PREFERRED_VERSION_linux  = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
 
-ifeq (,$(filter $(LINUX_VERSION),4.19 5.4 5.10))
+ifeq (,$(filter $(LINUX_VERSION),5.10 6.6))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
@@ -268,7 +268,7 @@ help:
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: 5.10" ; \
-	echo "    Supported versions are: 4.19, 5.4, 5.10"; \
+	echo "    Supported versions are: 5.10, 6.6"; \
 	echo "BB_NUMBER_THREADS=<num_threads>: Optional:"; \
 	echo "    Number of parallel threads to run"; \
 	echo "    Defaults to '24'" ; \
@@ -312,10 +312,6 @@ $(TOP)/meta-security: $(TOP)/meta-intel-axxia
 	$(call  checkout_layer_from_file,$@)
 
 $(TOP)/meta-ros: $(TOP)/meta-intel-axxia
-ifeq ($(LINUX_VERSION),4.19)
-	$(call  populate,$@,$(META_ROS))
-	$(call  checkout_layer_from_file,$@)
-endif
 
 $(TOP)/meta-cloud-services:
 	$(call  populate,$@,$(META_CLS_URL))

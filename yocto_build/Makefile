@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 LINUX_VERSION           ?= 5.10
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2310.04_h_510
-RDK_KLM_VERSION         ?= snr_2310.04
-RDK_TOOLS_VERSION       ?= snr_2310.04
+META_AXXIA_REL          ?= snr_rdk_2407_h_510
+RDK_KLM_VERSION         ?= snr_2407
+RDK_TOOLS_VERSION       ?= snr_2407
 RDK_LTTNG_ENABLE        ?= false
 LTTNG_VERSION           ?= "2.13%"
 INCLUDE_UPDATES         ?= true
@@ -51,7 +51,7 @@ SIMICS_VERSION          ?= 6.0.51
 PREFERRED_VERSION_linux  = "PREFERRED_VERSION_linux-intel"
 PREFERRED_PROVIDER_virtual/kernel := "linux-intel"
 
-ifeq (,$(filter $(LINUX_VERSION),4.19 5.4 5.10 5.15))
+ifeq (,$(filter $(LINUX_VERSION),5.10 6.6))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
@@ -249,14 +249,11 @@ help:
 	echo "    The type of image to build"; \
 	echo "    Default: axxia-image-dev" ; \
 	echo "    Other choices are: axxia-image-run, axxia-image-small"; \
-	echo "BB_MACHINE_NAME=<machine-name>: Optional"; \
-	echo "    Yocto MACHINE: intel-axxia-snr or intel-axxia-grr"; \
-	echo "    Default: intel-axxia-grr"; \
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: 5.10" ; \
-	echo "    Supported versions are: 4.19, 5.4, 5.10, 5.15"; \
+	echo "    Supported versions are: 5.10, 6.6"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='false'" ; \
 	echo "    Default: 6.0.51" ; \
@@ -303,10 +300,6 @@ $(TOP)/meta-security: $(TOP)/meta-intel-axxia
 	$(call  checkout_layer_from_file,$@)
 
 $(TOP)/meta-ros: $(TOP)/meta-intel-axxia
-ifeq ($(LINUX_VERSION),4.19)
-	$(call  populate,$@,$(META_ROS))
-	$(call  checkout_layer_from_file,$@)
-endif
 
 $(TOP)/meta-intel-axxia-updates: $(TOP)/meta-intel-axxia-updates
 ifeq ($(INCLUDE_UPDATES),true)
