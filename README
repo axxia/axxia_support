@@ -1,12 +1,5 @@
-Axxia Support
-=============
+Intel SRP Support
+=================
 
-# Overview
-
-This repository contains examples for specific Axxia features.
-
-# Features
-
-## SNR QSP Linux Build
-
-See qsp/README.build to build a Yocto based Linux for QSP model.  
+See the 'yocto_build' directory for the Makefile and README used to build
+the images for simulation and the SDK.
