@@ -31,25 +31,24 @@ BB_NO_NETWORK           ?= 0
 BB_NUMBER_THREADS       ?= "24"
 DL_DIR                  ?=
 IES_ENABLE_SHM          := false
-INCLUDE_RDK             ?= false
+INCLUDE_RDK             := false
 INCLUDE_RDK_TOOLS       ?= false
 INCLUDE_SIMICSFS        ?= true
+INCLUDE_UPDATES         ?= false
 LINUX_VERSION           ?= v6.9
 LINUX_CONF              ?= $(TOP)/linux.conf
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del_1
-RDK_KLM_VERSION         ?= pmr_del1
-RDK_TOOLS_VERSION       ?= pmr_del1
+META_AXXIA_REL          ?= pmr_s_fd4a9a21
+RDK_KLM_VERSION         ?= pmr_del2
+RDK_TOOLS_VERSION       ?= pmr_del2
 RDK_LTTNG_ENABLE        ?= false
-INCLUDE_UPDATES         ?= false
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.tgz
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
 RDK_TOOLS_ARCHIVE       ?= rdk_user_src.tgz
 USE_RDK_REPO            ?= false
 RDK_REPO                ?= https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
-SIMICS_FILE             ?= $(TOP)/simics*
-SIMICS_VERSION          ?= 7.8.0
+SIMICS_FILE             ?= $(word 1,$(wildcard $(TOP)/pmr_ase_svl_vp*))
 
 PREFERRED_PROVIDER_virtual/kernel   := "linux-korg"
 KORG_VERSION                         = $(LINUX_VERSION)
@@ -274,9 +273,6 @@ help:
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: v6.9" ; \
 	echo "    Supported versions : v6.9"; \
-	echo "SIMICS_VERSION=<version>" ; \
-	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
-	echo "    Default: 7.8.0" ; \
 	echo "INCLUDE_UPDATES: Optional: Default = true" ; \
 	echo "    When set to 'true', will include meta-intel-axxia-updates Yocto"; \
 	echo "    layer with minimal changes to fix older Intel Axxia relases"; \
@@ -388,8 +384,9 @@ build: get-rdk get-simics $(LAYERS)
 			fi ; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
+			SIM_VER=`basename $(TOP)/$(AXXIA_REPO_NAME)/downloads/simics-*.tgz | sed 's/simics-//g' | sed 's/.tgz//g'` ; \
+                        echo "SIMICS_VERSION = \"$$SIM_VER\"" >> conf/local.conf ;\
                         echo "DISTRO_FEATURES:append = \" simics\"" >> conf/local.conf ;\
-                        echo "SIMICS_VERSION = \"$(SIMICS_VERSION)\"" >> conf/local.conf ;\
                 else \
                         sed -i /DISTRO_FEATURES:append.*simics/s/^/#/g conf/local.conf; \
 		fi; \
@@ -422,8 +419,17 @@ endif
 get-simics: $(LAYERS)
 ifeq ($(INCLUDE_SIMICSFS),true)
 	$(call check-file-exists, $(SIMICS_FILE))
-	mkdir -p $(TOP)/$(AXXIA_REPO_NAME)/downloads/
-	cp --verbose $(SIMICS_FILE) $(TOP)/$(AXXIA_REPO_NAME)/downloads/.
+	(set -xe                                       ; \
+         echo "Extracting Simicsfs client"             ; \
+         mkdir -p $(TOP)/$(AXXIA_REPO_NAME)/downloads/ ; \
+         cd $(TOP)/$(AXXIA_REPO_NAME)/downloads        ; \
+         tar xz --wildcards -f $(SIMICS_FILE) ase/simics/simics*/src/misc ase/simics/simics*/linux64/bin ; \
+         cd ase/simics                                 ; \
+         rm -fr simics-qsp*                            ; \
+         SIMICS_VER=`ls -d simics*`                    ; \
+         tar cfz $(TOP)/$(AXXIA_REPO_NAME)/downloads/$$SIMICS_VER.tgz $$SIMICS_VER ; \
+	 cd $(TOP)/$(AXXIA_REPO_NAME)/downloads        ; \
+	 echo "Created Simicsfs client $(TOP)/$(AXXIA_REPO_NAME)/downloads/$$SIMICS_VER.tgz")
 endif
 
 layer-list:

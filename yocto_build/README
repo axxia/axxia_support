@@ -61,6 +61,9 @@ INCLUDE_RDK_TOOLS: Optional: Default = true:
 INCLUDE_SIMICSFS: Optional: Default = true:
     When set to 'true', builds with simicsfs,
     Set to 'false' builds without simicsfs
+    NOTE: When this is set to true, the Makefile expects the Simics
+          package (pmr_ase_svl_vp...tgz) to be co-located by default with
+          the Makefile.
 
 RDK_SRC_PATH=<Location-of-RDK-Archives>
     Required: when INCLUDE_RDK='true'
@@ -126,10 +129,6 @@ SDK_INSTALL_DIR=<sdk-install-location>
 LINUX_VERSION=<version>: Optional:
     Default: '6.9'
     Supported versions are: 6.9
-
- SIMICS_VERSION=<version>
-     Optional: Only used when INCLUDE_SIMICSFS='true'
-     Default: '7.8.0'
 
 BB_NUMBER_THREADS=<num_threads>: Optional:
     Number of parallel threads to run
