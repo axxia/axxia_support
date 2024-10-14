@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 LINUX_VERSION           ?= 6.6
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2407.01_s_66
-RDK_KLM_VERSION         ?= snr_2407.01
-RDK_TOOLS_VERSION       ?= snr_2407.01
+META_AXXIA_REL          ?= snr_rdk_2410_s_66
+RDK_KLM_VERSION         ?= snr_2410
+RDK_TOOLS_VERSION       ?= snr_2410
 RDK_LTTNG_ENABLE        ?= false
 LTTNG_VERSION           ?= "2.13%"
 INCLUDE_UPDATES         ?= true
@@ -252,7 +252,7 @@ help:
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
-	echo "    Default: 6.6" ; \
+	echo "    Default: 5.10" ; \
 	echo "    Supported versions are: 5.10, 6.6"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='false'" ; \
@@ -424,11 +424,16 @@ endif
 .PHONY: craff_gen
 craff_gen:
 ifeq ($(INCLUDE_SIMICSFS),true)
-	set -e ; \
-	cd $(BLDDIR) ; \
+	set -e ;                                                                                          \
+	cd $(BLDDIR) ;                                                                                    \
 	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | grep bin | head -n 1) ; \
-	cd $(BLDDIR)/tmp/deploy/images/$(BB_MACHINE_NAME) ; \
-	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).craff $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).wic
+	cd $(BLDDIR)/tmp/deploy/images/$(BB_MACHINE_NAME) ;                                               \
+	if [ "$(LINUX_VERSION)" = "6.6" ]; then                                                           \
+		IMAGE_SUFFIX=".rootfs.wic";                                                               \
+	else                                                                                              \
+		IMAGE_SUFFIX=".wic" ;                                                                     \
+	fi ;                                                                                              \
+        $(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).craff $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME)$${IMAGE_SUFFIX}
 endif
 
 clobber:
