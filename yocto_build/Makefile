@@ -33,7 +33,7 @@ DL_DIR                  ?=
 INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= 6.6
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_SRP_REL            ?= srp_s_de05d47
+META_SRP_REL            ?= hwc_del_2
 SIMICS_FILE             ?= $(word 1,$(wildcard $(TOP)/simics*))
 
 PREFERRED_PROVIDER_virtual/kernel   := "linux-yocto"
