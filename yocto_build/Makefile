@@ -35,12 +35,12 @@ INCLUDE_RDK             := false
 INCLUDE_RDK_TOOLS       ?= false
 INCLUDE_SIMICSFS        ?= true
 INCLUDE_UPDATES         ?= false
-LINUX_VERSION           ?= v6.9
+LINUX_VERSION           ?= v6.11
 LINUX_CONF              ?= $(TOP)/linux.conf
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_s_fd4a9a21
-RDK_KLM_VERSION         ?= pmr_del2
-RDK_TOOLS_VERSION       ?= pmr_del2
+META_AXXIA_REL          ?= pmr_s_dcb78ead
+RDK_KLM_VERSION         ?= pmr_del3
+RDK_TOOLS_VERSION       ?= pmr_del3
 RDK_LTTNG_ENABLE        ?= false
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.tgz
 RDK_MODULES_STATIC      ?= false
@@ -52,10 +52,6 @@ SIMICS_FILE             ?= $(word 1,$(wildcard $(TOP)/pmr_ase_svl_vp*))
 
 PREFERRED_PROVIDER_virtual/kernel   := "linux-korg"
 KORG_VERSION                         = $(LINUX_VERSION)
-
-ifeq (,$(filter $(LINUX_VERSION),v6.9))
-    $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
-endif
 
 ifeq ($(wildcard $(LINUX_CONF)),)
     $(error LINUX_CONF needs to point to a valid Linux configuration file)
@@ -96,8 +92,8 @@ LAYERS           += $(TOP)/meta-intel
 SECURITY_URL      = https://git.yoctoproject.org/meta-security
 LAYERS           += $(TOP)/meta-security
 
-META_ROS          = https://github.com/bmwcarit/meta-ros.git
-LAYERS           += $(TOP)/meta-ros
+CLANG_URL         = https://github.com/kraj/meta-clang
+LAYERS           += $(TOP)/meta-clang
 
 META_UPDATES_URL ?= https://github.com/axxia/meta-intel-axxia-updates.git
 LAYERS           += $(TOP)/meta-intel-axxia-updates
@@ -188,6 +184,22 @@ define checkout_layer_from_file
         git -C $(1) checkout $$REV
 endef
 
+define setup_conf
+	set -e ; \
+	echo "Generating local.conf in $(BLDDIR)" ; \
+	cd $(TOP); \
+	rm -rf $(BLDDIR)/conf ; \
+	$(call source-bb-env) ; \
+	echo "PWD = $$PWD" ; \
+	sed -i s/^MACHINE[[:space:]]*=.*/MACHINE\ =\ \"$(BB_MACHINE_NAME)\"/g conf/local.conf ; \
+	sed -i s/^DISTRO[[:space:]]*=.*/DISTRO\ =\ \"$(DISTRO)\"/g conf/local.conf ; \
+	sed -i s/^MACHINE.*/MACHINE\ =\ \"$(BB_MACHINE_NAME)\"/g conf/local.conf; \
+	sed -i s/^BB_NUMBER_THREADS.*/BB_NUMBER_THREADS\ =\ \"$(BB_NUMBER_THREADS)\"/g conf/local.conf ; \
+	sed -i s/^PARALLEL_MAKE.*/PARALLEL_MAKE\ =\ \"$(PARALLEL_MAKE)\"/g conf/local.conf ; \
+	echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
+	echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf
+endef
+
 help:
 	@echo "USAGE:"; \
         echo  "------" ; \
@@ -271,8 +283,8 @@ help:
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
-	echo "    Default: v6.9" ; \
-	echo "    Supported versions : v6.9"; \
+	echo "    Default: v6.11" ; \
+	echo "    Supported versions : v6.11"; \
 	echo "INCLUDE_UPDATES: Optional: Default = true" ; \
 	echo "    When set to 'true', will include meta-intel-axxia-updates Yocto"; \
 	echo "    layer with minimal changes to fix older Intel Axxia relases"; \
@@ -315,34 +327,33 @@ $(TOP)/meta-security: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(SECURITY_URL))
 	$(call  checkout_layer_from_file,$@)
 
+$(TOP)/meta-clang: $(TOP)/meta-intel-axxia
+	$(call  populate,$@,$(CLANG_URL))
+	$(call  checkout_layer_from_file,$@)
+
 $(TOP)/meta-intel-axxia-updates: $(TOP)/meta-intel-axxia-updates
 ifeq ($(INCLUDE_UPDATES),true)
 	$(call  populate,$@,$(META_UPDATES_URL))
 	$(call  checkout_rev_main,$@,$(META_AXXIA_REL))
 endif
 
+.PHONY: qsp
+qsp: BB_IMAGE_TYPE=axxia-image-qsp
+qsp: get-simics $(LAYERS)
+	$(call setup_conf)                                          ; \
+	echo "DISTRO_FEATURES:append = \" qsp\"" >> conf/local.conf ; \
+	$(call bitbake, $(BB_IMAGE_TYPE))
+
 # create bitbake build
 .PHONY: build
 build: get-rdk get-simics $(LAYERS)
-		set -e ; \
-                echo "Generating local.conf in $(BLDDIR)" ; \
-		cd $(TOP); \
-		rm -rf $(BLDDIR)/conf ; \
-		$(call source-bb-env) ; \
+		$(call setup_conf) ; \
 		cp -pf $(LINUX_CONF) $(TOP)/meta-intel-axxia/meta-intel-distro/recipes-kernel/linux/defconfig ; \
-		echo "PWD = $$PWD" ; \
-		sed -i s/^MACHINE[[:space:]]*=.*/MACHINE\ =\ \"$(BB_MACHINE_NAME)\"/g conf/local.conf ; \
-		sed -i s/^DISTRO[[:space:]]*=.*/DISTRO\ =\ \"$(DISTRO)\"/g conf/local.conf ; \
-		sed -i s/^MACHINE.*/MACHINE\ =\ \"$(BB_MACHINE_NAME)\"/g conf/local.conf; \
 		sed -i s/^RUNTARGET.*/RUNTARGET\ =\ \"$(RUNTARGET)\"/g conf/local.conf ; \
-		sed -i s/^BB_NUMBER_THREADS.*/BB_NUMBER_THREADS\ =\ \"$(BB_NUMBER_THREADS)\"/g conf/local.conf ; \
-		sed -i s/^PARALLEL_MAKE.*/PARALLEL_MAKE\ =\ \"$(PARALLEL_MAKE)\"/g conf/local.conf ; \
 		sed -i '/^PREFERRED_PROVIDER_virtual\/kernel/ d' conf/local.conf ; \
 		sed -i '/^PREFERRED_VERSION_linux/ d' conf/local.conf ; \
 		echo "PREFERRED_PROVIDER_virtual/kernel = \"$(PREFERRED_PROVIDER_virtual/kernel)\"" >> conf/local.conf ; \
 		echo "KORG_VERSION = \"$(KORG_VERSION)\"" >> conf/local.conf ; \
-		echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
-		echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
 		echo "DISTRO_FEATURES:append = \" multilib\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
 			bitbake-layers add-layer -F $(TOP)/$(RDK_REPO_NAME) ; \
