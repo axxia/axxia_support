@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= 6.6
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= grr_rdk_2412_s_66
-RDK_KLM_VERSION         ?= grr_2412
-RDK_TOOLS_VERSION       ?= grr_2412
+META_AXXIA_REL          ?= grr_rdk_2503_s_66
+RDK_KLM_VERSION         ?= grr_2503
+RDK_TOOLS_VERSION       ?= grr_2503
 RDK_LTTNG_ENABLE        ?= false
 INCLUDE_UPDATES         ?= true
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.tgz
@@ -92,8 +92,8 @@ LAYERS           += $(TOP)/meta-intel
 SECURITY_URL      = https://git.yoctoproject.org/meta-security
 LAYERS           += $(TOP)/meta-security
 
-META_ROS          = https://github.com/bmwcarit/meta-ros.git
-LAYERS           += $(TOP)/meta-ros
+CLANG_URL         = https://github.com/kraj/meta-clang.git
+LAYERS           += $(TOP)/meta-clang
 
 META_UPDATES_URL ?= https://github.com/axxia/meta-intel-axxia-updates.git
 LAYERS           += $(TOP)/meta-intel-axxia-updates
@@ -310,6 +310,10 @@ $(TOP)/poky: $(TOP)/meta-intel-axxia
 
 $(TOP)/meta-security: $(TOP)/meta-intel-axxia
 	$(call  populate,$@,$(SECURITY_URL))
+	$(call  checkout_layer_from_file,$@)
+
+$(TOP)/meta-clang: $(TOP)/meta-intel-axxia
+	$(call  populate,$@,$(CLANG_URL))
 	$(call  checkout_layer_from_file,$@)
 
 $(TOP)/meta-intel-axxia-updates: $(TOP)/meta-intel-axxia-updates
