@@ -35,14 +35,12 @@ INCLUDE_RDK             := false
 INCLUDE_RDK_TOOLS       ?= false
 INCLUDE_SIMICSFS        ?= true
 INCLUDE_UPDATES         ?= false
-LINUX_VERSION           ?= v6.11
+LINUX_VERSION           ?= v6.13
 LINUX_CONF              ?= $(TOP)/linux.conf
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_s_dcb78ead
-RDK_KLM_VERSION         ?= pmr_del3
-RDK_TOOLS_VERSION       ?= pmr_del3
+META_AXXIA_REL          ?= pmr_s_051583e7
+RDK_TOOLS_VERSION       ?= pmr_del4
 RDK_LTTNG_ENABLE        ?= false
-RDK_KLM_ARCHIVE         ?= rdk_klm_src.tgz
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
 RDK_TOOLS_ARCHIVE       ?= rdk_user_src.tgz
@@ -50,8 +48,14 @@ USE_RDK_REPO            ?= false
 RDK_REPO                ?= https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
 SIMICS_FILE             ?= $(word 1,$(wildcard $(TOP)/pmr_ase_svl_vp*))
 
-PREFERRED_PROVIDER_virtual/kernel   := "linux-korg"
-KORG_VERSION                         = $(LINUX_VERSION)
+#
+# Specify the kernel source tree and version
+#
+KERNEL_SOURCE                       ?= "linux-korg-netnext"
+KORG_NETNEXT_EXTRA_PATH             ?= $(TOP)/pmr_rdk_klm_src
+PREFERRED_PROVIDER_virtual/kernel   ?= "$(KERNEL_SOURCE)"
+KORG_VERSION                        ?= $(LINUX_VERSION)
+KBRANCH_INTEL_PRIVATE               ?= $(META_AXXIA_REL)
 
 ifeq ($(wildcard $(LINUX_CONF)),)
     $(error LINUX_CONF needs to point to a valid Linux configuration file)
@@ -214,6 +218,10 @@ help:
 	echo "    Build and Install SDK with RDK in-tree" ; \
 	echo "$$ make craff_gen META_AXXIA_REL=<tag-name>" ; \
 	echo "    Create yocto.craff image from .wic after building sdk\n"; \
+	echo "$$ make fs craff_gen KERNEL_SOURCE=linux-intel-private KBRANCH_INTEL_PRIVATE=<user-branch>" ; \
+	echo "    Build the linux kernel from a specific branch of the" ; \
+	echo "    specified kernel tree." ; \
+	echo "    Defaults to linux-korg" ; \
 	echo ; \
         echo "Parameters" ; \
         echo "----------" ; \
@@ -239,9 +247,6 @@ help:
 	echo "RDK_SRC_PATH=<Location-of-RDK-Archives>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>"; \
-	echo "RDK_KLM_ARCHIVE=<Name-of-RDK-KLM-Archive>"; \
-	echo "    Required: when INCLUDE_RDK='true'"; \
-	echo "    Default:  <current-dir>/rdk_klm_src.tgz"; \
 	echo "RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>"; \
 	echo "    Required: when INCLUDE_RDK='true' and INCLUDE_RDK_TOOLS='true'"; \
 	echo "    Default:  <current-dir>/rdk_user_src.tgz"; \
@@ -340,7 +345,7 @@ endif
 .PHONY: qsp
 qsp: BB_IMAGE_TYPE=axxia-image-qsp
 qsp: get-simics $(LAYERS)
-	$(call setup_conf)                                          ; \
+	$(call setup_conf) ; \
 	echo "DISTRO_FEATURES:append = \" qsp\"" >> conf/local.conf ; \
 	$(call bitbake, $(BB_IMAGE_TYPE))
 
@@ -353,21 +358,23 @@ build: get-rdk get-simics $(LAYERS)
 		sed -i '/^PREFERRED_PROVIDER_virtual\/kernel/ d' conf/local.conf ; \
 		sed -i '/^PREFERRED_VERSION_linux/ d' conf/local.conf ; \
 		echo "PREFERRED_PROVIDER_virtual/kernel = \"$(PREFERRED_PROVIDER_virtual/kernel)\"" >> conf/local.conf ; \
-		echo "KORG_VERSION = \"$(KORG_VERSION)\"" >> conf/local.conf ; \
+		if [[ $$KERNEL_SOURCE == "linux-korg-netnext" ]]; then \
+                        echo "KORG_VERSION = \"$(KORG_VERSION)\"" >> conf/local.conf ; \
+                        echo "KORG_NETNEXT_EXTRA_PATH = \"$(KORG_NETNEXT_EXTRA_PATH)\"" >> conf/local.conf ; \
+		elif [[ $$KERNEL_SOURCE == "linux-local" ]]; then \
+                        echo "LOCAL_KERNEL_PATH = \"$(LINUX_LOCAL_PATH)\"" >> conf/local.conf ; \
+                        echo "LOCAL_KERNEL_BRANCH = \"$(LINUX_LOCAL_BRANCH)\"" >> conf/local.conf ; \
+                        echo "LOCAL_DEFCONFIG = \"$(LINUX_LOCAL_DEFCONFIG)\"" >> conf/local.conf ; \
+		else  \
+			echo "KBRANCH_INTEL_PRIVATE = \"$(KBRANCH_INTEL_PRIVATE)\"" >> conf/local.conf ; \
+		fi ; \
 		echo "DISTRO_FEATURES:append = \" multilib\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
 			bitbake-layers add-layer -F $(TOP)/$(RDK_REPO_NAME) ; \
 			echo "DISTRO_FEATURES:append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
 			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
-			RC=$(grep IES_ENABLE_SHM conf/local.conf) ; \
-			if [[ $$RC == 0 ]]; then \
-				echo "s/IES_ENABLE_SHM.*$$/IES_ENABLE_SHM = \"$(IES_ENABLE_SHM)\"/g" > sed.tmp ; \
-				sed -i -f sed.tmp conf/local.conf ; \
-				rm -f sed.tmp ; \
-			else \
-				echo "IES_ENABLE_SHM = \"$(IES_ENABLE_SHM)\"" >> conf/local.conf ; \
-			fi ; \
+			echo "IES_ENABLE_SHM = \"$(IES_ENABLE_SHM)\"" >> conf/local.conf ; \
 			RC=$(grep RDK_LTTNG_ENABLE conf/local.conf) ; \
 			if [[ $$RC == 0 ]]; then \
 				echo "s/RDK_LTTNG_ENABLE.*$$/RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"/g" > sed.tmp ; \
@@ -385,13 +392,9 @@ build: get-rdk get-simics $(LAYERS)
 					echo "Error: RDK_REPO_REV not set. When USE_RDK_REPO is 'true', need to set RDK_REPO_REV to either a commit SHA or tag."; \
 					exit 1; \
 				fi ; \
-			else \
-				echo "RDK_KLM_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE)\"" >> conf/local.conf ; \
-				echo "RDK_KLM_VERSION = \"$(RDK_KLM_VERSION)\"" >> conf/local.conf ; \
-				if [[ "$(INCLUDE_RDK_TOOLS)" == "true" ]]; then \
-					echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
-					echo "RDK_TOOLS_VERSION = \"$(RDK_TOOLS_VERSION)\"" >> conf/local.conf ; \
-				fi ; \
+			elif [[ "$(INCLUDE_RDK_TOOLS)" == "true" ]]; then \
+				echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
+				echo "RDK_TOOLS_VERSION = \"$(RDK_TOOLS_VERSION)\"" >> conf/local.conf ; \
 			fi ; \
 		fi ; \
 		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
@@ -413,7 +416,6 @@ build: get-rdk get-simics $(LAYERS)
 get-rdk: $(LAYERS)
 ifeq ($(INCLUDE_RDK),true)
 ifeq ($(USE_RDK_REPO),false)
-	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_KLM_ARCHIVE))
 ifeq ($(INCLUDE_RDK_TOOLS),true)
 	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE))
 endif
@@ -434,7 +436,7 @@ ifeq ($(INCLUDE_SIMICSFS),true)
          echo "Extracting Simicsfs client"             ; \
          mkdir -p $(TOP)/$(AXXIA_REPO_NAME)/downloads/ ; \
          cd $(TOP)/$(AXXIA_REPO_NAME)/downloads        ; \
-         tar xz --wildcards -f $(SIMICS_FILE) ase/simics/simics*/src/misc ase/simics/simics*/linux64/bin ; \
+         tar xz --wildcards -f $(SIMICS_FILE) ase/simics/simics*/src/misc ase/simics/simics*/linux64/bin/craff ; \
          cd ase/simics                                 ; \
          rm -fr simics-qsp*                            ; \
          SIMICS_VER=`ls -d simics*`                    ; \

@@ -37,6 +37,10 @@ $ make clobber META_AXXIA_REL=<tag name>
 $ make help META_AXXIA_REL=<tag name>
     To print these usage instructions
 
+$ make fs craff_gen KERNEL_SOURCE=linux-intel-private KBRANCH_INTEL_PRIVATE=<user-branch>
+    Build the linux kernel from a specific branch of the specified kernel tree.
+    Defaults to linux-korg
+
 Parameters:
 
 META_AXXIA_REL=<tag-name>: Optional:
@@ -68,12 +72,6 @@ INCLUDE_SIMICSFS: Optional: Default = true:
 RDK_SRC_PATH=<Location-of-RDK-Archives>
     Required: when INCLUDE_RDK='true'
     Default:  <Current Directory>
-
-RDK_KLM_ARCHIVE=<Name-of-RDK-KLM-Archive>
-    Required: when INCLUDE_RDK='true'
-    Default: <Current Directory>/rdk_klm_src.tgz
-    Recomanded format is rdk_klm_src_<release-tag>.tgz; if no release tag present,
-    "unknown_release_info" string will be found in commit logs and staging path.
 
 RDK_TOOLS_ARCHIVE=<Name-of-RDK-USERSPACE-TOOLS-Archive>
     Required: when INCLUDE_RDK='true'
@@ -142,6 +140,31 @@ RDK_LTTNG_ENABLE=[true|false]
     Enable building RDK with LTTNG enabled in user space
     Defaults to 'false'
     When set to true, will build RDK with LTTNG enabled
+
+KERNEL_SOURCE=[linux-intel-private|linux-korg-netnext|linux-local]
+    Kernel source type.
+    Choices are : linux-korg-netnext, linux-intel-private, linux-local
+    Default is linux-korg-netnext.
+    Use this to build a specific linux kernel tree.
+
+KORG_NETNEXT_EXTRA_PATH=[path-to-dir-with-kernel-patches]
+    If KERNEL_SOURCE is specified as linux-korg-netnext,
+        this variable can point to patches to the kernel.
+	Assumption is that the patches will apply to the korg-netnext
+	using "git am".
+
+KBRANCH_INTEL_PRIVATE=<user-branch>
+    Branch to use on linux-intel-private.
+
+LINUX_LOCAL_PATH=<patch to a clone of Linux>
+    If KERNEL_SOURCE is linux-local, this is the location of the local
+    Linux clone.
+
+LINUX_LOCAL_BRANCH=<branch>
+    If KERNEL_SOURCE is linux-local, this is the branch to use.
+
+LINUX_LOCAL_DEFCONFIG=<Linux configuration>
+    If KERNEL_SOURCE is linux-local, this is the configuration to use.
 
 Manual Build Instructions
 -------------------------
