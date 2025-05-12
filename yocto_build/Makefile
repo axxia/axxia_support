@@ -53,6 +53,7 @@ SIMICS_FILE             ?= $(word 1,$(wildcard $(TOP)/pmr_ase_svl_vp*))
 #
 KERNEL_SOURCE                       ?= "linux-korg-netnext"
 KORG_NETNEXT_EXTRA_PATH             ?= $(TOP)/pmr_rdk_klm_src
+KORG_NETNEXT_REVISION               ?= $(file < $(KORG_NETNEXT_EXTRA_PATH)/netdev_commit_id.txt)
 PREFERRED_PROVIDER_virtual/kernel   ?= "$(KERNEL_SOURCE)"
 KORG_VERSION                        ?= $(LINUX_VERSION)
 KBRANCH_INTEL_PRIVATE               ?= $(META_AXXIA_REL)
@@ -361,6 +362,7 @@ build: get-rdk get-simics $(LAYERS)
 		if [[ $$KERNEL_SOURCE == "linux-korg-netnext" ]]; then \
                         echo "KORG_VERSION = \"$(KORG_VERSION)\"" >> conf/local.conf ; \
                         echo "KORG_NETNEXT_EXTRA_PATH = \"$(KORG_NETNEXT_EXTRA_PATH)\"" >> conf/local.conf ; \
+		        echo "KORG_NETNEXT_REVISION = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
 		elif [[ $$KERNEL_SOURCE == "linux-local" ]]; then \
                         echo "LOCAL_KERNEL_PATH = \"$(LINUX_LOCAL_PATH)\"" >> conf/local.conf ; \
                         echo "LOCAL_KERNEL_BRANCH = \"$(LINUX_LOCAL_BRANCH)\"" >> conf/local.conf ; \
