@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 LINUX_VERSION           ?= 6.6
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= grr_rdk_2503.02_s_66
-RDK_KLM_VERSION         ?= grr_2503.02
-RDK_TOOLS_VERSION       ?= grr_2503.02
+META_AXXIA_REL          ?= grr_rdk_2506_s_66
+RDK_KLM_VERSION         ?= grr_2506
+RDK_TOOLS_VERSION       ?= grr_2506
 RDK_LTTNG_ENABLE        ?= false
 INCLUDE_UPDATES         ?= true
 RDK_KLM_ARCHIVE         ?= rdk_klm_src.tgz
@@ -53,7 +53,7 @@ SIMICS_VERSION          ?= 6.0.166
 PREFERRED_VERSION_linux              = "PREFERRED_VERSION_linux-intel"
 PREFERRED_VERSION_linux-intel-debug  = "PREFERRED_VERSION_linux-intel-debug"
 PREFERRED_PROVIDER_virtual/kernel   := "linux-intel"
-ifeq (,$(filter $(LINUX_VERSION),5.10 6.6))
+ifeq (,$(filter $(LINUX_VERSION),6.6))
   $(error LINUX_VERSION is not set correctly, run 'make help' for usage)
 endif
 
@@ -266,7 +266,7 @@ help:
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
 	echo "    Default: 6.6" ; \
-	echo "    Supported versions : 5.10, 6.6"; \
+	echo "    Supported versions : 6.6"; \
 	echo "SIMICS_VERSION=<version>" ; \
 	echo "    Optional: when INCLUDE_SIMICSFS='true'" ; \
 	echo "    Default: 6.0.128" ; \
