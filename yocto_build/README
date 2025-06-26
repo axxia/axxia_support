@@ -141,6 +141,19 @@ RDK_LTTNG_ENABLE=[true|false]
     Defaults to 'false'
     When set to true, will build RDK with LTTNG enabled
 
+ROOTFS_EXTRA_SPACE=<extra-space>: Optional:
+    Add extra space in the rootfs partition from the WIC image
+    Specify as an integer value optionally followed by one
+    of the units
+        “k” or “K” for kilobyte,
+        “M” for megabyte or
+        “G” for gibibyte.
+    The default unit if none is given is M
+    to be enabled in the rootfs partition.
+    For instance, to add 10GB of extra space, specify:
+    ROOTFS_EXTRA_SPACE="10G"
+    Default : 1MB
+
 KERNEL_SOURCE=[linux-intel-private|linux-korg-netnext|linux-local]
     Kernel source type.
     Choices are : linux-korg-netnext, linux-intel-private, linux-local

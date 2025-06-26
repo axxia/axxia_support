@@ -35,11 +35,11 @@ INCLUDE_RDK             := false
 INCLUDE_RDK_TOOLS       ?= false
 INCLUDE_SIMICSFS        ?= true
 INCLUDE_UPDATES         ?= false
-LINUX_VERSION           ?= v6.13
+LINUX_VERSION           ?= v6.14
 LINUX_CONF              ?= $(TOP)/linux.conf
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_s_051583e7
-RDK_TOOLS_VERSION       ?= pmr_del4
+META_AXXIA_REL          ?= pmr_ase_del_5A
+RDK_TOOLS_VERSION       ?= pmr_del5A
 RDK_LTTNG_ENABLE        ?= false
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
@@ -47,6 +47,7 @@ RDK_TOOLS_ARCHIVE       ?= rdk_user_src.tgz
 USE_RDK_REPO            ?= false
 RDK_REPO                ?= https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
 SIMICS_FILE             ?= $(word 1,$(wildcard $(TOP)/pmr_ase_svl_vp*))
+ROOTFS_EXTRA_SPACE      ?= "1M"
 
 #
 # Specify the kernel source tree and version
@@ -202,7 +203,8 @@ define setup_conf
 	sed -i s/^BB_NUMBER_THREADS.*/BB_NUMBER_THREADS\ =\ \"$(BB_NUMBER_THREADS)\"/g conf/local.conf ; \
 	sed -i s/^PARALLEL_MAKE.*/PARALLEL_MAKE\ =\ \"$(PARALLEL_MAKE)\"/g conf/local.conf ; \
 	echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
-	echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf
+	echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
+	echo "WIC_ROOTFS_EXTRA_SPACE = \"$(ROOTFS_EXTRA_SPACE)\"" >> conf/local.conf
 endef
 
 help:
@@ -304,6 +306,18 @@ help:
 	echo "    A pre-populated shared download directory used for"; \
 	echo "    build time/space saving"; \
 	echo "    Defaults to $(BLDDIR)/downloads" ; \
+	echo "ROOTFS_EXTRA_SPACE=\"<extra-space>\": Optional: " ; \
+	echo "    Add extra space in the rootfs partition from the WIC image" ;\
+	echo "    Specify as an integer value optionally followed by one" ; \
+	echo "    of the units" ; \
+	echo "        \“k\” or \“K\” for kilobyte," ; \
+	echo "        \“M\” for megabyte or" ;  \
+	echo "        \“G\” for gibibyte." ; \
+	echo "    The default unit if none is given is M" ; \
+	echo "    to be enabled in the rootfs partition." ; \
+	echo "    For instance, to add 10GB of extra space, specify:" ; \
+	echo "    ROOTFS_EXTRA_SPACE=\"10G\"" ; \
+	echo "    Default : 1MB"
 
 all: fs
 
@@ -363,6 +377,8 @@ build: get-rdk get-simics $(LAYERS)
                         echo "KORG_VERSION = \"$(KORG_VERSION)\"" >> conf/local.conf ; \
                         echo "KORG_NETNEXT_EXTRA_PATH = \"$(KORG_NETNEXT_EXTRA_PATH)\"" >> conf/local.conf ; \
 		        echo "KORG_NETNEXT_REVISION = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
+			echo "SRCREV:pn-linux-korg-netnext = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
+                        echo "SRCREV:pn-linux-korg-netnext-debug = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
 		elif [[ $$KERNEL_SOURCE == "linux-local" ]]; then \
                         echo "LOCAL_KERNEL_PATH = \"$(LINUX_LOCAL_PATH)\"" >> conf/local.conf ; \
                         echo "LOCAL_KERNEL_BRANCH = \"$(LINUX_LOCAL_BRANCH)\"" >> conf/local.conf ; \
@@ -484,7 +500,7 @@ ifeq ($(INCLUDE_SIMICSFS),true)
 	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | grep bin | head -n 1) ; \
 	cd $(BLDDIR)/tmp/deploy/images/$(BB_MACHINE_NAME) ; \
 	IMAGE_SUFFIX=".rootfs.wic";         \
-	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).craff $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME)$${IMAGE_SUFFIX}
+	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).craff $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME)--$(META_AXXIA_REL)$${IMAGE_SUFFIX}
 endif
 
 clobber:
