@@ -140,6 +140,7 @@ RDK_LTTNG_ENABLE=[true|false]
     Enable building RDK with LTTNG enabled in user space
     Defaults to 'false'
     When set to true, will build RDK with LTTNG enabled
+    When set to false, will also disable all LTTng for kernel.
 
 ROOTFS_EXTRA_SPACE=<extra-space>: Optional:
     Add extra space in the rootfs partition from the WIC image

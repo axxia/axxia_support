@@ -38,8 +38,8 @@ INCLUDE_UPDATES         ?= false
 LINUX_VERSION           ?= v6.14
 LINUX_CONF              ?= $(TOP)/linux.conf
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del_5A
-RDK_TOOLS_VERSION       ?= pmr_del5A
+META_AXXIA_REL          ?= pmr_ase_del_5B
+RDK_TOOLS_VERSION       ?= pmr_del5B
 RDK_LTTNG_ENABLE        ?= false
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
@@ -279,6 +279,7 @@ help:
 	echo "    Enable building RDK with LTTNG enabled in user space" ; \
 	echo "    Defaults to 'false'" ; \
 	echo "    When set to true, will build RDK with LTTNG enabled" ; \
+	echo "    When set to false, will also disable all LTTng for kernel" ; \
 	echo "SIMICS_FILE=<Location-of-Simics-archive>: Required"; \
 	echo "    Default: <current-dir>/simics-*" ; \
 	echo "BLDDIR=<build dir>: Optional" ; \
@@ -385,6 +386,9 @@ build: get-rdk get-simics $(LAYERS)
                         echo "LOCAL_DEFCONFIG = \"$(LINUX_LOCAL_DEFCONFIG)\"" >> conf/local.conf ; \
 		else  \
 			echo "KBRANCH_INTEL_PRIVATE = \"$(KBRANCH_INTEL_PRIVATE)\"" >> conf/local.conf ; \
+		fi ; \
+		if [[ $(RDK_LTTNG_ENABLE) == "false" ]]; then \
+		    echo "LTTNG_SUPPORT=\"\"" >> conf/local.conf ; \
 		fi ; \
 		echo "DISTRO_FEATURES:append = \" multilib\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
