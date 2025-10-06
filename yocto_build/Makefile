@@ -30,24 +30,26 @@ BB_MACHINE_NAME         ?= intel-axxia-pmr
 BB_NO_NETWORK           ?= 0
 BB_NUMBER_THREADS       ?= "24"
 DL_DIR                  ?=
-IES_ENABLE_SHM          := false
-INCLUDE_RDK             := false
-INCLUDE_RDK_TOOLS       ?= false
+INCLUDE_RDK             ?= true
+INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 INCLUDE_UPDATES         ?= false
-LINUX_VERSION           ?= v6.14
+LINUX_VERSION           ?= v6.16
 LINUX_CONF              ?= $(TOP)/linux.conf
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del_5B
-RDK_TOOLS_VERSION       ?= pmr_del5B
+META_AXXIA_REL          ?= pmr_ase_del_6A
+RDK_TOOLS_VERSION       ?= pmr_del6A
 RDK_LTTNG_ENABLE        ?= false
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
-RDK_TOOLS_ARCHIVE       ?= rdk_user_src.tgz
+RDK_TOOLS_ARCHIVE       ?= pmr_rdk_user_src.tgz
 USE_RDK_REPO            ?= false
 RDK_REPO                ?= https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
 SIMICS_FILE             ?= $(word 1,$(wildcard $(TOP)/pmr_ase_svl_vp*))
 ROOTFS_EXTRA_SPACE      ?= "1M"
+
+# Allow for this to be overridden
+RELEASE_VERSION         ?= $(META_AXXIA_REL)
 
 #
 # Specify the kernel source tree and version
@@ -203,7 +205,7 @@ define setup_conf
 	sed -i s/^BB_NUMBER_THREADS.*/BB_NUMBER_THREADS\ =\ \"$(BB_NUMBER_THREADS)\"/g conf/local.conf ; \
 	sed -i s/^PARALLEL_MAKE.*/PARALLEL_MAKE\ =\ \"$(PARALLEL_MAKE)\"/g conf/local.conf ; \
 	echo "BB_NO_NETWORK = \"$(BB_NO_NETWORK)\"" >> conf/local.conf ; \
-	echo "RELEASE_VERSION = \"$(META_AXXIA_REL)\"" >> conf/local.conf ; \
+	echo "RELEASE_VERSION = \"$(RELEASE_VERSION)\"" >> conf/local.conf ; \
 	echo "WIC_ROOTFS_EXTRA_SPACE = \"$(ROOTFS_EXTRA_SPACE)\"" >> conf/local.conf
 endef
 
@@ -270,11 +272,6 @@ help:
 	echo "                    be statically linked in the linux kernel"; \
 	echo "    Optional: Applies only when INCLUDE_RDK='true'" ; \
 	echo "    Default:  false"; \
-	echo "IES_ENABLE_SHM=[true|false]:"; \
-	echo "    Enable building for RDK with IES in shared-memory or RPC mode" ; \
-	echo "    Defaults to 'false'" ; \
-	echo "    When set to true, will build IES in shared-memory mode" ; \
-	echo "    and when set to false, will build IES in RPC mode" ; \
 	echo "RDK_LTTNG_ENABLE=[true|false]:"; \
 	echo "    Enable building RDK with LTTNG enabled in user space" ; \
 	echo "    Defaults to 'false'" ; \
@@ -374,21 +371,21 @@ build: get-rdk get-simics $(LAYERS)
 		sed -i '/^PREFERRED_PROVIDER_virtual\/kernel/ d' conf/local.conf ; \
 		sed -i '/^PREFERRED_VERSION_linux/ d' conf/local.conf ; \
 		echo "PREFERRED_PROVIDER_virtual/kernel = \"$(PREFERRED_PROVIDER_virtual/kernel)\"" >> conf/local.conf ; \
-		if [[ $$KERNEL_SOURCE == "linux-korg-netnext" ]]; then \
+		if [[ "$(KERNEL_SOURCE)" == "linux-korg-netnext" ]]; then \
                         echo "KORG_VERSION = \"$(KORG_VERSION)\"" >> conf/local.conf ; \
                         echo "KORG_NETNEXT_EXTRA_PATH = \"$(KORG_NETNEXT_EXTRA_PATH)\"" >> conf/local.conf ; \
 		        echo "KORG_NETNEXT_REVISION = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
 			echo "SRCREV:pn-linux-korg-netnext = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
                         echo "SRCREV:pn-linux-korg-netnext-debug = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
-		elif [[ $$KERNEL_SOURCE == "linux-local" ]]; then \
+		elif [[ "$(KERNEL_SOURCE)" == "linux-local" ]]; then \
                         echo "LOCAL_KERNEL_PATH = \"$(LINUX_LOCAL_PATH)\"" >> conf/local.conf ; \
                         echo "LOCAL_KERNEL_BRANCH = \"$(LINUX_LOCAL_BRANCH)\"" >> conf/local.conf ; \
                         echo "LOCAL_DEFCONFIG = \"$(LINUX_LOCAL_DEFCONFIG)\"" >> conf/local.conf ; \
 		else  \
 			echo "KBRANCH_INTEL_PRIVATE = \"$(KBRANCH_INTEL_PRIVATE)\"" >> conf/local.conf ; \
 		fi ; \
-		if [[ $(RDK_LTTNG_ENABLE) == "false" ]]; then \
-		    echo "LTTNG_SUPPORT=\"\"" >> conf/local.conf ; \
+		if [[ "$(RDK_LTTNG_ENABLE)" == "false" ]]; then \
+		    echo "LTTNG_SUPPORT = \"\"" >> conf/local.conf ; \
 		fi ; \
 		echo "DISTRO_FEATURES:append = \" multilib\"" >> conf/local.conf ; \
 		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
@@ -396,7 +393,6 @@ build: get-rdk get-simics $(LAYERS)
 			echo "DISTRO_FEATURES:append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
 			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
 			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
-			echo "IES_ENABLE_SHM = \"$(IES_ENABLE_SHM)\"" >> conf/local.conf ; \
 			RC=$(grep RDK_LTTNG_ENABLE conf/local.conf) ; \
 			if [[ $$RC == 0 ]]; then \
 				echo "s/RDK_LTTNG_ENABLE.*$$/RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"/g" > sed.tmp ; \
@@ -487,7 +483,7 @@ ifdef SDK_INSTALL_DIR
 	cd $(BLDDIR)/tmp/deploy/sdk ; \
 	mkdir -p $(SDK_INSTALL_DIR) ; \
 	rm -rf $(SDK_INSTALL_DIR)/* ;\
-	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE)*toolchain-$(META_AXXIA_REL).sh -y -d $(SDK_INSTALL_DIR) ; \
+	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE)*toolchain--$(RELEASE_VERSION).sh -y -d $(SDK_INSTALL_DIR) ; \
 	cd $(SDK_INSTALL_DIR) ; \
 	unset LD_LIBRARY_PATH ; \
 	source environment-setup*; \
@@ -504,7 +500,7 @@ ifeq ($(INCLUDE_SIMICSFS),true)
 	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | grep bin | head -n 1) ; \
 	cd $(BLDDIR)/tmp/deploy/images/$(BB_MACHINE_NAME) ; \
 	IMAGE_SUFFIX=".rootfs.wic";         \
-	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).craff $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME)--$(META_AXXIA_REL)$${IMAGE_SUFFIX}
+	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).craff $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME)--$(RELEASE_VERSION)$${IMAGE_SUFFIX}
 endif
 
 clobber:
