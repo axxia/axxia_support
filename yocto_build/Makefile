@@ -26,6 +26,7 @@ TOP                     ?= $(shell pwd)
 SHELL                    = /bin/bash
 BLDDIR                  ?= $(TOP)/axxia
 BB_IMAGE_TYPE           ?= axxia-image-run
+BB_IMAGE_TYPE_SDK       ?= axxia-image-dev
 BB_MACHINE_NAME         ?= intel-axxia-pmr
 BB_NO_NETWORK           ?= 0
 BB_NUMBER_THREADS       ?= "24"
@@ -37,8 +38,8 @@ INCLUDE_UPDATES         ?= false
 LINUX_VERSION           ?= v6.16
 LINUX_CONF              ?= $(TOP)/linux.conf
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del_6B
-RDK_TOOLS_VERSION       ?= pmr_del6B
+META_AXXIA_REL          ?= pmr_ase_del_7A
+RDK_TOOLS_VERSION       ?= pmr_del7A
 RDK_LTTNG_ENABLE        ?= false
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
@@ -286,6 +287,11 @@ help:
 	echo "    The type of image to build"; \
 	echo "    Default: axxia-image-run" ; \
 	echo "    Other choices are: axxia-image-dev, axxia-image-small"; \
+	echo "BB_IMAGE_TYPE_SDK=<image name>: Optional"; \
+	echo "    Choose the image-type for the SDK build" ; \
+	echo "    This is needed only when running \"make sdk\"" ; \
+	echo "    Builds the SDK, including all the utilities" ; \
+	echo "    Default: axxia-image-dev" ; \
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
 	echo "LINUX_VERSION=<version>: Optional:"; \
@@ -474,7 +480,7 @@ fs: build
 	$(call bitbake, $(BB_IMAGE_TYPE))
 
 sdk: fs
-	$(call bitbake-task, $(BB_IMAGE_TYPE), populate_sdk)
+	$(call bitbake-task, $(BB_IMAGE_TYPE_SDK), populate_sdk)
 
 .PHONY: install-sdk
 install-sdk:
@@ -483,7 +489,7 @@ ifdef SDK_INSTALL_DIR
 	cd $(BLDDIR)/tmp/deploy/sdk ; \
 	mkdir -p $(SDK_INSTALL_DIR) ; \
 	rm -rf $(SDK_INSTALL_DIR)/* ;\
-	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE)*toolchain--$(RELEASE_VERSION).sh -y -d $(SDK_INSTALL_DIR) ; \
+	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE_SDK)*toolchain--$(RELEASE_VERSION).sh -y -d $(SDK_INSTALL_DIR) ; \
 	cd $(SDK_INSTALL_DIR) ; \
 	unset LD_LIBRARY_PATH ; \
 	source environment-setup*; \

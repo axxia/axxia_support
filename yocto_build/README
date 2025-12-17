@@ -121,6 +121,12 @@ BB_IMAGE_TYPE=<image name>: Optional
     Default: axxia-image-run
     Other choices are: axxia-image-dev, axxia-image-small
 
+BB_IMAGE_TYPE_SDK=<image name>: Optional
+    Choose the image-type for the SDK build
+    This is needed only when running "make sdk"
+    Builds the SDK, including all the utilities
+    Default: axxia-image-dev
+
 SDK_INSTALL_DIR=<sdk-install-location>
     Required when 'install-sdk' is called
 
