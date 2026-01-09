@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 LINUX_VERSION           ?= 6.6
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2507_s_66
-RDK_KLM_VERSION         ?= snr_2507
-RDK_TOOLS_VERSION       ?= snr_2507
+META_AXXIA_REL          ?= snr_rdk_2507.01_s_66
+RDK_KLM_VERSION         ?= snr_2507.01
+RDK_TOOLS_VERSION       ?= snr_2507.01
 RDK_LTTNG_ENABLE        ?= false
 LTTNG_VERSION           ?= "2.13%"
 INCLUDE_UPDATES         ?= true
@@ -414,7 +414,7 @@ ifdef SDK_INSTALL_DIR
 	cd $(BLDDIR)/tmp/deploy/sdk ; \
 	mkdir -p $(SDK_INSTALL_DIR) ; \
 	rm -rf $(SDK_INSTALL_DIR)/* ;\
-	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE)*toolchain-$(META_AXXIA_REL).sh -y -d $(SDK_INSTALL_DIR) ; \
+	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE)*toolchain--$(META_AXXIA_REL).sh -y -d $(SDK_INSTALL_DIR) ; \
 	cd $(SDK_INSTALL_DIR) ; \
 	unset LD_LIBRARY_PATH ; \
 	source environment-setup*; \
