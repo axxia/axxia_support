@@ -36,10 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 INCLUDE_UPDATES         ?= false
 LINUX_VERSION           ?= v6.16
-LINUX_CONF              ?= $(TOP)/linux.conf
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del7A
-RDK_TOOLS_VERSION       ?= pmr_del7A
+META_AXXIA_REL          ?= pmr_ase_del_7B
+RDK_TOOLS_VERSION       ?= pmr_del7B
 RDK_LTTNG_ENABLE        ?= false
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
@@ -61,10 +60,6 @@ KORG_NETNEXT_REVISION               ?= $(file < $(KORG_NETNEXT_EXTRA_PATH)/netde
 PREFERRED_PROVIDER_virtual/kernel   ?= "$(KERNEL_SOURCE)"
 KORG_VERSION                        ?= $(LINUX_VERSION)
 KBRANCH_INTEL_PRIVATE               ?= $(META_AXXIA_REL)
-
-ifeq ($(wildcard $(LINUX_CONF)),)
-    $(error LINUX_CONF needs to point to a valid Linux configuration file)
-endif
 
 META_AXXIA_DEPENDENCY               ?= $(TOP)/meta-intel-axxia/DEPENDENCIES.distro
 DISTRO                              := "intel-axxia"
@@ -238,8 +233,6 @@ help:
 	echo "    Defaults to https://github.com/axxia/meta-intel-axxia.git"; \
 	echo "META_AXXIA_DEPENDENCY=<File which contains commit ids of meta layers>: Optional:"; \
 	echo "    Defaults to <current-dir>/meta-intel-axxia/DEPENDENCIES.distro"; \
-	echo "LINUX_CONF: Required" ; \
-	echo "    Points to the location of the linux.conf file for the kernel" ; \
 	echo "INCLUDE_RDK: Optional: Default = true:" ; \
 	echo "    When set to 'true', builds RDK in-tree,"; \
 	echo "    Set to 'false' to only build Linux"; \
@@ -372,7 +365,7 @@ qsp: get-simics $(LAYERS)
 .PHONY: build
 build: get-rdk get-simics $(LAYERS)
 		$(call setup_conf) ; \
-		cp -pf $(LINUX_CONF) $(TOP)/meta-intel-axxia/meta-intel-distro/recipes-kernel/linux/defconfig ; \
+		cp -pf $(KORG_NETNEXT_EXTRA_PATH)/pmr_defconfig $(KORG_NETNEXT_EXTRA_PATH)/defconfig ; \
 		sed -i s/^RUNTARGET.*/RUNTARGET\ =\ \"$(RUNTARGET)\"/g conf/local.conf ; \
 		sed -i '/^PREFERRED_PROVIDER_virtual\/kernel/ d' conf/local.conf ; \
 		sed -i '/^PREFERRED_VERSION_linux/ d' conf/local.conf ; \
