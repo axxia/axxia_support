@@ -69,6 +69,14 @@ INCLUDE_SIMICSFS: Optional: Default = true:
           package (pmr_ase_svl_vp...tgz) to be co-located by default with
           the Makefile.
 
+INCLUDE_I3C_TOOLS: Optional : Detault = true
+    When set to 'true', includes the i3c-tools
+
+I3C_TOOLS_REPO: Optional : Default = public
+    Choices are : 'private' | 'public'
+    Only valid when INCLUDE_i3C_TOOLS is true
+    "private" points to Intel's internal repository
+
 RDK_SRC_PATH=<Location-of-RDK-Archives>
     Required: when INCLUDE_RDK='true'
     Default:  <Current Directory>

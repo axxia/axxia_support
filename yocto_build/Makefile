@@ -37,8 +37,8 @@ INCLUDE_SIMICSFS        ?= true
 INCLUDE_UPDATES         ?= false
 LINUX_VERSION           ?= v6.16
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del_7B
-RDK_TOOLS_VERSION       ?= pmr_del7B
+META_AXXIA_REL          ?= pmr_ase_del_8A
+RDK_TOOLS_VERSION       ?= pmr_del8A
 RDK_LTTNG_ENABLE        ?= false
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
@@ -47,6 +47,8 @@ USE_RDK_REPO            ?= false
 RDK_REPO                ?= https://github.com/intel-collab/networking.wireless.ran.bts-rdk-releases
 SIMICS_FILE             ?= $(word 1,$(wildcard $(TOP)/pmr_ase_svl_vp*))
 ROOTFS_EXTRA_SPACE      ?= "1M"
+INCLUDE_I3C_TOOLS       ?= true
+I3C_TOOLS_REPO          ?= public
 
 # Allow for this to be overridden
 RELEASE_VERSION         ?= $(META_AXXIA_REL)
@@ -243,6 +245,12 @@ help:
 	echo "INCLUDE_SIMICSFS: Optional: Default = true:" ; \
 	echo "    When set to 'true', builds with simics,"; \
 	echo "    Set to 'false' builds Linux without simics"; \
+	echo "INCLUDE_I3C_TOOLS: Optional : Detault = true" ; \
+	echo "    When set to 'true', includes the i3c-tools" ; \
+	echo "I3C_TOOLS_REPO: Optional : Default = public" ; \
+	echo "    Choices are : 'private' | 'public'" ; \
+	echo "    Only valid when INCLUDE_i3C_TOOLS is true" ; \
+	echo "    \"private\" points to Intel's internal repository" ; \
 	echo "RDK_SRC_PATH=<Location-of-RDK-Archives>"; \
 	echo "    Required: when INCLUDE_RDK='true'"; \
 	echo "    Default:  <current-dir>"; \
@@ -426,6 +434,10 @@ build: get-rdk get-simics $(LAYERS)
 		fi ; \
 		if [[ "$(INCLUDE_UPDATES)" == "true" ]]; then \
 			bitbake-layers add-layer -F $(TOP)/$(UPDATES_REPO_NAME); \
+		fi ; \
+		if [[ "$(INCLUDE_I3C_TOOLS)" == "true" ]]; then \
+			echo "IMAGE_INSTALL:append = \" i3c-tools\"" >> conf/local.conf ; \
+			echo "I3C_TOOLS_REPO = \"$(I3C_TOOLS_REPO)\"" >> conf/local.conf ; \
 		fi ; \
 		echo "MACHINE = \"$(BB_MACHINE_NAME)\"" >> conf/local.conf
 
