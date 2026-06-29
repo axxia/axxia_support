@@ -37,8 +37,8 @@ INCLUDE_SIMICSFS        ?= true
 INCLUDE_UPDATES         ?= false
 LINUX_VERSION           ?= v6.16
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del_8B
-RDK_TOOLS_VERSION       ?= pmr_del8B
+META_AXXIA_REL          ?= pmr_ase_del_9A
+RDK_TOOLS_VERSION       ?= pmr_del9A
 RDK_LTTNG_ENABLE        ?= false
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
@@ -49,6 +49,14 @@ SIMICS_FILE             ?= $(word 1,$(wildcard $(TOP)/pmr_ase_svl_vp*))
 ROOTFS_EXTRA_SPACE      ?= "1M"
 INCLUDE_I3C_TOOLS       ?= true
 I3C_TOOLS_REPO          ?= public
+#
+# Ethtool specific info. Required while upstream code is in-flight
+#
+IPROUTE2_VERSION        ?= "6.16%"
+ETHTOOL_VERSION         := "git"
+ETHTOOL_GIT_URL         ?= "https://kernel.googlesource.com/pub/scm/network/ethtool/ethtool"
+ETHTOOL_GIT_SRCREV      ?= master
+ETHTOOL_EXTRA_PATH      ?= $(TOP)/pmr_ethtool_patches
 
 # Allow for this to be overridden
 RELEASE_VERSION         ?= $(META_AXXIA_REL)
@@ -206,6 +214,45 @@ define setup_conf
 	echo "RELEASE_VERSION = \"$(RELEASE_VERSION)\"" >> conf/local.conf ; \
 	echo "WIC_ROOTFS_EXTRA_SPACE = \"$(ROOTFS_EXTRA_SPACE)\"" >> conf/local.conf
 endef
+
+define setup_rdk
+	if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
+		bitbake-layers add-layer -F $(TOP)/$(RDK_REPO_NAME) ; \
+		echo "DISTRO_FEATURES:append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
+		sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
+		sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
+		RC=$(grep RDK_LTTNG_ENABLE conf/local.conf) ; \
+		if [[ $$RC == 0 ]]; then \
+			echo "s/RDK_LTTNG_ENABLE.*$$/RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"/g" > sed.tmp ; \
+			sed -i -f sed.tmp conf/local.conf ; \
+			rm -f sed.tmp; \
+		else \
+			echo "RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"" >> conf/local.conf ; \
+		fi ; \
+		if [[ "$(USE_RDK_REPO)" == "true" ]]; then \
+			echo "USE_RDK_REPO = \"$(USE_RDK_REPO)\"" >> conf/local.conf ; \
+			echo "RDK_REPO = \"$(RDK_REPO)\"" >> conf/local.conf ; \
+			if [[ "x$(RDK_REPO_REV)" != "x" ]]; then \
+				echo "RDK_REPO_REV = \"$(RDK_REPO_REV)\"" >> conf/local.conf ; \
+			else \
+				echo "Error: RDK_REPO_REV not set. When USE_RDK_REPO is 'true', need to set RDK_REPO_REV to either a commit SHA or tag."; \
+				exit 1; \
+			fi ; \
+		elif [[ "$(INCLUDE_RDK_TOOLS)" == "true" ]]; then \
+			echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
+			echo "RDK_TOOLS_VERSION = \"$(RDK_TOOLS_VERSION)\"" >> conf/local.conf ; \
+		fi ; \
+	fi
+endef
+
+define setup_ethtool
+	echo "IPROUTE2_VERSION = \"$(IPROUTE2_VERSION)\"" >> conf/local.conf ; \
+	echo "ETHTOOL_VERSION = \"$(ETHTOOL_VERSION)\""   >> conf/local.conf ; \
+	echo "ETHTOOL_GIT_URL = \"$(ETHTOOL_GIT_URL)\""   >> conf/local.conf ; \
+	echo "ETHTOOL_GIT_SRCREV = \"$(ETHTOOL_GIT_SRCREV)\"" >> conf/local.conf ; \
+	echo "ETHTOOL_EXTRA_PATH = \"$(ETHTOOL_EXTRA_PATH)\"" >> conf/local.conf
+endef
+
 
 help:
 	@echo "USAGE:"; \
@@ -391,37 +438,12 @@ build: get-rdk get-simics $(LAYERS)
 		else  \
 			echo "KBRANCH_INTEL_PRIVATE = \"$(KBRANCH_INTEL_PRIVATE)\"" >> conf/local.conf ; \
 		fi ; \
+		$(call setup_ethtool) ; \
+		echo "DISTRO_FEATURES:append = \" multilib\"" >> conf/local.conf ; \
 		if [[ "$(RDK_LTTNG_ENABLE)" == "false" ]]; then \
 		    echo "LTTNG_SUPPORT = \"\"" >> conf/local.conf ; \
 		fi ; \
-		echo "DISTRO_FEATURES:append = \" multilib\"" >> conf/local.conf ; \
-		if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
-			bitbake-layers add-layer -F $(TOP)/$(RDK_REPO_NAME) ; \
-			echo "DISTRO_FEATURES:append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
-			sed -i '/^RDK_.*._ARCHIVE/ d' conf/local.conf ; \
-			sed -i '/^RDK_.*._VERSION/ d' conf/local.conf ; \
-			RC=$(grep RDK_LTTNG_ENABLE conf/local.conf) ; \
-			if [[ $$RC == 0 ]]; then \
-				echo "s/RDK_LTTNG_ENABLE.*$$/RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"/g" > sed.tmp ; \
-				sed -i -f sed.tmp conf/local.conf ; \
-				rm -f sed.tmp; \
-			else \
-				echo "RDK_LTTNG_ENABLE = \"$(RDK_LTTNG_ENABLE)\"" >> conf/local.conf ; \
-			fi ; \
-			if [[ "$(USE_RDK_REPO)" == "true" ]]; then \
-				echo "USE_RDK_REPO = \"$(USE_RDK_REPO)\"" >> conf/local.conf ; \
-				echo "RDK_REPO = \"$(RDK_REPO)\"" >> conf/local.conf ; \
-				if [[ "x$(RDK_REPO_REV)" != "x" ]]; then \
-					echo "RDK_REPO_REV = \"$(RDK_REPO_REV)\"" >> conf/local.conf ; \
-				else \
-					echo "Error: RDK_REPO_REV not set. When USE_RDK_REPO is 'true', need to set RDK_REPO_REV to either a commit SHA or tag."; \
-					exit 1; \
-				fi ; \
-			elif [[ "$(INCLUDE_RDK_TOOLS)" == "true" ]]; then \
-				echo "RDK_TOOLS_ARCHIVE = \"file://$(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE)\"" >> conf/local.conf ; \
-				echo "RDK_TOOLS_VERSION = \"$(RDK_TOOLS_VERSION)\"" >> conf/local.conf ; \
-			fi ; \
-		fi ; \
+		$(call setup_rdk) ; \
 		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
 			SIM_VER=`basename $(TOP)/$(AXXIA_REPO_NAME)/downloads/simics-*.tgz | sed 's/simics-//g' | sed 's/.tgz//g'` ; \
                         echo "SIMICS_VERSION = \"$$SIM_VER\"" >> conf/local.conf ;\
