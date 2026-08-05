@@ -37,8 +37,8 @@ INCLUDE_SIMICSFS        ?= true
 INCLUDE_UPDATES         ?= false
 LINUX_VERSION           ?= v6.16
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del_9A
-RDK_TOOLS_VERSION       ?= pmr_del9A
+META_AXXIA_REL          ?= pmr_ase_del_9B
+RDK_TOOLS_VERSION       ?= pmr_del9B
 RDK_LTTNG_ENABLE        ?= false
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
@@ -55,8 +55,9 @@ I3C_TOOLS_REPO          ?= public
 IPROUTE2_VERSION        ?= "6.16%"
 ETHTOOL_VERSION         := "git"
 ETHTOOL_GIT_URL         ?= "https://kernel.googlesource.com/pub/scm/network/ethtool/ethtool"
-ETHTOOL_GIT_SRCREV      ?= master
 ETHTOOL_EXTRA_PATH      ?= $(TOP)/pmr_ethtool_patches
+ETHTOOL_GIT_BRANCH      ?= "master"
+ETHTOOL_GIT_SRCREV      ?= $(shell cat $(ETHTOOL_EXTRA_PATH)/ethtool_base_commit.txt)
 
 # Allow for this to be overridden
 RELEASE_VERSION         ?= $(META_AXXIA_REL)
@@ -89,113 +90,141 @@ endif
 RM = $(Q)rm -f
 
 META_AXXIA_URL   ?= https://github.com/axxia/meta-intel-axxia.git
-LAYERS           += $(TOP)/meta-intel-axxia
-
-POKY_URL          = https://git.yoctoproject.org/poky
-LAYERS           += $(TOP)/poky
-
-OE_URL            = https://github.com/openembedded/meta-openembedded.git
-LAYERS           += $(TOP)/meta-openembedded
-
-VIRT_URL          = https://git.yoctoproject.org/meta-virtualization
-LAYERS           += $(TOP)/meta-virtualization
-
-INTEL_URL         = https://git.yoctoproject.org/meta-intel
-LAYERS           += $(TOP)/meta-intel
-
-SECURITY_URL      = https://git.yoctoproject.org/meta-security
-LAYERS           += $(TOP)/meta-security
-
-CLANG_URL         = https://github.com/kraj/meta-clang
-LAYERS           += $(TOP)/meta-clang
-
 META_UPDATES_URL ?= https://github.com/axxia/meta-intel-axxia-updates.git
+LAYERS           += $(TOP)/meta-intel-axxia
 LAYERS           += $(TOP)/meta-intel-axxia-updates
 
+# get_layers: clone or update every layer listed in DEPENDENCIES.distro.
+# Runs at recipe time so no parse-time access to the file is needed.
+# Uses the revision when set; falls back to the branch name.
+define get_layers
+	set -e                                                       ; \
+	echo "--- Fetching layers from $(META_AXXIA_DEPENDENCY) ---" ; \
+	_GL_TMP=$$(mktemp)                                           ; \
+	awk '/^[[:alpha:]][[:alnum:]_-]*[[:space:]]*$$/ &&             \
+	    !/^Dependencies/ && !/^Back/ {                             \
+	        if (layer != "" && uri != "")                          \
+		    printf "%s %s %s %s\n", layer, uri, branch, rev;   \
+	        layer=$$1; uri=""; branch=""; rev=""                   \
+	    }                                                          \
+	    /^URI:/      { uri=$$2 }                                   \
+	    /^branch:/   { branch=$$2 }                                \
+	    /^revision:/ { rev=$$2 }                                   \
+	    END { if (layer != "" && uri != "") printf "%s %s %s %s\n", layer, uri, branch, rev } \
+	' $(META_AXXIA_DEPENDENCY) > "$$_GL_TMP"                     ; \
+	while IFS=' ' read -r _gl_name _gl_uri _gl_branch _gl_rev; do  \
+	    _gl_ref="$${_gl_rev:-$$_gl_branch}"                      ; \
+	    echo "  $$_gl_name  =>  $$_gl_ref"                       ; \
+	    if [ ! -d "$(TOP)/$$_gl_name" ]; then                      \
+	        git clone "$$_gl_uri" "$(TOP)/$$_gl_name"            ; \
+	    else                                                       \
+	        git -C "$(TOP)/$$_gl_name" fetch --all -f            ; \
+	    fi                                                       ; \
+	    git -C "$(TOP)/$$_gl_name" checkout "$$_gl_ref"          ; \
+	done < "$$_GL_TMP"                                           ; \
+	rm -f "$$_GL_TMP"                                            ; \
+	echo "INFO: Meta-Layers fetched"
+endef
+
+# verify_layers: confirm every layer listed in DEPENDENCIES.distro is present.
+define verify_layers
+	set -e                                                       ; \
+	_VL_TMP=$$(mktemp)                                           ; \
+	awk '/^[[:alpha:]][[:alnum:]_-]*[[:space:]]*$$/ &&             \
+	     !/^Dependencies/ && !/^Back/ {                            \
+	        if (layer != "") print layer; layer=$$1                \
+	    }                                                          \
+	    END { if (layer != "") print layer }                       \
+	' $(META_AXXIA_DEPENDENCY) > "$$_VL_TMP"                     ; \
+	while IFS=' ' read -r _vl_name; do                             \
+	    [ -d "$(TOP)/$$_vl_name" ] ||                              \
+	        { echo "ERROR: layer '$$_vl_name' missing at $(TOP)/$$_vl_name — run 'make get_layers'"; \
+	          rm -f "$$_VL_TMP"; exit 1; }                       ; \
+	done < "$$_VL_TMP"                                           ; \
+	rm -f "$$_VL_TMP"                                            ; \
+	echo "INFO: All layers verified."
+endef
+
+# source-bb-env: determine the OE init layer by parsing DEPENDENCIES.distro.
+# 'poky' (used from v6.16+) takes precedence; falls back to 'openembedded-core'.
 define source-bb-env
-	cd $(TOP)/meta-intel-axxia               ; \
-	source meta-intel-distro/axxia-env       ; \
-	cd $(TOP)/poky                           ; \
+	set -e ; \
+	_OE_LAYER=$$(awk '\
+	    /^poky[[:space:]]*$$/         { print "poky";        exit } \
+	    /^openembedded-core[[:space:]]*$$/ {print "openembedded-core"; exit} \
+	' $(META_AXXIA_DEPENDENCY))                                   ; \
+	[ -n "$$_OE_LAYER" ] ||                                         \
+	    { echo "ERROR: 'poky' or 'openembedded-core' not found "; exit 1; } ; \
+	_OE_DIR="$(TOP)/$$_OE_LAYER"                                  ; \
+	cd $(TOP)/meta-intel-axxia                                    ; \
+	source meta-intel-distro/axxia-env                            ; \
+	cd "$$_OE_DIR"                                                ; \
 	source oe-init-build-env $(BLDDIR)
 endef
 
 define bitbake
-	set -e ; \
-	$(call source-bb-env) ; \
-	echo BLDDIR=$(BLDDIR) ; \
-	cd $(BLDDIR) ; \
-	bitbake -c cleanall $(1) ; \
+	set -e                                                        ; \
+	$(call source-bb-env)                                         ; \
+	echo BLDDIR=$(BLDDIR)                                         ; \
+	cd $(BLDDIR)                                                  ; \
+	bitbake -c cleanall $(1)                                      ; \
 	bitbake $(1)
 endef
 
 define bitbake-task
-	set -e ; \
-	$(call source-bb-env) ; \
-	cd $(BLDDIR) ; \
+	set -e                                                        ; \
+	$(call source-bb-env)                                         ; \
+	cd $(BLDDIR)                                                  ; \
 	bitbake $(1) -c $(2)
 endef
 
 define bitbake-cleansstate
-	set -e ; \
-	$(call source-bb-env) ; \
-	cd $(BLDDIR) ; \
-	CLEAN_TARGETS="virtual/kernel $(1)" ; \
+	set -e                                                        ; \
+	$(call source-bb-env)                                         ; \
+	cd $(BLDDIR)                                                  ; \
+	CLEAN_TARGETS="virtual/kernel $(1)"                           ; \
 	if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then CLEAN_TARGETS="$$CLEAN_TARGETS simicsfs-client" ; fi ; \
 	if [[ "$(INCLUDE_RDK)" = "true" && "$(INCLUDE_RDK_TOOLS)" = "true" ]]; then \
-		CLEAN_TARGETS="$$CLEAN_TARGETS rdk-tools linux-firmware" ; fi ; \
+		CLEAN_TARGETS="$$CLEAN_TARGETS rdk-tools linux-firmware";\
+	fi                                                             ; \
 	bitbake -c cleansstate $$CLEAN_TARGETS
 endef
 
 define populate
-	echo "$(1)";
-	set -e ; \
-	if [ ! -d "$(1)" ]; then \
-	    echo "Cloning Repo $(2)" ; \
-	    git clone $(2) $(1); \
-	else \
-	    echo "Pull on Repo $(2)" ; \
-	    cd $(1); \
-            git clean -dfx; \
-	    git fetch --all -f ; \
-	fi;
+	echo "$(1)"                                                    ; \
+	set -e                                                         ; \
+	if [ ! -d "$(1)" ]; then                                         \
+	    echo "Cloning Repo $(2)"                                   ; \
+	    git clone $(2) $(1)                                        ; \
+	else                                                             \
+	    echo "Pull on Repo $(2)"                                   ; \
+	    cd $(1)                                                    ; \
+            git clean -dfx                                             ; \
+	    git fetch --all -f                                         ; \
+	fi
 endef
 
 #
 # Default to main if branch not available.
 #
 define checkout_rev_main
-	set -e ; \
-	(git -C $(1) show-branch origin/$(2) &>/dev/null) && \
-		(git -C $(1) checkout $(2)) || \
+	set -e                                                         ; \
+	(git -C $(1) show-branch origin/$(2) &>/dev/null) &&             \
+		(git -C $(1) checkout $(2)) ||                           \
 		(git -C $(1) checkout main)
 endef
 
 define checkout_rev
-	set -e ; \
+	set -e                                                         ; \
 	git -C $(1) checkout $(2)
 endef
 
 define check-file-exists
-        echo "Checking for file: $(1)"; \
-	if [ ! -f $(1) ]; then \
-		echo "Error: $(1) is not present"; \
-		exit 1; \
+        echo "Checking for file: $(1)"                                 ; \
+	if [ ! -f $(1) ]; then                                           \
+		echo "Error: $(1) is not present"                      ; \
+		exit 1                                                 ; \
 	fi
-endef
-
-define checkout_layer_from_file
-	$(call check-file-exists, $(META_AXXIA_DEPENDENCY))
-	set -e ; \
-	BASE_LAYER=`basename $(1)`;\
-	REV=`awk -v layer=$$BASE_LAYER '{\
-	if($$0 ~ "^Dependencies" ) start_parse=1;\
-	if($$0 ~ "^Back Ported" ) start_parse=0;\
-	if(start_parse == 1 && $$0 ~ "URI" && $$0 ~ layer) parse_layer=1;\
-	if(parse_layer == 1 && $$0 ~ "^revision") { print $$2; parse_layer=0; }\
-	}' $(META_AXXIA_DEPENDENCY)`;\
-	if [ -z "$$REV" ]; then echo "ERROR: Checkout REV of $$BASE_LAYER could not be read"; exit 1; fi; \
-        echo "REPO: $$BASE_LAYER, REV: $$REV" ; \
-        git -C $(1) checkout $$REV
 endef
 
 define setup_conf
@@ -215,7 +244,27 @@ define setup_conf
 	echo "WIC_ROOTFS_EXTRA_SPACE = \"$(ROOTFS_EXTRA_SPACE)\"" >> conf/local.conf
 endef
 
+define setup_kernel
+	cp -pf $(KORG_NETNEXT_EXTRA_PATH)/pmr_defconfig $(KORG_NETNEXT_EXTRA_PATH)/defconfig ; \
+	if [[ "$(KERNEL_SOURCE)" == "linux-korg-netnext" ]]; then \
+                echo "KORG_VERSION = \"$(KORG_VERSION)\"" >> conf/local.conf ; \
+                echo "KORG_NETNEXT_EXTRA_PATH = \"$(KORG_NETNEXT_EXTRA_PATH)\"" >> conf/local.conf ; \
+	        echo "KORG_NETNEXT_REVISION = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
+                echo "SRCREV:pn-linux-korg-netnext = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
+                echo "SRCREV:pn-linux-korg-netnext-debug = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
+	elif [[ "$(KERNEL_SOURCE)" == "linux-local" ]]; then \
+                echo "LOCAL_KERNEL_PATH = \"$(LINUX_LOCAL_PATH)\"" >> conf/local.conf ; \
+                echo "LOCAL_KERNEL_BRANCH = \"$(LINUX_LOCAL_BRANCH)\"" >> conf/local.conf ; \
+                echo "LOCAL_DEFCONFIG = \"$(LINUX_LOCAL_DEFCONFIG)\"" >> conf/local.conf ; \
+	else  \
+                echo "KBRANCH_INTEL_PRIVATE = \"$(KBRANCH_INTEL_PRIVATE)\"" >> conf/local.conf ; \
+	fi
+endef
+
 define setup_rdk
+	if [[ "$(RDK_LTTNG_ENABLE)" == "false" ]]; then \
+	    echo "LTTNG_SUPPORT = \"\"" >> conf/local.conf ; \
+	fi ; \
 	if [[ "$(INCLUDE_RDK)" == "true" ]]; then \
 		bitbake-layers add-layer -F $(TOP)/$(RDK_REPO_NAME) ; \
 		echo "DISTRO_FEATURES:append = \"$(DISTRO_FEATURES_append_intree)\"" >> conf/local.conf ; \
@@ -245,14 +294,157 @@ define setup_rdk
 	fi
 endef
 
+define setup_simicsfs
+	if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
+            SIM_VER=`basename $(TOP)/$(AXXIA_REPO_NAME)/downloads/simics-*.tgz | sed 's/simics-//g' | sed 's/.tgz//g'` ; \
+            echo "SIMICS_VERSION = \"$$SIM_VER\"" >> conf/local.conf       ; \
+            echo "DISTRO_FEATURES:append = \" simics\"" >> conf/local.conf ; \
+        else                                                                 \
+            sed -i /DISTRO_FEATURES:append.*simics/s/^/#/g conf/local.conf ; \
+	fi
+endef
+
+define setup_i3ctools
+	if [[ "$(INCLUDE_I3C_TOOLS)" == "true" ]]; then \
+	    echo "IMAGE_INSTALL:append = \" i3c-tools\"" >> conf/local.conf  ; \
+	    echo "I3C_TOOLS_REPO = \"$(I3C_TOOLS_REPO)\"" >> conf/local.conf ; \
+	fi
+endef
+
 define setup_ethtool
 	echo "IPROUTE2_VERSION = \"$(IPROUTE2_VERSION)\"" >> conf/local.conf ; \
 	echo "ETHTOOL_VERSION = \"$(ETHTOOL_VERSION)\""   >> conf/local.conf ; \
 	echo "ETHTOOL_GIT_URL = \"$(ETHTOOL_GIT_URL)\""   >> conf/local.conf ; \
+	echo "ETHTOOL_GIT_BRANCH = \"$(ETHTOOL_GIT_BRANCH)\"" >> conf/local.conf ; \
 	echo "ETHTOOL_GIT_SRCREV = \"$(ETHTOOL_GIT_SRCREV)\"" >> conf/local.conf ; \
 	echo "ETHTOOL_EXTRA_PATH = \"$(ETHTOOL_EXTRA_PATH)\"" >> conf/local.conf
 endef
 
+all: fs
+
+.PHONY: $(LAYERS)
+
+$(TOP)/meta-intel-axxia:
+	$(call  populate,$@,$(META_AXXIA_URL))
+	$(call  checkout_rev,$@,$(META_AXXIA_REL))
+
+$(TOP)/meta-intel-axxia-updates: $(TOP)/meta-intel-axxia
+ifeq ($(INCLUDE_UPDATES),true)
+	$(call  populate,$@,$(META_UPDATES_URL))
+	$(call  checkout_rev_main,$@,$(META_AXXIA_REL))
+endif
+
+.PHONY: qsp
+qsp: BB_IMAGE_TYPE=axxia-image-qsp
+qsp: get-simics $(TOP)/meta-intel-axxia
+	$(call get_layers)    ; \
+	$(call verify_layers) ; \
+	$(call setup_conf)    ; \
+	echo "DISTRO_FEATURES:append = \" qsp\"" >> conf/local.conf ; \
+	$(call bitbake, $(BB_IMAGE_TYPE))
+
+# create bitbake build
+.PHONY: build
+build: get-rdk get-simics $(TOP)/meta-intel-axxia $(TOP)/meta-intel-axxia-updates
+	$(call get_layers)    ; \
+	$(call verify_layers) ; \
+	$(call setup_conf)    ; \
+	sed -i s/^RUNTARGET.*/RUNTARGET\ =\ \"$(RUNTARGET)\"/g conf/local.conf ; \
+	sed -i '/^PREFERRED_PROVIDER_virtual\/kernel/ d' conf/local.conf ; \
+	sed -i '/^PREFERRED_VERSION_linux/ d' conf/local.conf ; \
+	echo "PREFERRED_PROVIDER_virtual/kernel = \"$(PREFERRED_PROVIDER_virtual/kernel)\"" >> conf/local.conf ; \
+	echo "DISTRO_FEATURES:append = \" multilib\"" >> conf/local.conf ; \
+	if [[ "$(DL_DIR)" != "" ]]; then \
+	    echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
+	fi ; \
+	if [[ "$(INCLUDE_UPDATES)" == "true" ]]; then \
+	    bitbake-layers add-layer -F $(TOP)/$(UPDATES_REPO_NAME); \
+	fi ; \
+	$(call setup_kernel)   ; \
+	$(call setup_ethtool)  ; \
+	$(call setup_rdk)      ; \
+	$(call setup_simicsfs) ; \
+	$(call setup_i3ctools) ; \
+	echo "MACHINE = \"$(BB_MACHINE_NAME)\"" >> conf/local.conf
+
+.PHONY: get-rdk
+get-rdk: $(TOP)/meta-intel-axxia
+ifeq ($(INCLUDE_RDK),true)
+ifeq ($(USE_RDK_REPO),false)
+ifeq ($(INCLUDE_RDK_TOOLS),true)
+	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE))
+endif
+endif
+ifeq ($(RDK_MODULES_STATIC),true)
+	(RDK_CFG=$(TOP)/$(RDK_REPO_NAME)/recipes-kernel/linux/frags/rdk-modules.cfg ; \
+	sed -i 's/=m$$/=y/' $$RDK_CFG ; \
+	cd `dirname $$RDK_CFG` ; \
+	git commit -a -m"Set modules to static for $(META_AXXIA_REL)")
+endif
+endif
+
+.PHONY: get-simics
+get-simics: $(TOP)/meta-intel-axxia
+ifeq ($(INCLUDE_SIMICSFS),true)
+	$(call check-file-exists, $(SIMICS_FILE))
+	(set -xe                                       ; \
+         echo "Extracting Simicsfs client"             ; \
+         mkdir -p $(TOP)/$(AXXIA_REPO_NAME)/downloads/ ; \
+         cd $(TOP)/$(AXXIA_REPO_NAME)/downloads        ; \
+         tar xz --wildcards -f $(SIMICS_FILE) ase/simics/simics*/src/misc ase/simics/simics*/linux64/bin/craff ; \
+         cd ase/simics                                 ; \
+         rm -fr simics-qsp*                            ; \
+         SIMICS_VER=`ls -d simics*`                    ; \
+         tar cfz $(TOP)/$(AXXIA_REPO_NAME)/downloads/$$SIMICS_VER.tgz $$SIMICS_VER ; \
+	 cd $(TOP)/$(AXXIA_REPO_NAME)/downloads        ; \
+	 echo "Created Simicsfs client $(TOP)/$(AXXIA_REPO_NAME)/downloads/$$SIMICS_VER.tgz")
+endif
+
+fs: build
+	$(call bitbake, $(BB_IMAGE_TYPE))
+
+sdk: fs
+	$(call bitbake-task, $(BB_IMAGE_TYPE_SDK), populate_sdk)
+
+.PHONY: install-sdk
+install-sdk:
+ifdef SDK_INSTALL_DIR
+	set -e                      ; \
+	cd $(BLDDIR)/tmp/deploy/sdk ; \
+	mkdir -p $(SDK_INSTALL_DIR) ; \
+	rm -rf $(SDK_INSTALL_DIR)/* ;\
+	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE_SDK)*toolchain--$(RELEASE_VERSION).sh -y -d $(SDK_INSTALL_DIR) ; \
+	cd $(SDK_INSTALL_DIR)       ; \
+	unset LD_LIBRARY_PATH       ; \
+	source environment-setup*   ; \
+	./external-modules-setup.sh
+else
+	$(error SDK_INSTALL_DIR is undefined, run 'make help' for usage)
+endif
+
+.PHONY: craff_gen
+craff_gen:
+ifeq ($(INCLUDE_SIMICSFS),true)
+	set -e ;                                    \
+	cd $(BLDDIR) ;                              \
+	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | grep bin | head -n 1) ; \
+	cd $(BLDDIR)/tmp/deploy/images/$(BB_MACHINE_NAME) ; \
+	IMAGE_SUFFIX=".rootfs.wic";         \
+	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).craff $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME)--$(RELEASE_VERSION)$${IMAGE_SUFFIX}
+endif
+
+clobber:
+	$(RM) -r $(BLDDIR)
+	$(RM) -r $(TOP)/poky
+	$(RM) -r $(TOP)/meta-*
+	$(RM) -r $(TOP)/openembedded-*
+	$(RM) -r $(TOP)/bitbake
+
+clean:
+	$(RM) -r $(BLDDIR)
+
+cleansstate: build
+	$(call bitbake-cleansstate, $(BB_IMAGE_TYPE))
 
 help:
 	@echo "USAGE:"; \
@@ -342,9 +534,6 @@ help:
 	echo "    Default: axxia-image-dev" ; \
 	echo "SDK_INSTALL_DIR=<sdk-install-location>"; \
 	echo "    Required when 'install-sdk' is called"; \
-	echo "LINUX_VERSION=<version>: Optional:"; \
-	echo "    Default: v6.11" ; \
-	echo "    Supported versions : v6.11"; \
 	echo "INCLUDE_UPDATES: Optional: Default = true" ; \
 	echo "    When set to 'true', will include meta-intel-axxia-updates Yocto"; \
 	echo "    layer with minimal changes to fix older Intel Axxia relases"; \
@@ -370,180 +559,4 @@ help:
 	echo "    For instance, to add 10GB of extra space, specify:" ; \
 	echo "    ROOTFS_EXTRA_SPACE=\"10G\"" ; \
 	echo "    Default : 1MB"
-
-all: fs
-
-.PHONY: $(LAYERS)
-
-$(TOP)/meta-intel-axxia:
-	$(call  populate,$@,$(META_AXXIA_URL))
-	$(call  checkout_rev,$@,$(META_AXXIA_REL))
-
-$(TOP)/meta-openembedded: $(TOP)/meta-intel-axxia
-	$(call  populate,$@,$(OE_URL))
-	$(call  checkout_layer_from_file,$@)
-
-$(TOP)/meta-virtualization: $(TOP)/meta-intel-axxia
-	$(call  populate,$@,$(VIRT_URL))
-	$(call  checkout_layer_from_file,$@)
-
-$(TOP)/meta-intel: $(TOP)/meta-intel-axxia
-	$(call  populate,$@,$(INTEL_URL))
-	$(call  checkout_layer_from_file,$@)
-
-$(TOP)/poky: $(TOP)/meta-intel-axxia
-	$(call  populate,$@,$(POKY_URL))
-	$(call  checkout_layer_from_file,$@)
-
-$(TOP)/meta-security: $(TOP)/meta-intel-axxia
-	$(call  populate,$@,$(SECURITY_URL))
-	$(call  checkout_layer_from_file,$@)
-
-$(TOP)/meta-clang: $(TOP)/meta-intel-axxia
-	$(call  populate,$@,$(CLANG_URL))
-	$(call  checkout_layer_from_file,$@)
-
-$(TOP)/meta-intel-axxia-updates: $(TOP)/meta-intel-axxia-updates
-ifeq ($(INCLUDE_UPDATES),true)
-	$(call  populate,$@,$(META_UPDATES_URL))
-	$(call  checkout_rev_main,$@,$(META_AXXIA_REL))
-endif
-
-.PHONY: qsp
-qsp: BB_IMAGE_TYPE=axxia-image-qsp
-qsp: get-simics $(LAYERS)
-	$(call setup_conf) ; \
-	echo "DISTRO_FEATURES:append = \" qsp\"" >> conf/local.conf ; \
-	$(call bitbake, $(BB_IMAGE_TYPE))
-
-# create bitbake build
-.PHONY: build
-build: get-rdk get-simics $(LAYERS)
-		$(call setup_conf) ; \
-		cp -pf $(KORG_NETNEXT_EXTRA_PATH)/pmr_defconfig $(KORG_NETNEXT_EXTRA_PATH)/defconfig ; \
-		sed -i s/^RUNTARGET.*/RUNTARGET\ =\ \"$(RUNTARGET)\"/g conf/local.conf ; \
-		sed -i '/^PREFERRED_PROVIDER_virtual\/kernel/ d' conf/local.conf ; \
-		sed -i '/^PREFERRED_VERSION_linux/ d' conf/local.conf ; \
-		echo "PREFERRED_PROVIDER_virtual/kernel = \"$(PREFERRED_PROVIDER_virtual/kernel)\"" >> conf/local.conf ; \
-		if [[ "$(KERNEL_SOURCE)" == "linux-korg-netnext" ]]; then \
-                        echo "KORG_VERSION = \"$(KORG_VERSION)\"" >> conf/local.conf ; \
-                        echo "KORG_NETNEXT_EXTRA_PATH = \"$(KORG_NETNEXT_EXTRA_PATH)\"" >> conf/local.conf ; \
-		        echo "KORG_NETNEXT_REVISION = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
-			echo "SRCREV:pn-linux-korg-netnext = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
-                        echo "SRCREV:pn-linux-korg-netnext-debug = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
-		elif [[ "$(KERNEL_SOURCE)" == "linux-local" ]]; then \
-                        echo "LOCAL_KERNEL_PATH = \"$(LINUX_LOCAL_PATH)\"" >> conf/local.conf ; \
-                        echo "LOCAL_KERNEL_BRANCH = \"$(LINUX_LOCAL_BRANCH)\"" >> conf/local.conf ; \
-                        echo "LOCAL_DEFCONFIG = \"$(LINUX_LOCAL_DEFCONFIG)\"" >> conf/local.conf ; \
-		else  \
-			echo "KBRANCH_INTEL_PRIVATE = \"$(KBRANCH_INTEL_PRIVATE)\"" >> conf/local.conf ; \
-		fi ; \
-		$(call setup_ethtool) ; \
-		echo "DISTRO_FEATURES:append = \" multilib\"" >> conf/local.conf ; \
-		if [[ "$(RDK_LTTNG_ENABLE)" == "false" ]]; then \
-		    echo "LTTNG_SUPPORT = \"\"" >> conf/local.conf ; \
-		fi ; \
-		$(call setup_rdk) ; \
-		if [[ "$(INCLUDE_SIMICSFS)" = "true" ]]; then \
-			SIM_VER=`basename $(TOP)/$(AXXIA_REPO_NAME)/downloads/simics-*.tgz | sed 's/simics-//g' | sed 's/.tgz//g'` ; \
-                        echo "SIMICS_VERSION = \"$$SIM_VER\"" >> conf/local.conf ;\
-                        echo "DISTRO_FEATURES:append = \" simics\"" >> conf/local.conf ;\
-                else \
-                        sed -i /DISTRO_FEATURES:append.*simics/s/^/#/g conf/local.conf; \
-		fi; \
-		if [[ "$(DL_DIR)" != "" ]]; then \
-			echo "DL_DIR = \"$(DL_DIR)\"" >> conf/local.conf; \
-		fi ; \
-		if [[ "$(INCLUDE_UPDATES)" == "true" ]]; then \
-			bitbake-layers add-layer -F $(TOP)/$(UPDATES_REPO_NAME); \
-		fi ; \
-		if [[ "$(INCLUDE_I3C_TOOLS)" == "true" ]]; then \
-			echo "IMAGE_INSTALL:append = \" i3c-tools\"" >> conf/local.conf ; \
-			echo "I3C_TOOLS_REPO = \"$(I3C_TOOLS_REPO)\"" >> conf/local.conf ; \
-		fi ; \
-		echo "MACHINE = \"$(BB_MACHINE_NAME)\"" >> conf/local.conf
-
-.PHONY: get-rdk
-get-rdk: $(LAYERS)
-ifeq ($(INCLUDE_RDK),true)
-ifeq ($(USE_RDK_REPO),false)
-ifeq ($(INCLUDE_RDK_TOOLS),true)
-	$(call check-file-exists, $(RDK_SRC_PATH)/$(RDK_TOOLS_ARCHIVE))
-endif
-endif
-ifeq ($(RDK_MODULES_STATIC),true)
-	(RDK_CFG=$(TOP)/$(RDK_REPO_NAME)/recipes-kernel/linux/frags/rdk-modules.cfg ; \
-	sed -i 's/=m$$/=y/' $$RDK_CFG ; \
-	cd `dirname $$RDK_CFG` ; \
-	git commit -a -m"Set modules to static for $(META_AXXIA_REL)")
-endif
-endif
-
-.PHONY: get-simics
-get-simics: $(LAYERS)
-ifeq ($(INCLUDE_SIMICSFS),true)
-	$(call check-file-exists, $(SIMICS_FILE))
-	(set -xe                                       ; \
-         echo "Extracting Simicsfs client"             ; \
-         mkdir -p $(TOP)/$(AXXIA_REPO_NAME)/downloads/ ; \
-         cd $(TOP)/$(AXXIA_REPO_NAME)/downloads        ; \
-         tar xz --wildcards -f $(SIMICS_FILE) ase/simics/simics*/src/misc ase/simics/simics*/linux64/bin/craff ; \
-         cd ase/simics                                 ; \
-         rm -fr simics-qsp*                            ; \
-         SIMICS_VER=`ls -d simics*`                    ; \
-         tar cfz $(TOP)/$(AXXIA_REPO_NAME)/downloads/$$SIMICS_VER.tgz $$SIMICS_VER ; \
-	 cd $(TOP)/$(AXXIA_REPO_NAME)/downloads        ; \
-	 echo "Created Simicsfs client $(TOP)/$(AXXIA_REPO_NAME)/downloads/$$SIMICS_VER.tgz")
-endif
-
-layer-list:
-	echo $(LAYERS)
-
-bbs: build
-	$(Q)cd $(BLDDIR) ; \
-	bash
-
-fs: build
-	$(call bitbake, $(BB_IMAGE_TYPE))
-
-sdk: fs
-	$(call bitbake-task, $(BB_IMAGE_TYPE_SDK), populate_sdk)
-
-.PHONY: install-sdk
-install-sdk:
-ifdef SDK_INSTALL_DIR
-	set -e ; \
-	cd $(BLDDIR)/tmp/deploy/sdk ; \
-	mkdir -p $(SDK_INSTALL_DIR) ; \
-	rm -rf $(SDK_INSTALL_DIR)/* ;\
-	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE_SDK)*toolchain--$(RELEASE_VERSION).sh -y -d $(SDK_INSTALL_DIR) ; \
-	cd $(SDK_INSTALL_DIR) ; \
-	unset LD_LIBRARY_PATH ; \
-	source environment-setup*; \
-	./external-modules-setup.sh ;
-else
-	$(error SDK_INSTALL_DIR is undefined, run 'make help' for usage)
-endif
-
-.PHONY: craff_gen
-craff_gen:
-ifeq ($(INCLUDE_SIMICSFS),true)
-	set -e ;                                    \
-	cd $(BLDDIR) ;                              \
-	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | grep bin | head -n 1) ; \
-	cd $(BLDDIR)/tmp/deploy/images/$(BB_MACHINE_NAME) ; \
-	IMAGE_SUFFIX=".rootfs.wic";         \
-	$(BLDDIR)/$$CRAFF_BIN -o $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME).craff $(BB_IMAGE_TYPE)-$(BB_MACHINE_NAME)--$(RELEASE_VERSION)$${IMAGE_SUFFIX}
-endif
-
-clobber:
-	$(RM) -r $(BLDDIR)
-	$(RM) -r $(TOP)/poky
-	$(RM) -r $(TOP)/meta-*
-
-clean:
-	$(RM) -r $(BLDDIR)
-
-cleansstate: build
-	$(call bitbake-cleansstate, $(BB_IMAGE_TYPE))
 
