@@ -37,8 +37,8 @@ INCLUDE_SIMICSFS        ?= true
 INCLUDE_UPDATES         ?= false
 LINUX_VERSION           ?= v6.16
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del_9B
-RDK_TOOLS_VERSION       ?= pmr_del9B
+META_AXXIA_REL          ?= pmr_ase_del_10A
+RDK_TOOLS_VERSION       ?= pmr_del10A
 RDK_LTTNG_ENABLE        ?= false
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
@@ -52,12 +52,20 @@ I3C_TOOLS_REPO          ?= public
 #
 # Ethtool specific info. Required while upstream code is in-flight
 #
-IPROUTE2_VERSION        ?= "6.16%"
 ETHTOOL_VERSION         := "git"
-ETHTOOL_GIT_URL         ?= "https://kernel.googlesource.com/pub/scm/network/ethtool/ethtool"
+ETHTOOL_GIT_URI         ?= "https://kernel.googlesource.com/pub/scm/network/ethtool/ethtool"
 ETHTOOL_EXTRA_PATH      ?= $(TOP)/pmr_ethtool_patches
 ETHTOOL_GIT_BRANCH      ?= "master"
 ETHTOOL_GIT_SRCREV      ?= $(shell cat $(ETHTOOL_EXTRA_PATH)/ethtool_base_commit.txt)
+
+#
+# iproute2 specific info. Required while upstream code is in-flight
+#
+IPROUTE2_VERSION        ?= "6.16%"
+IPROUTE2_GIT_URI        ?= "https://git.kernel.org/pub/scm/network/iproute2/iproute2.git"
+IPROUTE2_EXTRA_PATH     ?= $(TOP)/pmr_iproute2_patches
+IPROUTE2_GIT_BRANCH     ?= "main"
+IPROUTE2_GIT_SRCREV     ?= $(shell cat $(IPROUTE2_EXTRA_PATH)/iproute2_base_commit.txt)
 
 # Allow for this to be overridden
 RELEASE_VERSION         ?= $(META_AXXIA_REL)
@@ -312,12 +320,23 @@ define setup_i3ctools
 endef
 
 define setup_ethtool
-	echo "IPROUTE2_VERSION = \"$(IPROUTE2_VERSION)\"" >> conf/local.conf ; \
 	echo "ETHTOOL_VERSION = \"$(ETHTOOL_VERSION)\""   >> conf/local.conf ; \
-	echo "ETHTOOL_GIT_URL = \"$(ETHTOOL_GIT_URL)\""   >> conf/local.conf ; \
-	echo "ETHTOOL_GIT_BRANCH = \"$(ETHTOOL_GIT_BRANCH)\"" >> conf/local.conf ; \
+	echo "ETHTOOL_GIT_URI = \"$(ETHTOOL_GIT_URI)\""   >> conf/local.conf ; \
 	echo "ETHTOOL_GIT_SRCREV = \"$(ETHTOOL_GIT_SRCREV)\"" >> conf/local.conf ; \
+	if [ -n "$(ETHTOOL_GIT_SRCREV)" ]; then                                \
+	    echo "ETHTOOL_GIT_BRANCH = \"$(ETHTOOL_GIT_BRANCH)\"" >> conf/local.conf ; \
+	fi                                                                   ; \
 	echo "ETHTOOL_EXTRA_PATH = \"$(ETHTOOL_EXTRA_PATH)\"" >> conf/local.conf
+endef
+
+define setup_iproute2
+	echo "IPROUTE2_VERSION = \"$(IPROUTE2_VERSION)\"" >> conf/local.conf   ; \
+	echo "IPROUTE2_GIT_URI = \"$(IPROUTE2_GIT_URI)\""   >> conf/local.conf ; \
+	echo "IPROUTE2_GIT_SRCREV = \"$(IPROUTE2_GIT_SRCREV)\"" >> conf/local.conf ; \
+	if [ -n "$(IPROUTE2_GIT_SRCREV)" ]; then                                 \
+	    echo "IPROUTE2_GIT_BRANCH = \"$(IPROUTE2_GIT_BRANCH)\"" >> conf/local.conf ; \
+	fi ; \
+	echo "IPROUTE2_EXTRA_PATH = \"$(IPROUTE2_EXTRA_PATH)\"" >> conf/local.conf
 endef
 
 all: fs
@@ -362,6 +381,7 @@ build: get-rdk get-simics $(TOP)/meta-intel-axxia $(TOP)/meta-intel-axxia-update
 	fi ; \
 	$(call setup_kernel)   ; \
 	$(call setup_ethtool)  ; \
+	$(call setup_iproute2) ; \
 	$(call setup_rdk)      ; \
 	$(call setup_simicsfs) ; \
 	$(call setup_i3ctools) ; \
@@ -416,7 +436,7 @@ ifdef SDK_INSTALL_DIR
 	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE_SDK)*toolchain--$(RELEASE_VERSION).sh -y -d $(SDK_INSTALL_DIR) ; \
 	cd $(SDK_INSTALL_DIR)       ; \
 	unset LD_LIBRARY_PATH       ; \
-	source environment-setup*   ; \
+	source environment-setup*64* ; \
 	./external-modules-setup.sh
 else
 	$(error SDK_INSTALL_DIR is undefined, run 'make help' for usage)
