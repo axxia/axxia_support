@@ -35,10 +35,10 @@ INCLUDE_RDK             ?= true
 INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= true
 INCLUDE_UPDATES         ?= false
-LINUX_VERSION           ?= v6.16
+LINUX_VERSION           ?= v6.18
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= pmr_ase_del_10A
-RDK_TOOLS_VERSION       ?= pmr_del10A
+META_AXXIA_REL          ?= pmr_ase_del_10B
+RDK_TOOLS_VERSION       ?= pmr_del10B
 RDK_LTTNG_ENABLE        ?= false
 RDK_MODULES_STATIC      ?= false
 RDK_SRC_PATH            ?= $(TOP)
@@ -73,12 +73,19 @@ RELEASE_VERSION         ?= $(META_AXXIA_REL)
 #
 # Specify the kernel source tree and version
 #
-KERNEL_SOURCE                       ?= "linux-korg-netnext"
+KERNEL_SOURCE                       ?= "linux-intel-collab"
+
 KORG_NETNEXT_EXTRA_PATH             ?= $(TOP)/pmr_rdk_klm_src
 KORG_NETNEXT_REVISION               ?= $(file < $(KORG_NETNEXT_EXTRA_PATH)/netdev_commit_id.txt)
 PREFERRED_PROVIDER_virtual/kernel   ?= "$(KERNEL_SOURCE)"
 KORG_VERSION                        ?= $(LINUX_VERSION)
 KBRANCH_INTEL_PRIVATE               ?= $(META_AXXIA_REL)
+
+#
+# If using intel-collab, these vars need to overridden
+#
+INTEL_COLLAB_EXTRA_PATH             ?= $(TOP)/pmr_rdk_klm_src
+INTEL_COLLAB_REVISION               ?= $(file < $(INTEL_COLLAB_EXTRA_PATH)/netdev_commit_id.txt)
 
 META_AXXIA_DEPENDENCY               ?= $(TOP)/meta-intel-axxia/DEPENDENCIES.distro
 DISTRO                              := "intel-axxia"
@@ -260,6 +267,9 @@ define setup_kernel
 	        echo "KORG_NETNEXT_REVISION = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
                 echo "SRCREV:pn-linux-korg-netnext = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
                 echo "SRCREV:pn-linux-korg-netnext-debug = \"$(KORG_NETNEXT_REVISION)\"" >> conf/local.conf ; \
+	elif [[ "$(KERNEL_SOURCE)" == "linux-intel-collab" ]]; then \
+                echo "INTEL_COLLAB_REVISION = \"$(INTEL_COLLAB_REVISION)\"" >> conf/local.conf ; \
+                echo "INTEL_COLLAB_EXTRA_PATH = \"$(INTEL_COLLAB_EXTRA_PATH)\"" >> conf/local.conf ; \
 	elif [[ "$(KERNEL_SOURCE)" == "linux-local" ]]; then \
                 echo "LOCAL_KERNEL_PATH = \"$(LINUX_LOCAL_PATH)\"" >> conf/local.conf ; \
                 echo "LOCAL_KERNEL_BRANCH = \"$(LINUX_LOCAL_BRANCH)\"" >> conf/local.conf ; \
