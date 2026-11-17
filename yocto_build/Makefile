@@ -36,9 +36,9 @@ INCLUDE_RDK_TOOLS       ?= true
 INCLUDE_SIMICSFS        ?= false
 LINUX_VERSION           ?= 6.6
 PARALLEL_MAKE           := "-j $(BB_NUMBER_THREADS)"
-META_AXXIA_REL          ?= snr_rdk_2507.02_s_66
-RDK_KLM_VERSION         ?= snr_2507.02
-RDK_TOOLS_VERSION       ?= snr_2507.02
+META_AXXIA_REL          ?= snr_rdk_2507.03_s_66
+RDK_KLM_VERSION         ?= snr_2507.03
+RDK_TOOLS_VERSION       ?= snr_2507.03
 RDK_LTTNG_ENABLE        ?= false
 LTTNG_VERSION           ?= "2.13%"
 INCLUDE_UPDATES         ?= true
@@ -414,9 +414,9 @@ ifdef SDK_INSTALL_DIR
 	cd $(BLDDIR)/tmp/deploy/sdk ; \
 	mkdir -p $(SDK_INSTALL_DIR) ; \
 	rm -rf $(SDK_INSTALL_DIR)/* ;\
+	unset LD_LIBRARY_PATH ; \
 	./$(DISTRO)-glibc-x86_64-$(BB_IMAGE_TYPE)*toolchain--$(META_AXXIA_REL).sh -y -d $(SDK_INSTALL_DIR) ; \
 	cd $(SDK_INSTALL_DIR) ; \
-	unset LD_LIBRARY_PATH ; \
 	source environment-setup*; \
 	./external-modules-setup.sh ;
 else
@@ -430,7 +430,7 @@ ifeq ($(INCLUDE_SIMICSFS),true)
 	cd $(BLDDIR) ;                                      \
 	CRAFF_BIN=$$(find tmp/work/*/simicsfs-client -name craff | grep linux64 | grep bin | head -n 1) ; \
 	cd $(BLDDIR)/tmp/deploy/images/$(BB_MACHINE_NAME) ; \
-	if [ "$(LINUX_VERSION)" = "6.6" ]; then             \
+	if [[ "$(LINUX_VERSION)" == 6.* ]]; then             \
 		IMAGE_SUFFIX=".rootfs.wic";                 \
 	else                                                \
 		IMAGE_SUFFIX=".wic" ;                       \
